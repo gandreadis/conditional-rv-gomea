@@ -4,27 +4,36 @@ from rvgomea.run_config import RunConfig
 
 
 LINKAGE_MODEL_CODES = {
-    "UNIVARIATE": 1,
-    "FULL": -1,
-    "UCond-GG": -1011,
-    "UCond-FG": -1101,
-    "UCond-HG": -1111,
-    "MCond-HG": -100111,
+    "univariate": 1,
+    "full": -1,
+    "ucond-GG": -1011,
+    "ucond-fg": -1101,
+    "ucond-hg": -1111,
+    "mcond-hg": -100111,
 }
 
 PROBLEM_CODES = {
-    "SPHERE": 0,
-    "ROSENBROCK": 7,
+    "sphere": 0,
+    "rosenbrock": 7,
 }
 
 
-def run_rvgomea(config: RunConfig):
-    command = "./RV-GOMEA "
+def run_rvgomea(config: RunConfig, in_dir=None):
+    command = ""
+
+    if in_dir is not None:
+        command += f"mkdir -p {in_dir} && cd {in_dir} && (rm *.dat || true) && "
+
+    exe_path = os.path.join(os.path.dirname(__file__), "..", "RV-GOMEA")
+    command += f"{exe_path} "
+
+    # Write generational stats
+    command += "-s "
 
     # Set linkage model
-    if config.linkage_model not in LINKAGE_MODEL_CODES.keys():
+    if config.linkage_model.lower() not in LINKAGE_MODEL_CODES.keys():
         raise Exception(f"Unknown linkage model: {config.linkage_model}")
-    linkage_model_code = LINKAGE_MODEL_CODES[config.linkage_model]
+    linkage_model_code = LINKAGE_MODEL_CODES[config.linkage_model.lower()]
     command += f"-f {linkage_model_code} "
 
     # Set random seed
@@ -35,9 +44,9 @@ def run_rvgomea(config: RunConfig):
     command += "-r "
 
     # Set problem
-    if config.problem not in PROBLEM_CODES.keys():
+    if config.problem.lower() not in PROBLEM_CODES.keys():
         raise Exception(f"Unknown problem: {config.problem}")
-    problem_code = PROBLEM_CODES[config.problem]
+    problem_code = PROBLEM_CODES[config.problem.lower()]
     command += f"{problem_code} "
 
     # Set further parameters
@@ -58,3 +67,5 @@ def run_rvgomea(config: RunConfig):
 
     output = os.popen(command).read()
     print(output)
+
+    config.to_json("run_config.dat")

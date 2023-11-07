@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, is_dataclass, asdict
 
 from rvgomea.defaults import *
 
@@ -27,3 +28,14 @@ class RunConfig:
     max_num_seconds: float = DEFAULT_MAX_NUM_SECONDS
     max_no_improvement_stretch: int = DEFAULT_MAX_NO_IMPROVEMENT_STRETCH
     fitness_variance_tolerance: float = DEFAULT_FITNESS_VARIANCE_TOLERANCE
+
+    def to_json(self, filename: str):
+        with open(filename, "w") as f:
+            f.write(json.dumps(self, cls=EnhancedJSONEncoder, indent=4))
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if is_dataclass(o):
+            return asdict(o)
+        return super().default(o)

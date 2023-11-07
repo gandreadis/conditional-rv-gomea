@@ -1,5 +1,7 @@
 build/
 archive/
 
+test_run/
+
 random_seed.dat
 RV-GOMEA
