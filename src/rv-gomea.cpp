@@ -139,7 +139,7 @@ void rvg_t::parseOptions( int argc, char **argv, int *index )
                 case 'g': use_guidelines                = 1; break;
                 case 'b': black_box_evaluations         = 1; break;
                 case 'f': parseFOSElementSize( index, argc, argv ); break;
-                case 'S': fix_seed                      = 1; break;
+                case 'S': parseSeed(index, argc, argv);         break;
                 default : optionError( argv, *index );
                 }
             }
@@ -155,6 +155,21 @@ void rvg_t::parseFOSElementSize( int *index, int argc, char** argv )
 
     (*index)++;
     noError = noError && sscanf( argv[*index], "%d", &FOS_element_size );
+
+    if( !noError )
+    {
+        printf("Error parsing parameters.\n\n");
+
+        printUsage();
+    }
+}
+
+void rvg_t::parseSeed( int *index, int argc, char** argv )
+{
+    short noError = 1;
+
+    (*index)++;
+    noError = noError && sscanf( argv[*index], "%d", &random_seed );
 
     if( !noError )
     {

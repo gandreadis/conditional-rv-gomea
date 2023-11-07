@@ -735,7 +735,7 @@ void population_t::initializeFOS()
 		new_FOS = new fos_t(fitness->variable_interaction_graph,max_clique_size,include_cliques_as_fos_elements,include_full_fos_element);
 	}
 
-	new_FOS->print();
+//	new_FOS->print();
 	linkage_model = new_FOS;
 }
 
