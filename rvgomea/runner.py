@@ -1,7 +1,8 @@
 import os
 
+from rvgomea.convert_statistics import convert_statistics
 from rvgomea.run_config import RunConfig
-
+from rvgomea.run_result import RunResult
 
 LINKAGE_MODEL_CODES = {
     "univariate": 1,
@@ -18,11 +19,14 @@ PROBLEM_CODES = {
 }
 
 
-def run_rvgomea(config: RunConfig, in_dir=None):
+def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True) -> RunResult:
     command = ""
 
     if in_dir is not None:
-        command += f"mkdir -p {in_dir} && cd {in_dir} && (rm *.dat || true) && "
+        command += f"mkdir -p {in_dir} && cd {in_dir} && "
+
+    # Clear previous output files
+    command += "rm -f *.dat && rm -f *.csv && rm -f *.json && "
 
     exe_path = os.path.join(os.path.dirname(__file__), "..", "RV-GOMEA")
     command += f"{exe_path} "
@@ -66,6 +70,29 @@ def run_rvgomea(config: RunConfig, in_dir=None):
     command += f"{config.max_num_seconds} "
 
     output = os.popen(command).read()
-    print(output)
 
-    config.to_json("run_config.dat")
+    if show_output:
+        print(output)
+
+    processed_base_dir = os.getcwd()
+    if in_dir is not None:
+        processed_base_dir = in_dir
+
+    config.base_dir = processed_base_dir
+
+    # Save run config for future reference
+    config.to_json(os.path.join(processed_base_dir, "run_config.json"))
+
+    # Convert statistics to CSV
+    statistics = convert_statistics(os.path.join(processed_base_dir, "statistics.dat"),
+                                    os.path.join(processed_base_dir, "statistics.csv")
+                                    if save_statistics else None)
+    assert len(statistics) > 0, f"No generations were executed with RunConfig {config}"
+
+    succeeded = (statistics["best_objective"].iloc[-1] <= config.vtr and
+                 statistics["evaluations"].iloc[-1] <= config.max_num_evaluations)
+
+    if show_output:
+        print(f"Succeeded: {succeeded}")
+
+    return RunResult(config, statistics, succeeded)

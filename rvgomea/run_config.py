@@ -29,9 +29,15 @@ class RunConfig:
     max_no_improvement_stretch: int = DEFAULT_MAX_NO_IMPROVEMENT_STRETCH
     fitness_variance_tolerance: float = DEFAULT_FITNESS_VARIANCE_TOLERANCE
 
+    base_dir: str = ""
+    config_id: int = -1
+
     def to_json(self, filename: str):
         with open(filename, "w") as f:
             f.write(json.dumps(self, cls=EnhancedJSONEncoder, indent=4))
+
+    def copy(self):
+        return RunConfig(**self.__dict__)
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):

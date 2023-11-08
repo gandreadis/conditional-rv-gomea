@@ -514,8 +514,10 @@ void rvg_t::writeGenerationalStatisticsForOnePopulation( int population_index )
     else
         file = fopen( "statistics.dat", "a" );
 
-    sprintf( string, "%10d %11lf %11.3lf %20.15e %13e  ", populations.size(), fitness->number_of_evaluations, getTimer(), fitness->elitist_objective_value, fitness->elitist_constraint_value );
+    sprintf( string, "%10d %11lf %11.3lf %20.15e %13e  ", total_number_of_generations, fitness->number_of_evaluations, getTimer(), fitness->elitist_objective_value, fitness->elitist_constraint_value );
     fputs( string, file );
+
+    total_number_of_generations++;
 
     //sprintf( string, "[ %4d %6d %10d %13e %13e %13e %13e %13e %13e %13e %13e %13e ]", population_index, number_of_generations[population_index], population_sizes[population_index], distribution_multipliers[population_index][0], population_objective_best, population_objective_avg, population_objective_var, population_objective_worst, population_constraint_best, population_constraint_avg, population_constraint_var, population_constraint_worst );
     //fputs( string, file );

@@ -11,6 +11,7 @@ def main():
         description='Conditional version of the RV-GOMEA algorithm')
 
     parser.add_argument('-i', '--in-directory', type=str)
+    parser.add_argument('-o', '--show-output', action="store_true")
 
     parser.add_argument('-l', '--linkage-model', type=str, default=DEFAULT_LINKAGE_MODEL)
     parser.add_argument('-s', '--population-size', type=int, default=DEFAULT_POPULATION_SIZE)
@@ -53,7 +54,7 @@ def main():
         fitness_variance_tolerance=args.fitness_variance_tolerance,
     )
 
-    run_rvgomea(config, in_dir=args.in_directory)
+    run_rvgomea(config, in_dir=args.in_directory, show_output=args.show_output)
 
 
 if __name__ == '__main__':

@@ -1084,10 +1084,10 @@ void initializeRandomNumberGenerator( void )
 
 	arma_rng::set_seed(random_seed);
 
-    FILE *file;
-    file = fopen( "random_seed.dat", "w");
-    fprintf( file, "%ld\n", random_seed );
-    fclose(file);
+//    FILE *file;
+//    file = fopen( "random_seed.dat", "w");
+//    fprintf( file, "%ld\n", random_seed );
+//    fclose(file);
 
 }
 

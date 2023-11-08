@@ -2,6 +2,7 @@ build/
 archive/
 
 test_run/
+test_bisection/
 
 random_seed.dat
 RV-GOMEA

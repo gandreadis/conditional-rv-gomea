@@ -90,6 +90,7 @@ class rvg_t {
 		std::vector<population_t*> populations;
 		fitness_t *fitness;
 		int total_number_of_writes = 0.0;                              /* Total number of times a statistics file has been written. */
+        int total_number_of_generations = 0;
 		
 		/*-=-=-=-=-=-=-=-=-=-=-=- Options -=-=-=-=-=-=-=-=-=-=-=-=-*/
 		short  print_verbose_overview,                              /* Whether to print a overview of settings (0 = no). */
