@@ -7,19 +7,32 @@ from rvgomea.run_result import RunResult
 LINKAGE_MODEL_CODES = {
     "univariate": 1,
     "full": -1,
-    "ucond-GG": -1011,
-    "ucond-fg": -1101,
-    "ucond-hg": -1111,
-    "mcond-hg": -100111,
+    "lt-static-gbo": -4,
+    "lt-fb-online-unpruned": -5,
+    "lt-fb-online-pruned": -6,
+    "ucond-gg-gbo": -1010,
+    "ucond-fg-gbo": -1100,
+    "ucond-hg-gbo": -1110,
+    "mcond-hg-gbo": -100110,
+    "ucond-gg-fb": -1011,
+    "ucond-fg-fb": -1101,
+    "ucond-hg-fb": -1111,
+    "mcond-hg-fb": -100111,
+    "ucond-gg-fb-generic": -1012,
+    "ucond-fg-fb-generic": -1102,
+    "ucond-hg-fb-generic": -1112,
+    "mcond-hg-fb-generic": -100112,
 }
 
 PROBLEM_CODES = {
     "sphere": 0,
     "rosenbrock": 7,
+    "soreb": 13,
+    "osoreb": 16,
 }
 
 
-def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True) -> RunResult:
+def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True, save_fitness_dependencies=False) -> RunResult:
     command = ""
 
     if in_dir is not None:
@@ -34,6 +47,9 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     # Write generational stats
     command += "-s "
 
+    if save_fitness_dependencies:
+        command += "-d "
+
     # Set linkage model
     if config.linkage_model.lower() not in LINKAGE_MODEL_CODES.keys():
         raise Exception(f"Unknown linkage model: {config.linkage_model}")
@@ -43,6 +59,10 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     # Set random seed
     if config.random_seed >= 0:
         command += f"-S {config.random_seed} "
+
+    # Set black-box
+    if config.black_box:
+        command += f"-b "
 
     # Enable value to reach
     command += "-r "

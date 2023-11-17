@@ -41,7 +41,7 @@
 
 /*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
 double gomtime = 0.0;
-int    problem_index,                                 /* The index of the optimization problem. */
-       number_of_parameters;                          /* The number of parameters to be optimized. */
+int problem_index,                                 /* The index of the optimization problem. */
+number_of_parameters;                          /* The number of parameters to be optimized. */
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 

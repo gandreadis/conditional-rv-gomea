@@ -1,6 +1,6 @@
 build/
 archive/
-
+data/
 test_run/
 test_bisection/
 

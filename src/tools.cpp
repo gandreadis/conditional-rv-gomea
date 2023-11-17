@@ -37,39 +37,42 @@
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 #include "tools.h"
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-int64_t    random_seed = 0;                      /* The seed used for the random-number generator. */
+int64_t random_seed = 0;                      /* The seed used for the random-number generator. */
 
-long  timestamp_start,                       /* The time stamp in milliseconds for when the program was started. */
-      timestamp_start_after_init;            /* The time stamp in milliseconds for when the algorithm was started */
+long timestamp_start,                       /* The time stamp in milliseconds for when the program was started. */
+timestamp_start_after_init;            /* The time stamp in milliseconds for when the algorithm was started */
 
 double haveNextNextGaussian,             /* Internally used variable for sampling the normal distribution. */
-       nextNextGaussian;                     /* Internally used variable for sampling the normal distribution. */
+nextNextGaussian;                     /* Internally used variable for sampling the normal distribution. */
 
 int cholesky_fails = 0;
 short selection_during_gom,
-	  update_elitist_during_gom;
+        update_elitist_during_gom;
+
+short write_fitness_dependencies = 0;
+
+short fitness_based_conditional_factors = 1;
 
 /*-=-=-=-=-=-=-=-=-=-=-= Section Elementary Operations -=-=-=-=-=-=-=-=-=-=-*/
 /**
  * Allocates memory and exits the program in case of a memory allocation failure.
  */
-void *Malloc( long size )
-{
+void *Malloc(long size) {
     void *result;
 
-    result = (void *) malloc( size );
-    if( !result )
-    {
+    result = (void *) malloc(size);
+    if (!result) {
         printf("\n");
         printf("Error while allocating memory in Malloc( %ld ), aborting program.", size);
         printf("\n");
 
-        exit( 0 );
+        exit(0);
     }
 
-    return( result );
+    return (result);
 }
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
@@ -78,39 +81,36 @@ void *Malloc( long size )
 /**
  * Creates a new matrix with dimensions n x m.
  */
-double **matrixNew( int n, int m )
-{
-    int      i;
+double **matrixNew(int n, int m) {
+    int i;
     double **result;
 
-    result = (double **) malloc( n*( sizeof( double * ) ) );
-    for( i = 0; i < n; i++ )
-        result[i] = (double *) malloc( m*( sizeof( double ) ) );
+    result = (double **) malloc(n * (sizeof(double *)));
+    for (i = 0; i < n; i++)
+        result[i] = (double *) malloc(m * (sizeof(double)));
 
-    return( result );
+    return (result);
 }
 
 /**
  * Computes the dot product of two vectors of the same dimensionality n0.
  */
-double vectorDotProduct( double *vector0, double *vector1, int n0 )
-{
-    int    i;
+double vectorDotProduct(double *vector0, double *vector1, int n0) {
+    int i;
     double result;
 
     result = 0.0;
-    for( i = 0; i < n0; i++ )
-        result += vector0[i]*vector1[i];
-    
-    return( result );
+    for (i = 0; i < n0; i++)
+        result += vector0[i] * vector1[i];
+
+    return (result);
 }
 
 /**
  * Computes the Euclidean norm of a given vector.
  */
-double vectorNorm( double *vector0, int n0 )
-{
-    return( sqrt(vectorDotProduct( vector0, vector0, n0 )) );
+double vectorNorm(double *vector0, int n0) {
+    return (sqrt(vectorDotProduct(vector0, vector0, n0)));
 }
 
 /**
@@ -118,168 +118,147 @@ double vectorNorm( double *vector0, int n0 )
  * where matrix A has dimensions n0 x n1 and vector v has
  * dimensionality n1.
  */
-double *matrixVectorMultiplication( double **matrix, double *vector, int n0, int n1 )
-{
-    int     i;
+double *matrixVectorMultiplication(double **matrix, double *vector, int n0, int n1) {
+    int i;
     double *result;
 
-    result = (double *) malloc( n0*sizeof( double ) );
-    for( i = 0; i < n0; i++ )
-        result[i] = vectorDotProduct( matrix[i], vector, n1 );
+    result = (double *) malloc(n0 * sizeof(double));
+    for (i = 0; i < n0; i++)
+        result[i] = vectorDotProduct(matrix[i], vector, n1);
 
-    return( result );
+    return (result);
 }
 
-double *matrixVectorPartialMultiplication( double **matrix, double *vector, int n0, int n1, int number_of_elements, int *element_indices )
-{
-    int i,j,index;
+double *matrixVectorPartialMultiplication(double **matrix, double *vector, int n0, int n1, int number_of_elements,
+                                          int *element_indices) {
+    int i, j, index;
     double *result;
 
-    result = (double *) malloc( n0*sizeof( double ) );
-    for( i = 0; i < n0; i++ )
+    result = (double *) malloc(n0 * sizeof(double));
+    for (i = 0; i < n0; i++)
         result[i] = 0;
 
-    for( j = 0; j < number_of_elements; j++)
-    {
+    for (j = 0; j < number_of_elements; j++) {
         index = element_indices[j];
-        for( i = 0; i < n0; i++ )
-            result[i] += ( vector[index] * matrix[i][index] );
+        for (i = 0; i < n0; i++)
+            result[i] += (vector[index] * matrix[i][index]);
     }
 
     return result;
 }
+
 /**
  * Computes the matrix multiplication of two matrices A and B
  * of dimensions A: n0 x n1 and B: n1 x n2.
  */
-double **matrixMatrixMultiplication( double **matrix0, double **matrix1, int n0, int n1, int n2 )
-{
-    int     i, j, k;
+double **matrixMatrixMultiplication(double **matrix0, double **matrix1, int n0, int n1, int n2) {
+    int i, j, k;
     double **result;
 
-    result = (double **) malloc( n0*sizeof( double * ) );
-    for( i = 0; i < n0; i++ )
-        result[i] = (double *) malloc( n2*sizeof( double ) );
+    result = (double **) malloc(n0 * sizeof(double *));
+    for (i = 0; i < n0; i++)
+        result[i] = (double *) malloc(n2 * sizeof(double));
 
-    for( i = 0; i < n0; i++ )
-    {
-        for( j = 0; j < n2; j++ )
-        {
+    for (i = 0; i < n0; i++) {
+        for (j = 0; j < n2; j++) {
             result[i][j] = 0;
-            for( k = 0; k < n1; k++ )
-                result[i][j] += matrix0[i][k]*matrix1[k][j];
+            for (k = 0; k < n1; k++)
+                result[i][j] += matrix0[i][k] * matrix1[k][j];
         }
     }
 
-    return( result );
+    return (result);
 }
 
 /**
  * BLAS subroutine.
  */
-int blasDSWAP( int n, double *dx, int incx, double *dy, int incy )
-{
+int blasDSWAP(int n, double *dx, int incx, double *dy, int incy) {
     double dtmp;
 
-    if (n > 0)
-    {
-        incx *= sizeof( double );
-        incy *= sizeof( double );
+    if (n > 0) {
+        incx *= sizeof(double);
+        incy *= sizeof(double);
 
-        dtmp  = (*dx);
-        *dx   = (*dy);
-        *dy   = dtmp;
+        dtmp = (*dx);
+        *dx = (*dy);
+        *dy = dtmp;
 
-        while( (--n) > 0 )
-        {
+        while ((--n) > 0) {
             dx = (double *) ((char *) dx + incx);
             dy = (double *) ((char *) dy + incy);
-            dtmp = (*dx); *dx = (*dy); *dy = dtmp;
+            dtmp = (*dx);
+            *dx = (*dy);
+            *dy = dtmp;
         }
     }
 
-    return( 0 );
+    return (0);
 }
 
 /**
  * BLAS subroutine.
  */
-int blasDAXPY(int n, double da, double *dx, int incx, double *dy, int incy)
-{
+int blasDAXPY(int n, double da, double *dx, int incx, double *dy, int incy) {
     double dtmp0, dtmp, *dx0, *dy0;
 
-    if( n > 0 && da != 0. )
-    {
+    if (n > 0 && da != 0.) {
         incx *= sizeof(double);
         incy *= sizeof(double);
-        *dy  += da * (*dx);
+        *dy += da * (*dx);
 
-        if( (n & 1) == 0 )
-        {
-            dx   = (double *) ((char *) dx + incx);
-            dy   = (double *) ((char *) dy + incy);
+        if ((n & 1) == 0) {
+            dx = (double *) ((char *) dx + incx);
+            dy = (double *) ((char *) dy + incy);
             *dy += da * (*dx);
             --n;
         }
         n = n >> 1;
-        while( n > 0 )
-        {
-            dy0   = (double *) ((char *) dy + incy);
-            dy    = (double *) ((char *) dy0 + incy);
+        while (n > 0) {
+            dy0 = (double *) ((char *) dy + incy);
+            dy = (double *) ((char *) dy0 + incy);
             dtmp0 = (*dy0);
-            dtmp  = (*dy);
-            dx0   = (double *) ((char *) dx + incx);
-            dx    = (double *) ((char *) dx0 + incx);
-            *dy0  = dtmp0 + da * (*dx0);
-            *dy   = dtmp + da * (*dx);
+            dtmp = (*dy);
+            dx0 = (double *) ((char *) dx + incx);
+            dx = (double *) ((char *) dx0 + incx);
+            *dy0 = dtmp0 + da * (*dx0);
+            *dy = dtmp + da * (*dx);
             --n;
         }
     }
 
-    return( 0 );
+    return (0);
 }
 
 /**
  * BLAS subroutine.
  */
-void blasDSCAL( int n, double sa, double x[], int incx )
-{
+void blasDSCAL(int n, double sa, double x[], int incx) {
     int i, ix, m;
 
-    if( n <= 0 )
-    {
-    }
-    else if( incx == 1 )
-    {
+    if (n <= 0) {
+    } else if (incx == 1) {
         m = n % 5;
 
-        for( i = 0; i < m; i++ )
-        {
+        for (i = 0; i < m; i++) {
             x[i] = sa * x[i];
         }
 
-        for( i = m; i < n; i = i + 5 )
-        {
-            x[i]   = sa * x[i];
-            x[i+1] = sa * x[i+1];
-            x[i+2] = sa * x[i+2];
-            x[i+3] = sa * x[i+3];
-            x[i+4] = sa * x[i+4];
+        for (i = m; i < n; i = i + 5) {
+            x[i] = sa * x[i];
+            x[i + 1] = sa * x[i + 1];
+            x[i + 2] = sa * x[i + 2];
+            x[i + 3] = sa * x[i + 3];
+            x[i + 4] = sa * x[i + 4];
         }
-    }
-    else
-    {
-        if( 0 <= incx )
-        {
+    } else {
+        if (0 <= incx) {
             ix = 0;
-        }
-        else
-        {
-            ix = ( - n + 1 ) * incx;
+        } else {
+            ix = (-n + 1) * incx;
         }
 
-        for( i = 0; i < n; i++ )
-        {
+        for (i = 0; i < n; i++) {
             x[ix] = sa * x[ix];
             ix = ix + incx;
         }
@@ -289,76 +268,64 @@ void blasDSCAL( int n, double sa, double x[], int incx )
 /**
  * LINPACK subroutine.
  */
-int linpackDCHDC( double a[], int lda, int p, double work[], int ipvt[] )
-{
-    int    info, j, jp, k, l, maxl, pl, pu;
+int linpackDCHDC(double a[], int lda, int p, double work[], int ipvt[]) {
+    int info, j, jp, k, l, maxl, pl, pu;
     double maxdia, temp;
 
-    pl   = 1;
-    pu   = 0;
+    pl = 1;
+    pu = 0;
     info = p;
-    for( k = 1; k <= p; k++ )
-    {
-        maxdia = a[k-1+(k-1)*lda];
-        maxl   = k;
-        if( pl <= k && k < pu )
-        {
-            for( l = k+1; l <= pu; l++ )
-            {
-                if( maxdia < a[l-1+(l-1)*lda] )
-                {
-                    maxdia = a[l-1+(l-1)*lda];
-                    maxl   = l;
+    for (k = 1; k <= p; k++) {
+        maxdia = a[k - 1 + (k - 1) * lda];
+        maxl = k;
+        if (pl <= k && k < pu) {
+            for (l = k + 1; l <= pu; l++) {
+                if (maxdia < a[l - 1 + (l - 1) * lda]) {
+                    maxdia = a[l - 1 + (l - 1) * lda];
+                    maxl = l;
                 }
             }
         }
 
-        if( maxdia <= 0.0 )
-        {
+        if (maxdia <= 0.0) {
             info = k - 1;
 
-            return( info );
+            return (info);
         }
 
-        if( k != maxl )
-        {
-            blasDSWAP( k-1, a+0+(k-1)*lda, 1, a+0+(maxl-1)*lda, 1 );
+        if (k != maxl) {
+            blasDSWAP(k - 1, a + 0 + (k - 1) * lda, 1, a + 0 + (maxl - 1) * lda, 1);
 
-            a[maxl-1+(maxl-1)*lda] = a[k-1+(k-1)*lda];
-            a[k-1+(k-1)*lda]       = maxdia;
-            jp                     = ipvt[maxl-1];
-            ipvt[maxl-1]           = ipvt[k-1];
-            ipvt[k-1]              = jp;
+            a[maxl - 1 + (maxl - 1) * lda] = a[k - 1 + (k - 1) * lda];
+            a[k - 1 + (k - 1) * lda] = maxdia;
+            jp = ipvt[maxl - 1];
+            ipvt[maxl - 1] = ipvt[k - 1];
+            ipvt[k - 1] = jp;
         }
-        work[k-1]        = sqrt( a[k-1+(k-1)*lda] );
-        a[k-1+(k-1)*lda] = work[k-1];
+        work[k - 1] = sqrt(a[k - 1 + (k - 1) * lda]);
+        a[k - 1 + (k - 1) * lda] = work[k - 1];
 
-        for( j = k+1; j <= p; j++ )
-        {
-            if( k != maxl )
-            {
-                if( j < maxl )
-                {
-                    temp                = a[k-1+(j-1)*lda];
-                    a[k-1+(j-1)*lda]    = a[j-1+(maxl-1)*lda];
-                    a[j-1+(maxl-1)*lda] = temp;
-                }
-                else if ( maxl < j )
-                {
-                    temp                = a[k-1+(j-1)*lda];
-                    a[k-1+(j-1)*lda]    = a[maxl-1+(j-1)*lda];
-                    a[maxl-1+(j-1)*lda] = temp;
+        for (j = k + 1; j <= p; j++) {
+            if (k != maxl) {
+                if (j < maxl) {
+                    temp = a[k - 1 + (j - 1) * lda];
+                    a[k - 1 + (j - 1) * lda] = a[j - 1 + (maxl - 1) * lda];
+                    a[j - 1 + (maxl - 1) * lda] = temp;
+                } else if (maxl < j) {
+                    temp = a[k - 1 + (j - 1) * lda];
+                    a[k - 1 + (j - 1) * lda] = a[maxl - 1 + (j - 1) * lda];
+                    a[maxl - 1 + (j - 1) * lda] = temp;
                 }
             }
-            a[k-1+(j-1)*lda] = a[k-1+(j-1)*lda] / work[k-1];
-            work[j-1]        = a[k-1+(j-1)*lda];
-            temp             = -a[k-1+(j-1)*lda];
+            a[k - 1 + (j - 1) * lda] = a[k - 1 + (j - 1) * lda] / work[k - 1];
+            work[j - 1] = a[k - 1 + (j - 1) * lda];
+            temp = -a[k - 1 + (j - 1) * lda];
 
-            blasDAXPY( j-k, temp, work+k, 1, a+k+(j-1)*lda, 1 );
+            blasDAXPY(j - k, temp, work + k, 1, a + k + (j - 1) * lda, 1);
         }
     }
 
-    return( info );
+    return (info);
 }
 
 /**
@@ -366,59 +333,50 @@ int linpackDCHDC( double a[], int lda, int p, double work[], int ipvt[] )
  * of a square, symmetric and positive-definite matrix.
  * Subroutines from LINPACK and BLAS are used.
  */
-double **choleskyDecomposition( double **matrix, int n )
-{
-    int     i, j, k, info, *ipvt;
+double **choleskyDecomposition(double **matrix, int n) {
+    int i, j, k, info, *ipvt;
     double *a, *work, **result;
 
-    a    = (double *) Malloc( n*n*sizeof( double ) );
-    work = (double *) Malloc( n*sizeof( double ) );
-    ipvt = (int *) Malloc( n*sizeof( int ) );
+    a = (double *) Malloc(n * n * sizeof(double));
+    work = (double *) Malloc(n * sizeof(double));
+    ipvt = (int *) Malloc(n * sizeof(int));
 
     k = 0;
-    for( i = 0; i < n; i++ )
-    {
-        for( j = 0; j < n; j++ )
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             a[k] = matrix[i][j];
             k++;
         }
         ipvt[i] = 0;
     }
 
-    info = linpackDCHDC( a, n, n, work, ipvt );
+    info = linpackDCHDC(a, n, n, work, ipvt);
 
-    result = matrixNew( n, n );
-    if( info != n ) /* Matrix is not positive definite */
+    result = matrixNew(n, n);
+    if (info != n) /* Matrix is not positive definite */
     {
         k = 0;
-        for( i = 0; i < n; i++ )
-        {
-            for( j = 0; j < n; j++ )
-            {
-                result[i][j] = i != j ? 0.0 : sqrt( matrix[i][j] );
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                result[i][j] = i != j ? 0.0 : sqrt(matrix[i][j]);
                 k++;
             }
         }
-    }
-    else
-    {
+    } else {
         k = 0;
-        for( i = 0; i < n; i++ )
-        {
-            for( j = 0; j < n; j++ )
-            {
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
                 result[i][j] = i < j ? 0.0 : a[k];
                 k++;
             }
         }
     }
 
-    free( ipvt );
-    free( work );
-    free( a );
+    free(ipvt);
+    free(work);
+    free(a);
 
-    return( result );
+    return (result);
 }
 
 /*mat choleskyDecomposition( mat matrix )
@@ -445,114 +403,98 @@ double **choleskyDecomposition( double **matrix, int n )
 /**
  * LINPACK subroutine.
  */
-int linpackDTRDI( double t[], int ldt, int n )
-{
-    int    j, k, info;
+int linpackDTRDI(double t[], int ldt, int n) {
+    int j, k, info;
     double temp;
 
     info = 0;
-    for( k = n; 1 <= k; k-- )
-    {
-        if ( t[k-1+(k-1)*ldt] == 0.0 )
-        {
+    for (k = n; 1 <= k; k--) {
+        if (t[k - 1 + (k - 1) * ldt] == 0.0) {
             info = k;
             break;
         }
 
-        t[k-1+(k-1)*ldt] = 1.0 / t[k-1+(k-1)*ldt];
-        temp = -t[k-1+(k-1)*ldt];
+        t[k - 1 + (k - 1) * ldt] = 1.0 / t[k - 1 + (k - 1) * ldt];
+        temp = -t[k - 1 + (k - 1) * ldt];
 
-        if ( k != n )
-        {
-            blasDSCAL( n-k, temp, t+k+(k-1)*ldt, 1 );
+        if (k != n) {
+            blasDSCAL(n - k, temp, t + k + (k - 1) * ldt, 1);
         }
 
-        for( j = 1; j <= k-1; j++ )
-        {
-            temp = t[k-1+(j-1)*ldt];
-            t[k-1+(j-1)*ldt] = 0.0;
-            blasDAXPY( n-k+1, temp, t+k-1+(k-1)*ldt, 1, t+k-1+(j-1)*ldt, 1 );
+        for (j = 1; j <= k - 1; j++) {
+            temp = t[k - 1 + (j - 1) * ldt];
+            t[k - 1 + (j - 1) * ldt] = 0.0;
+            blasDAXPY(n - k + 1, temp, t + k - 1 + (k - 1) * ldt, 1, t + k - 1 + (j - 1) * ldt, 1);
         }
     }
 
-    return( info );
+    return (info);
 }
 
 /**
  * Computes the inverse of a matrix that is of
  * lower triangular form.
  */
-double **matrixLowerTriangularInverse( double **matrix, int n )
-{
-    int     i, j, k, info;
+double **matrixLowerTriangularInverse(double **matrix, int n) {
+    int i, j, k, info;
     double *t, **result;
 
-    t = (double *) Malloc( n*n*sizeof( double ) );
+    t = (double *) Malloc(n * n * sizeof(double));
 
     k = 0;
-    for( i = 0; i < n; i++ )
-    {
-        for( j = 0; j < n; j++ )
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             t[k] = matrix[j][i];
             k++;
         }
     }
 
-    info = linpackDTRDI( t, n, n );
+    info = linpackDTRDI(t, n, n);
 
-    result = matrixNew( n, n );
+    result = matrixNew(n, n);
     k = 0;
-    for( i = 0; i < n; i++ )
-    {
-        for( j = 0; j < n; j++ )
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             result[j][i] = i > j ? 0.0 : t[k];
             k++;
         }
     }
 
-    free( t );
+    free(t);
 
-    return( result );
+    return (result);
 }
 
-void eigenDecomposition( double **matrix, int n, double **D, double **Q )
-{
-    int     i, j;
+void eigenDecomposition(double **matrix, int n, double **D, double **Q) {
+    int i, j;
     double *rgtmp, *diag;
 
-    rgtmp = (double *) Malloc( n*sizeof( double ) );
-    diag  = (double *) Malloc( n*sizeof( double ) );
+    rgtmp = (double *) Malloc(n * sizeof(double));
+    diag = (double *) Malloc(n * sizeof(double));
 
-    for( i = 0; i < n; i++ )
-    {
-        for( j = 0; j <= i; j++ )
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j <= i; j++) {
             Q[j][i] = matrix[j][i];
             Q[i][j] = Q[j][i];
         }
     }
 
-    eigenDecompositionHouseholder2( n, Q, diag, rgtmp );
-    eigenDecompositionQLalgo2( n, Q, diag, rgtmp );
+    eigenDecompositionHouseholder2(n, Q, diag, rgtmp);
+    eigenDecompositionQLalgo2(n, Q, diag, rgtmp);
 
-    for( i = 0; i < n; i++ )
-    {
-        for( j = 0; j < n; j++ )
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             D[i][j] = 0.0;
         }
         D[i][i] = diag[i];
     }
 
-    free( diag );
-    free( rgtmp );
+    free(diag);
+    free(rgtmp);
 }
 
 
-void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
-{
+void eigenDecompositionQLalgo2(int n, double **V, double *d, double *e) {
     int i, k, l, m;
     double f = 0.0;
     double tst1 = 0.0;
@@ -560,9 +502,9 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
 
     /* shift input e */
     for (i = 1; i < n; i++) {
-        e[i-1] = e[i];
+        e[i - 1] = e[i];
     }
-    e[n-1] = 0.0; /* never changed again */
+    e[n - 1] = 0.0; /* never changed again */
 
     for (l = 0; l < n; l++) {
 
@@ -572,7 +514,7 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
             tst1 = fabs(d[l]) + fabs(e[l]);
         m = l;
         while (m < n) {
-            if (fabs(e[m]) <= eps*tst1) {
+            if (fabs(e[m]) <= eps * tst1) {
                 /* if (fabs(e[m]) + fabs(d[m]+d[m+1]) == fabs(d[m]+d[m+1])) { */
                 break;
             }
@@ -587,7 +529,7 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
             do { /* while (fabs(e[l]) > eps*tst1); */
                 double dl1, h;
                 double g = d[l];
-                double p = (d[l+1] - g) / (2.0 * e[l]);
+                double p = (d[l + 1] - g) / (2.0 * e[l]);
                 double r = myhypot(p, 1.);
 
                 iter = iter + 1;  /* Could check iteration count here */
@@ -598,10 +540,10 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
                     r = -r;
                 }
                 d[l] = e[l] / (p + r);
-                d[l+1] = e[l] * (p + r);
-                dl1 = d[l+1];
+                d[l + 1] = e[l] * (p + r);
+                dl1 = d[l + 1];
                 h = g - d[l];
-                for (i = l+2; i < n; i++) {
+                for (i = l + 2; i < n; i++) {
                     d[i] -= h;
                 }
                 f = f + h;
@@ -613,27 +555,27 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
                     double c = 1.0;
                     double c2 = c;
                     double c3 = c;
-                    double el1 = e[l+1];
+                    double el1 = e[l + 1];
                     double s = 0.0;
                     double s2 = 0.0;
-                    for (i = m-1; i >= l; i--) {
+                    for (i = m - 1; i >= l; i--) {
                         c3 = c2;
                         c2 = c;
                         s2 = s;
                         g = c * e[i];
                         h = c * p;
                         r = myhypot(p, e[i]);
-                        e[i+1] = s * r;
+                        e[i + 1] = s * r;
                         s = e[i] / r;
                         c = p / r;
                         p = c * d[i] - s * g;
-                        d[i+1] = h + s * (c * g + s * d[i]);
+                        d[i + 1] = h + s * (c * g + s * d[i]);
 
                         /* Accumulate transformation. */
 
                         for (k = 0; k < n; k++) {
-                            h = V[k][i+1];
-                            V[k][i+1] = s * V[k][i] + c * h;
+                            h = V[k][i + 1];
+                            V[k][i + 1] = s * V[k][i] + c * h;
                             V[k][i] = c * V[k][i] - s * h;
                         }
                     }
@@ -644,7 +586,7 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
 
                 /* Check for convergence. */
 
-            } while (fabs(e[l]) > eps*tst1);
+            } while (fabs(e[l]) > eps * tst1);
         }
         d[l] = d[l] + f;
         e[l] = 0.0;
@@ -652,14 +594,13 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
 
     /* Sort eigenvalues and corresponding vectors. */
 #if 1
-    /* TODO: really needed here? So far not, but practical and only O(n^2) */
     {
         int j;
         double p;
-        for (i = 0; i < n-1; i++) {
+        for (i = 0; i < n - 1; i++) {
             k = i;
             p = d[i];
-            for (j = i+1; j < n; j++) {
+            for (j = i + 1; j < n; j++) {
                 if (d[j] < p) {
                     k = j;
                     p = d[j];
@@ -679,34 +620,29 @@ void eigenDecompositionQLalgo2( int n, double **V, double *d, double *e )
 #endif
 } /* QLalgo2 */
 
-double myhypot( double a, double b )
-{
+double myhypot(double a, double b) {
     double r = 0;
-    if( fabs(a) > fabs(b) )
-    {
-        r = b/a;
-        r = fabs(a)*sqrt(1+r*r);
-    }
-    else if (b != 0)
-    {
-        r = a/b;
-        r = fabs(b)*sqrt(1+r*r);
+    if (fabs(a) > fabs(b)) {
+        r = b / a;
+        r = fabs(a) * sqrt(1 + r * r);
+    } else if (b != 0) {
+        r = a / b;
+        r = fabs(b) * sqrt(1 + r * r);
     }
 
     return r;
 }
 
-void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
-{
-    int i,j,k;
+void eigenDecompositionHouseholder2(int n, double **V, double *d, double *e) {
+    int i, j, k;
 
     for (j = 0; j < n; j++) {
-        d[j] = V[n-1][j];
+        d[j] = V[n - 1][j];
     }
 
     /* Householder reduction to tridiagonal form */
 
-    for (i = n-1; i > 0; i--) {
+    for (i = n - 1; i > 0; i--) {
 
         /* Scale to avoid under/overflow */
 
@@ -716,9 +652,9 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
             scale = scale + fabs(d[k]);
         }
         if (scale == 0.0) {
-            e[i] = d[i-1];
+            e[i] = d[i - 1];
             for (j = 0; j < i; j++) {
-                d[j] = V[i-1][j];
+                d[j] = V[i - 1][j];
                 V[i][j] = 0.0;
                 V[j][i] = 0.0;
             }
@@ -732,14 +668,14 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
                 d[k] /= scale;
                 h += d[k] * d[k];
             }
-            f = d[i-1];
+            f = d[i - 1];
             g = sqrt(h);
             if (f > 0) {
                 g = -g;
             }
             e[i] = scale * g;
             h = h - f * g;
-            d[i-1] = f - g;
+            d[i - 1] = f - g;
             for (j = 0; j < i; j++) {
                 e[j] = 0.0;
             }
@@ -750,7 +686,7 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
                 f = d[j];
                 V[j][i] = f;
                 g = e[j] + V[j][j] * f;
-                for (k = j+1; k <= i-1; k++) {
+                for (k = j + 1; k <= i - 1; k++) {
                     g += V[k][j] * d[k];
                     e[k] += V[k][j] * f;
                 }
@@ -768,10 +704,10 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
             for (j = 0; j < i; j++) {
                 f = d[j];
                 g = e[j];
-                for (k = j; k <= i-1; k++) {
+                for (k = j; k <= i - 1; k++) {
                     V[k][j] -= (f * e[k] + g * d[k]);
                 }
-                d[j] = V[i-1][j];
+                d[j] = V[i - 1][j];
                 V[i][j] = 0.0;
             }
         }
@@ -780,19 +716,19 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
 
     /* Accumulate transformations */
 
-    for (i = 0; i < n-1; i++) {
+    for (i = 0; i < n - 1; i++) {
         double h;
-        V[n-1][i] = V[i][i];
+        V[n - 1][i] = V[i][i];
         V[i][i] = 1.0;
-        h = d[i+1];
+        h = d[i + 1];
         if (h != 0.0) {
             for (k = 0; k <= i; k++) {
-                d[k] = V[k][i+1] / h;
+                d[k] = V[k][i + 1] / h;
             }
             for (j = 0; j <= i; j++) {
                 double g = 0.0;
                 for (k = 0; k <= i; k++) {
-                    g += V[k][i+1] * V[k][j];
+                    g += V[k][i + 1] * V[k][j];
                 }
                 for (k = 0; k <= i; k++) {
                     V[k][j] -= g * d[k];
@@ -800,14 +736,14 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
             }
         }
         for (k = 0; k <= i; k++) {
-            V[k][i+1] = 0.0;
+            V[k][i + 1] = 0.0;
         }
     }
     for (j = 0; j < n; j++) {
-        d[j] = V[n-1][j];
-        V[n-1][j] = 0.0;
+        d[j] = V[n - 1][j];
+        V[n - 1][j] = 0.0;
     }
-    V[n-1][n-1] = 1.0;
+    V[n - 1][n - 1] = 1.0;
     e[0] = 0.0;
 
 }
@@ -815,35 +751,31 @@ void eigenDecompositionHouseholder2( int n, double **V, double *d, double *e )
 /**
  * Writes the contents of a matrix of dimensions n0 x n1 to a file.
  */
-void matrixWriteToFile( FILE *file, double **matrix, int n0, int n1 )
-{
-    int  i, j;
+void matrixWriteToFile(FILE *file, double **matrix, int n0, int n1) {
+    int i, j;
     char line_for_output[10000];
 
-    sprintf( line_for_output, "[" );
-    fputs( line_for_output, file );
-    for( i = 0; i < n0; i++ )
-    {
-        sprintf( line_for_output, "[" );
-        fputs( line_for_output, file );
-        for( j = 0; j < n1; j++ )
-        {
-            sprintf( line_for_output, "%lf", matrix[i][j] );
-            fputs( line_for_output, file );
-            if( j < n1-1 )
-            {
-                sprintf( line_for_output, ", " );
-                fputs( line_for_output, file );
+    sprintf(line_for_output, "[");
+    fputs(line_for_output, file);
+    for (i = 0; i < n0; i++) {
+        sprintf(line_for_output, "[");
+        fputs(line_for_output, file);
+        for (j = 0; j < n1; j++) {
+            sprintf(line_for_output, "%lf", matrix[i][j]);
+            fputs(line_for_output, file);
+            if (j < n1 - 1) {
+                sprintf(line_for_output, ", ");
+                fputs(line_for_output, file);
             }
         }
-        if( i == n0-1 )
-            sprintf( line_for_output, "]" );
+        if (i == n0 - 1)
+            sprintf(line_for_output, "]");
         else
-            sprintf( line_for_output, "];" );
-        fputs( line_for_output, file );
+            sprintf(line_for_output, "];");
+        fputs(line_for_output, file);
     }
-    sprintf( line_for_output, "]\n" );
-    fputs( line_for_output, file );
+    sprintf(line_for_output, "]\n");
+    fputs(line_for_output, file);
 }
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
@@ -851,220 +783,191 @@ void matrixWriteToFile( FILE *file, double **matrix, int n0, int n1 )
 /**
  * Sorts an array of doubles and returns the sort-order (small to large).
  */
-int *mergeSort( double *array, int array_size )
-{
+int *mergeSort(double *array, int array_size) {
     int i, *sorted, *tosort;
 
-    sorted = (int *) Malloc( array_size * sizeof( int ) );
-    tosort = (int *) Malloc( array_size * sizeof( int ) );
-    for( i = 0; i < array_size; i++ )
+    sorted = (int *) Malloc(array_size * sizeof(int));
+    tosort = (int *) Malloc(array_size * sizeof(int));
+    for (i = 0; i < array_size; i++)
         tosort[i] = i;
 
-    if( array_size == 1 )
+    if (array_size == 1)
         sorted[0] = 0;
     else
-        mergeSortWithinBounds( array, sorted, tosort, 0, array_size-1 );
+        mergeSortWithinBounds(array, sorted, tosort, 0, array_size - 1);
 
-    free( tosort );
+    free(tosort);
 
-    return( sorted );
+    return (sorted);
 }
 
 /**
  * Subroutine of merge sort, sorts the part of the array between p and q.
  */
-void mergeSortWithinBounds( double *array, int *sorted, int *tosort, int p, int q )
-{
+void mergeSortWithinBounds(double *array, int *sorted, int *tosort, int p, int q) {
     int r;
 
-    if( p < q )
-    {
+    if (p < q) {
         r = (p + q) / 2;
-        mergeSortWithinBounds( array, sorted, tosort, p, r );
-        mergeSortWithinBounds( array, sorted, tosort, r+1, q );
-        mergeSortMerge( array, sorted, tosort, p, r+1, q );
+        mergeSortWithinBounds(array, sorted, tosort, p, r);
+        mergeSortWithinBounds(array, sorted, tosort, r + 1, q);
+        mergeSortMerge(array, sorted, tosort, p, r + 1, q);
     }
 }
-void mergeSortWithinBoundsInt( int *array, int *sorted, int *tosort, int p, int q )
-{
+
+void mergeSortWithinBoundsInt(int *array, int *sorted, int *tosort, int p, int q) {
     int r;
 
-    if( p < q )
-    {
+    if (p < q) {
         r = (p + q) / 2;
-        mergeSortWithinBoundsInt( array, sorted, tosort, p, r );
-        mergeSortWithinBoundsInt( array, sorted, tosort, r+1, q );
-        mergeSortMergeInt( array, sorted, tosort, p, r+1, q );
+        mergeSortWithinBoundsInt(array, sorted, tosort, p, r);
+        mergeSortWithinBoundsInt(array, sorted, tosort, r + 1, q);
+        mergeSortMergeInt(array, sorted, tosort, p, r + 1, q);
     }
 }
+
 /**
  * Subroutine of merge sort, merges the results of two sorted parts.
  */
-void mergeSortMerge( double *array, int *sorted, int *tosort, int p, int r, int q )
-{
+void mergeSortMerge(double *array, int *sorted, int *tosort, int p, int r, int q) {
     int i, j, k, first;
 
     i = p;
     j = r;
-    for( k = p; k <= q; k++ )
-    {
+    for (k = p; k <= q; k++) {
         first = 0;
-        if( j <= q )
-        {
-            if( i < r )
-            {
-                if( array[tosort[i]] < array[tosort[j]] )
+        if (j <= q) {
+            if (i < r) {
+                if (array[tosort[i]] < array[tosort[j]])
                     first = 1;
             }
-        }
-        else
+        } else
             first = 1;
 
-        if( first )
-        {
+        if (first) {
             sorted[k] = tosort[i];
             i++;
-        }
-        else
-        {
+        } else {
             sorted[k] = tosort[j];
             j++;
         }
     }
 
-    for( k = p; k <= q; k++ )
+    for (k = p; k <= q; k++)
         tosort[k] = sorted[k];
 }
 
-int *mergeSortInt( int *array, int array_size )
-{
+int *mergeSortInt(int *array, int array_size) {
     int i, *sorted, *tosort;
 
-    sorted = (int *) Malloc( array_size * sizeof( int ) );
-    tosort = (int *) Malloc( array_size * sizeof( int ) );
-    for( i = 0; i < array_size; i++ )
+    sorted = (int *) Malloc(array_size * sizeof(int));
+    tosort = (int *) Malloc(array_size * sizeof(int));
+    for (i = 0; i < array_size; i++)
         tosort[i] = i;
 
-    if( array_size == 1 )
+    if (array_size == 1)
         sorted[0] = 0;
     else
-        mergeSortWithinBoundsInt( array, sorted, tosort, 0, array_size-1 );
+        mergeSortWithinBoundsInt(array, sorted, tosort, 0, array_size - 1);
 
-    free( tosort );
+    free(tosort);
 
-    return( sorted );
+    return (sorted);
 }
 
 
-void mergeSortMergeInt( int *array, int *sorted, int *tosort, int p, int r, int q )
-{
+void mergeSortMergeInt(int *array, int *sorted, int *tosort, int p, int r, int q) {
     int i, j, k, first;
 
     i = p;
     j = r;
-    for( k = p; k <= q; k++ )
-    {
+    for (k = p; k <= q; k++) {
         first = 0;
-        if( j <= q )
-        {
-            if( i < r )
-            {
-                if( array[tosort[i]] < array[tosort[j]] )
+        if (j <= q) {
+            if (i < r) {
+                if (array[tosort[i]] < array[tosort[j]])
                     first = 1;
             }
-        }
-        else
+        } else
             first = 1;
 
-        if( first )
-        {
+        if (first) {
             sorted[k] = tosort[i];
             i++;
-        }
-        else
-        {
+        } else {
             sorted[k] = tosort[j];
             j++;
         }
     }
 
-    for( k = p; k <= q; k++ )
+    for (k = p; k <= q; k++)
         tosort[k] = sorted[k];
 }
 
-int *getRanks( double *array, int array_size )
-{
+int *getRanks(double *array, int array_size) {
     int i, *sorted, *ranks;
 
-    sorted = mergeSort( array, array_size );
-    ranks = (int *) Malloc( array_size * sizeof( int ) );
-    for( i = 0; i < array_size; i++ ) ranks[sorted[i]] = i;
+    sorted = mergeSort(array, array_size);
+    ranks = (int *) Malloc(array_size * sizeof(int));
+    for (i = 0; i < array_size; i++) ranks[sorted[i]] = i;
 
-    free( sorted );
-    return( ranks );
+    free(sorted);
+    return (ranks);
 }
 
-int *getRanksFromSorted( int *sorted, int array_size )
-{
+int *getRanksFromSorted(int *sorted, int array_size) {
     int i, *ranks;
 
-    ranks = (int *) Malloc( array_size * sizeof( int ) );
-    for( i = 0; i < array_size; i++ ) ranks[sorted[i]] = i;
+    ranks = (int *) Malloc(array_size * sizeof(int));
+    for (i = 0; i < array_size; i++) ranks[sorted[i]] = i;
 
-    return( ranks );
+    return (ranks);
 }
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=- Section Time -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-long getMilliSecondsRunning()
-{
-    return( getMilliSecondsRunningSinceTimeStamp( timestamp_start ) );
+long getMilliSecondsRunning() {
+    return (getMilliSecondsRunningSinceTimeStamp(timestamp_start));
 }
 
-long getMilliSecondsRunningAfterInit()
-{
-    return( getMilliSecondsRunningSinceTimeStamp( timestamp_start_after_init ) );
+long getMilliSecondsRunningAfterInit() {
+    return (getMilliSecondsRunningSinceTimeStamp(timestamp_start_after_init));
 }
 
-long getMilliSecondsRunningSinceTimeStamp( long timestamp )
-{
+long getMilliSecondsRunningSinceTimeStamp(long timestamp) {
     long timestamp_now, difference;
 
     timestamp_now = getCurrentTimeStampInMilliSeconds();
 
-    difference = timestamp_now-timestamp;
+    difference = timestamp_now - timestamp;
 
-    return( difference );
+    return (difference);
 }
 
-long getCurrentTimeStampInMilliSeconds()
-{
+long getCurrentTimeStampInMilliSeconds() {
     struct timeval tv;
     //struct tm *timep;
-    long   result;
+    long result;
 
-    gettimeofday( &tv, NULL );
+    gettimeofday(&tv, NULL);
     //timep = localtime( &tv.tv_sec );
     //result = timep->tm_hour * 3600 * 1000 + timep->tm_min * 60 * 1000 + timep->tm_sec * 1000 + tv.tv_usec / 1000;
     result = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-    return( result );
+    return (result);
 }
 
-void startTimer( void )
-{
+void startTimer(void) {
     timestamp_start = getCurrentTimeStampInMilliSeconds();
 }
 
-double getTimer( void )
-{
-    return ( (double) (getMilliSecondsRunningSinceTimeStamp( timestamp_start )/1000.0) );
+double getTimer(void) {
+    return ((double) (getMilliSecondsRunningSinceTimeStamp(timestamp_start) / 1000.0));
 }
 
-void printTimer( void )
-{
+void printTimer(void) {
     double cpu_time_used;
 
-    cpu_time_used = (double) (getMilliSecondsRunningSinceTimeStamp( timestamp_start )/1000.0);
-    printf("%.3f\n",cpu_time_used);
+    cpu_time_used = (double) (getMilliSecondsRunningSinceTimeStamp(timestamp_start) / 1000.0);
+    printf("%.3f\n", cpu_time_used);
 }
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -1072,17 +975,15 @@ void printTimer( void )
 /**
  * Initializes the random number generator.
  */
-void initializeRandomNumberGenerator( void )
-{
+void initializeRandomNumberGenerator(void) {
     struct timeval tv;
-   
-    while( random_seed == 0 )
-    {
+
+    while (random_seed == 0) {
         gettimeofday(&tv, NULL);
         random_seed = (int64_t) tv.tv_usec;
     }
 
-	arma_rng::set_seed(random_seed);
+    arma_rng::set_seed(random_seed);
 
 //    FILE *file;
 //    file = fopen( "random_seed.dat", "w");
@@ -1091,42 +992,37 @@ void initializeRandomNumberGenerator( void )
 
 }
 
-double randomRealUniform01( void )
-{
-	return randu<double>();
+double randomRealUniform01(void) {
+    return randu<double>();
 }
 
-int randomInt( int max )
-{
-	return randi<int>( distr_param(0,max-1) );
+int randomInt(int max) {
+    return randi<int>(distr_param(0, max - 1));
 }
 
-vec random1DNormalUnitVector( int length )
-{
-	return randn<vec>(length);
+vec random1DNormalUnitVector(int length) {
+    return randn<vec>(length);
 }
 
 /**
  * Returns a random compact (using integers 0,1,...,n-1) permutation
  * of length n using the Fisher-Yates shuffle.
  */
-uvec randomPermutation( int n )
-{
-	uvec perm = randperm(n);
-	return( perm );
+uvec randomPermutation(int n) {
+    uvec perm = randperm(n);
+    return (perm);
 }
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-double min( double x, double y )
-{
-    if( x <= y )
+double min(double x, double y) {
+    if (x <= y)
         return x;
     return y;
 }
 
-double max( double x, double y )
-{
-    if( x >= y )
+double max(double x, double y) {
+    if (x >= y)
         return x;
     return y;
 }
@@ -1135,136 +1031,133 @@ double max( double x, double y )
  * Computes the distance between two solutions a and b as
  * the Euclidean distance in parameter space.
  */
-double distanceEuclidean( double *x, double *y, int number_of_dimensions )
-{
-    int    i;
+double distanceEuclidean(double *x, double *y, int number_of_dimensions) {
+    int i;
     double value, result;
 
     result = 0.0;
-    for( i = 0; i < number_of_dimensions; i++ )
-    {
-        value   = y[i] - x[i];
-        result += value*value;
+    for (i = 0; i < number_of_dimensions; i++) {
+        value = y[i] - x[i];
+        result += value * value;
     }
-    result = sqrt( result );
+    result = sqrt(result);
 
-    return( result );
+    return (result);
 }
 
-double distanceEuclidean( vec &x, vec &y ) 
-{
-    return( norm(x-y) );
+double distanceEuclidean(vec &x, vec &y) {
+    return (norm(x - y));
 }
 
 /**
  * Computes the Euclidean distance between two points.
  */
-double distanceEuclidean2D( double x1, double y1, double x2, double y2 )
-{
+double distanceEuclidean2D(double x1, double y1, double x2, double y2) {
     double result;
 
-    result = (y1 - y2)*(y1-y2) + (x1-x2)*(x1-x2);
-    result = sqrt( result );
+    result = (y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2);
+    result = sqrt(result);
 
-    return( result );
+    return (result);
 }
 
 /*
  * Bhattacharyya distance
  */
-double normalDistributionDistance( vec mu1, vec mu2, mat cov1, mat cov2 )
-{
-	vec mudiff = mu1 - mu2;
-	mat covavg = (cov1 + cov2)/2.0;
-	double det1 = det(cov1);
-	double det2 = det(cov2);
-	double detavg = det(covavg);
+double normalDistributionDistance(vec mu1, vec mu2, mat cov1, mat cov2) {
+    vec mudiff = mu1 - mu2;
+    mat covavg = (cov1 + cov2) / 2.0;
+    double det1 = det(cov1);
+    double det2 = det(cov2);
+    double detavg = det(covavg);
 
-	mat a = mudiff.t() * pinv(covavg) * mudiff; 
-	double dist = a[0]/8.0 + 0.5*log(detavg/sqrt(det1*det2));
-	return( dist );
+    mat a = mudiff.t() * pinv(covavg) * mudiff;
+    double dist = a[0] / 8.0 + 0.5 * log(detavg / sqrt(det1 * det2));
+    return (dist);
 }
 
-double normalize( double v, double min, double max )
-{
-	return( (v-min)/(max-min) );
+double normalize(double v, double min, double max) {
+    return ((v - min) / (max - min));
 }
 
-int *greedyScatteredSubsetSelection( double **points, int number_of_points, int number_of_dimensions, int number_to_select )
-{
-  int     i, index_of_farthest, random_dimension_index, number_selected_so_far,
-         *indices_left, *result;
-  double *nn_distances, distance_of_farthest, value;
+int *
+greedyScatteredSubsetSelection(double **points, int number_of_points, int number_of_dimensions, int number_to_select) {
+    int i, index_of_farthest, random_dimension_index, number_selected_so_far,
+            *indices_left, *result;
+    double *nn_distances, distance_of_farthest, value;
 
-  if( number_to_select > number_of_points )
-  {
-    printf("\n");
-    printf("Error: greedyScatteredSubsetSelection asked to select %d solutions from set of size %d.", number_to_select, number_of_points);
-    printf("\n\n");
+    if (number_to_select > number_of_points) {
+        printf("\n");
+        printf("Error: greedyScatteredSubsetSelection asked to select %d solutions from set of size %d.",
+               number_to_select, number_of_points);
+        printf("\n\n");
 
-    exit( 0 );
-  }
-
-  result = (int *) Malloc( number_to_select*sizeof( int ) );
-
-  indices_left = (int *) Malloc( number_of_points*sizeof( int ) );
-  for( i = 0; i < number_of_points; i++ )
-    indices_left[i] = i;
-
-  /* Find the first point: maximum value in a randomly chosen dimension */
-  random_dimension_index = randomInt( number_of_dimensions );
-
-  index_of_farthest    = 0;
-  distance_of_farthest = points[indices_left[index_of_farthest]][random_dimension_index];
-  for( i = 1; i < number_of_points; i++ )
-  {
-    if( points[indices_left[i]][random_dimension_index] > distance_of_farthest )
-    {
-      index_of_farthest    = i;
-      distance_of_farthest = points[indices_left[i]][random_dimension_index];
-    }
-  }
-
-  number_selected_so_far          = 0;
-  result[number_selected_so_far]  = indices_left[index_of_farthest];
-  indices_left[index_of_farthest] = indices_left[number_of_points-number_selected_so_far-1];
-  number_selected_so_far++;
-
-  /* Then select the rest of the solutions: maximum minimum
-   * (i.e. nearest-neighbour) distance to so-far selected points */
-  nn_distances = (double *) Malloc( number_of_points*sizeof( double ) );
-  for( i = 0; i < number_of_points-number_selected_so_far; i++ )
-    nn_distances[i] = distanceEuclidean( points[indices_left[i]], points[result[number_selected_so_far-1]], number_of_dimensions );
-
-  while( number_selected_so_far < number_to_select )
-  {
-    index_of_farthest    = 0;
-    distance_of_farthest = nn_distances[0];
-    for( i = 1; i < number_of_points-number_selected_so_far; i++ )
-    {
-      if( nn_distances[i] > distance_of_farthest )
-      {
-        index_of_farthest    = i;
-        distance_of_farthest = nn_distances[i];
-      }
+        exit(0);
     }
 
-    result[number_selected_so_far]  = indices_left[index_of_farthest];
-    indices_left[index_of_farthest] = indices_left[number_of_points-number_selected_so_far-1];
-    nn_distances[index_of_farthest] = nn_distances[number_of_points-number_selected_so_far-1];
+    result = (int *) Malloc(number_to_select * sizeof(int));
+
+    indices_left = (int *) Malloc(number_of_points * sizeof(int));
+    for (i = 0; i < number_of_points; i++)
+        indices_left[i] = i;
+
+    /* Find the first point: maximum value in a randomly chosen dimension */
+    random_dimension_index = randomInt(number_of_dimensions);
+
+    index_of_farthest = 0;
+    distance_of_farthest = points[indices_left[index_of_farthest]][random_dimension_index];
+    for (i = 1; i < number_of_points; i++) {
+        if (points[indices_left[i]][random_dimension_index] > distance_of_farthest) {
+            index_of_farthest = i;
+            distance_of_farthest = points[indices_left[i]][random_dimension_index];
+        }
+    }
+
+    number_selected_so_far = 0;
+    result[number_selected_so_far] = indices_left[index_of_farthest];
+    indices_left[index_of_farthest] = indices_left[number_of_points - number_selected_so_far - 1];
     number_selected_so_far++;
 
-    for( i = 0; i < number_of_points-number_selected_so_far; i++ )
-    {
-      value = distanceEuclidean( points[indices_left[i]], points[result[number_selected_so_far-1]], number_of_dimensions );
-      if( value < nn_distances[i] )
-        nn_distances[i] = value;
+    /* Then select the rest of the solutions: maximum minimum
+     * (i.e. nearest-neighbour) distance to so-far selected points */
+    nn_distances = (double *) Malloc(number_of_points * sizeof(double));
+    for (i = 0; i < number_of_points - number_selected_so_far; i++)
+        nn_distances[i] = distanceEuclidean(points[indices_left[i]], points[result[number_selected_so_far - 1]],
+                                            number_of_dimensions);
+
+    while (number_selected_so_far < number_to_select) {
+        index_of_farthest = 0;
+        distance_of_farthest = nn_distances[0];
+        for (i = 1; i < number_of_points - number_selected_so_far; i++) {
+            if (nn_distances[i] > distance_of_farthest) {
+                index_of_farthest = i;
+                distance_of_farthest = nn_distances[i];
+            }
+        }
+
+        result[number_selected_so_far] = indices_left[index_of_farthest];
+        indices_left[index_of_farthest] = indices_left[number_of_points - number_selected_so_far - 1];
+        nn_distances[index_of_farthest] = nn_distances[number_of_points - number_selected_so_far - 1];
+        number_selected_so_far++;
+
+        for (i = 0; i < number_of_points - number_selected_so_far; i++) {
+            value = distanceEuclidean(points[indices_left[i]], points[result[number_selected_so_far - 1]],
+                                      number_of_dimensions);
+            if (value < nn_distances[i])
+                nn_distances[i] = value;
+        }
     }
-  }
 
-  free( nn_distances );
-  free( indices_left );
+    free(nn_distances);
+    free(indices_left);
 
-  return( result );
+    return (result);
 }
 
+double nround(double n, unsigned int c) {
+    double marge = pow(10, c);
+    double up = n * marge;
+    double ret = round(up) / marge;
+
+    return ret;
+}

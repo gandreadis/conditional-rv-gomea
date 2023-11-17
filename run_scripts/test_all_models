@@ -1,0 +1,19 @@
+export PYTHONPATH="$PYTHONPATH:."
+
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l univariate
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l full
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l lt-static-gbo
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l lt-fb-online-unpruned
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l lt-fb-online-pruned
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l ucond-gg-gbo
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l ucond-fg-gbo
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l ucond-hg-gbo
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -l mcond-hg-gbo
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-gg-fb
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-fg-fb
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-hg-fb
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l mcond-hg-fb
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-gg-fb-generic
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-fg-fb-generic
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l ucond-hg-fb-generic
+python rvgomea/cmd/run.py -x -115 -y -110 -p sphere -d 20 -i test_run -o -s 60 -b -l mcond-hg-fb-generic

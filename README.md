@@ -6,8 +6,16 @@ Run `make` in this directory to build the project. The Armadillo library needs t
 
 ## Running
 
-To start a single run of the algorithm, run:
+To start a single run of the algorithm, run the command below. This will give you an overview of options with which you can control the algorithm.
 
 ```shell
-python run.py
+python rvgomea/cmd/run.py --help
+```
+
+## Testing
+
+To run a quick test of different linkage models, try the following command:
+
+```shell
+make && run_scripts/test_all_models
 ```

@@ -40,87 +40,111 @@
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 #include "tools.h"
 #include "optimization.h"
+#include "solution.h"
 #include "distribution.h"
 #include "partial_solution.h"
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 class fos_t {
 
-		public:
-			fos_t();
-			fos_t( int FOS_element_size );
-			fos_t( int problem_index, int FOS_type );
-			fos_t( double **covariance_matrix );
-			fos_t( FILE *file );
-			//fos_t( const std::map<int,std::set<int>> &variable_interaction_graph, int max_clique_size, bool include_cliques_as_fos_elements, bool include_full_fos_element, int VIG_order );
-			fos_t( const std::map<int,std::set<int>> &variable_interaction_graph, int max_clique_size, bool include_cliques_as_fos_elements, bool include_full_fos_element );
-			fos_t( const fos_t &f );
-			~fos_t();
-			
-			int getLength();
-			std::vector<int> getSet( int element_index );
-			int getSetLength( int element_index );
-			double getAcceptanceRate();
+public:
+    fos_t();
 
-			double getDistributionMultiplier( int element_index );
-			
-			void addGroup( int var_index );
-			void addGroup( const std::set<int> &group );
-			void addGroup( std::vector<int> group );
-			void addGroup( distribution_t *dist );
-			void addConditionedGroup( std::vector<int> variables );
-			void addConditionedGroup( std::vector<int> variables, std::set<int> conditioned_variables );
-			void randomizeOrder();
-			void randomizeOrder( const std::map<int,std::set<int>> &variable_interaction_graph ); 
-			std::vector<int> getVIGOrderBreadthFirst( const std::map<int,std::set<int>> &variable_interaction_graph );
+    fos_t(int element_size);
 
-			double getSimilarity( int a, int b, int *mpm_num_ind );
-			double **computeMIMatrix( double **covariance_matrix, int n );
-			void inheritDistributionMultipliers( fos_t *other, double *multipliers );
-			int *matchFOSElements( fos_t *other );
-			int *hungarianAlgorithm( int** similarity_matrix, int dim );
-			void hungarianAlgorithmAddToTree(int x, int prevx, short *S, int *prev, int *slack, int *slackx, int* lx, int *ly, int** similarity_matrix, int dim );
-			int determineNearestNeighbour(int index, double **S_matrix, int *mpm_num_ind, int mpm_length );
-			void ezilaitini();
+    fos_t(double **covariance_matrix);
 
-			void initializeNormalDistribution(int FOS_index);
-			void initializeConditionalDistribution( int FOS_index );
+    fos_t(vec_t<vec_t<double>> fitness_dependency_matrix);
 
-			partial_solution_t *generatePartialSolution( int FOS_index, solution_t *solution_conditioned_on );
-			void estimateDistributions( solution_t **selection, int selection_size );
-			void estimateDistribution( int FOS_index, solution_t **selection, int selection_size );
-			void adaptDistributionMultiplier( int FOS_index, partial_solution_t **solutions, int num_solutions );
+    fos_t(FILE *file);
 
-			std::vector<distribution_t*> distributions;
-			int no_improvement_stretch = 0;
-			int maximum_no_improvement_stretch = 100;
-			
-			double p_accept = 0.00;
-			std::vector<std::vector<int>> sets;
-			std::vector<uvec> variables_conditioned_on; 
+    fos_t(const std::map<int, std::set<int>> &variable_interaction_graph);
 
-			bool is_conditional = false;
-			int max_clique_size;
-			bool include_cliques_as_fos_elements;
-			bool include_full_fos_element;
+    fos_t(const fos_t &f);
 
-			void print();
+    ~fos_t();
 
-			uvec order;
-			int *next_variable_to_sample = NULL;
+    int getLength();
 
-			double **S_matrix;
-			double *S_vector;                             /* Avoids quadratic memory requirements when a linkage tree is learned based on a random distance measure. */
+    void deriveTree(double** MI_matrix);
+
+    std::vector<int> getSet(int element_index);
+
+    int getSetLength(int element_index);
+
+    double getAcceptanceRate();
+
+    double getDistributionMultiplier(int element_index);
+
+    void addGroup(int var_index);
+
+    void addGroup(const std::set<int> &group);
+
+    void addGroup(std::vector<int> group);
+
+    void addGroup(distribution_t *dist);
+
+    void addConditionedGroup(std::vector<int> variables);
+
+    void addConditionedGroup(std::vector<int> variables, std::set<int> conditioned_variables);
+
+    void randomizeOrder();
+
+    void randomizeOrder(const std::map<int, std::set<int>> &variable_interaction_graph);
+
+    std::vector<int> getVIGOrderBreadthFirst(const std::map<int, std::set<int>> &variable_interaction_graph);
+
+    double getSimilarity(int a, int b, int *mpm_num_ind);
+
+    double **computeMIMatrix(double **covariance_matrix, int n);
+
+    int *hungarianAlgorithm(int **similarity_matrix, int dim);
+
+    void hungarianAlgorithmAddToTree(int x, int prevx, short *S, int *prev, int *slack, int *slackx, int *lx, int *ly,
+                                     int **similarity_matrix, int dim);
+
+    int determineNearestNeighbour(int index, int *mpm_num_ind, int mpm_length);
+
+    partial_solution_t *generatePartialSolution(int FOS_index, solution_t *solution_conditioned_on);
+
+    void estimateDistributions(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+
+    void estimateDistribution(int FOS_index, solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+
+    void adaptDistributionMultiplier(int FOS_index, partial_solution_t **solutions, int num_solutions);
+
+    std::vector<distribution_t *> distributions;
+    int no_improvement_stretch = 0;
+    int maximum_no_improvement_stretch = 100;
+
+    double p_accept = 0.0;
+    std::vector<std::vector<int>> sets;
+    std::vector<uvec> variables_conditioned_on;
+
+    bool is_conditional = false;
+
+    void print();
+
+    uvec order;
+    int *next_variable_to_sample = NULL;
+
+    double **S_matrix;
+    double *S_vector;                             /* Avoids quadratic memory requirements when a linkage tree is learned based on a random distance measure. */
 };
 
 /*-=-=-=-=-=-=-=-=-=-=-=-= Section Header Functions -=-=-=-=-=-=-=-=-=-=-=-=*/
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 /*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
+extern char similarity_measure;
+extern int max_clique_size;
+extern bool include_cliques_as_fos_elements;
+extern bool include_full_fos_element;
 extern int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
-          use_univariate_FOS,                   /* Whether a univariate FOS is used. */
-          learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
-          static_linkage_tree,                  /* Whether the FOS is fixed throughout optimization. */
-          random_linkage_tree,                  /* Whether the fixed linkage tree is learned based on a random distance measure. */
-          FOS_element_size;                     /* If positive, the size of blocks of consecutive variables in the FOS. If negative, determines specific kind of linkage tree FOS. */
+prune_linkage_tree,
+learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
+static_linkage_tree,                  /* Whether the FOS is fixed throughout optimization. */
+random_linkage_tree,                  /* Whether the fixed linkage tree is learned based on a random distance measure. */
+FOS_element_size;                     /* If positive, the size of blocks of consecutive variables in the FOS. If negative, determines specific kind of linkage tree FOS. */
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/

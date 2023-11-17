@@ -18,6 +18,7 @@ class RunConfig:
     # Problem
     problem: str = DEFAULT_PROBLEM
     dimensionality: int = DEFAULT_DIMENSIONALITY
+    black_box: bool = DEFAULT_BLACK_BOX
     lower_init_bound: float = DEFAULT_LOWER_INIT_BOUND
     upper_init_bound: float = DEFAULT_UPPER_INIT_BOUND
     vtr: float = DEFAULT_VTR

@@ -42,95 +42,133 @@
 #include "optimization.h"
 #include "partial_solution.h"
 #include "solution.h"
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 class distribution_t {
-	public:
-		virtual ~distribution_t();
+public:
+    virtual ~distribution_t();
 
-		// Parameter settings and default values
-		double st_dev_ratio_threshold = 1.0;
-		double distribution_multiplier_decrease = 0.9;
-		double distribution_multiplier_increase = 1.0/0.9; // 1.0/c_dec
+    // Parameter settings and default values
+    double st_dev_ratio_threshold = 1.0;
+    double distribution_multiplier_decrease = 0.9;
+    double distribution_multiplier_increase = 1.0 / 0.9; // 1.0/c_dec
 
-		// Variables
-		double distribution_multiplier = 1.0;
-		int samples_drawn = 0;
-		int out_of_bounds_draws = 0;
-			
-		std::vector<int> variables;
+    // Variables
+    double distribution_multiplier = 1.0;
+    int samples_drawn = 0;
+    int out_of_bounds_draws = 0;
 
-		void adaptDistributionMultiplier( partial_solution_t** partial_solutions, int num_solutions );
-		void adaptDistributionMultiplierMaximumStretch( partial_solution_t** partial_solutions, int num_solutions );
-		virtual short generationalImprovementForOnePopulationForFOSElement( partial_solution_t** partial_solutions, int num_solutions, double *st_dev_ratio ) = 0;
+    std::vector<int> variables;
 
-		double estimateMean( int var, solution_t **selection, int selection_size );
-		double estimateCovariance( int vara, int varb, solution_t **selection, int selection_size );
-		vec estimateMeanVectorML( std::vector<int> variables, solution_t **selection, int selection_size );
-		mat estimateRegularCovarianceMatrixML( std::vector<int> variables, vec mean_vector, solution_t **selection, int selection_size );
-		mat estimateCovarianceMatrixML( std::vector<int> variables, solution_t **selection, int selection_size );
-		mat estimateUnivariateCovarianceMatrixML( std::vector<int> variables, solution_t **selection, int selection_size );
-		bool regularizeCovarianceMatrix( mat &cov_mat, vec &mean_vector, solution_t **selection, int selection_size );
-		mat pseudoInverse( const mat &matrix );
-		mat choleskyDecomposition( const mat &matrix );
-		int linpackDCHDC( double a[], int lda, int p, double work[], int ipvt[] );
-		void blasDSCAL( int n, double sa, double x[], int incx );
-		int blasDAXPY(int n, double da, double *dx, int incx, double *dy, int incy);
-		int blasDSWAP( int n, double *dx, int incx, double *dy, int incy );
-			
-		virtual void updateConditionals( const std::map<int,std::set<int>> &variable_interaction_graph, int visited[] );
-		virtual void setOrder( const std::vector<int> &order ); 
-		virtual void estimateDistribution( solution_t **selection, int selection_size ) = 0;	
-		virtual partial_solution_t *generatePartialSolution( solution_t *parent ) = 0;
-		virtual void print();
+    void adaptDistributionMultiplier(partial_solution_t **partial_solutions, int num_solutions);
+
+    void adaptDistributionMultiplierMaximumStretch(partial_solution_t **partial_solutions, int num_solutions);
+
+    virtual short
+    generationalImprovementForOnePopulationForFOSElement(partial_solution_t **partial_solutions, int num_solutions,
+                                                         double *st_dev_ratio) = 0;
+
+    double estimateMean(int var, solution_t **selection, int selection_size);
+
+    double estimateCovariance(int vara, int varb, solution_t **selection, int selection_size);
+
+    vec estimateMeanVectorML(std::vector<int> variables, solution_t **selection, int selection_size);
+
+    mat estimateRegularCovarianceMatrixML(std::vector<int> variables, vec mean_vector, solution_t **selection,
+                                          int selection_size);
+
+    mat estimateCovarianceMatrixML(std::vector<int> variables, solution_t **selection, int selection_size);
+
+    mat estimateUnivariateCovarianceMatrixML(std::vector<int> variables, solution_t **selection, int selection_size);
+
+    bool regularizeCovarianceMatrix(mat &cov_mat, vec &mean_vector, solution_t **selection, int selection_size);
+
+    mat pseudoInverse(const mat &matrix);
+
+    mat choleskyDecomposition(const mat &matrix);
+
+    int linpackDCHDC(double a[], int lda, int p, double work[], int ipvt[]);
+
+    void blasDSCAL(int n, double sa, double x[], int incx);
+
+    int blasDAXPY(int n, double da, double *dx, int incx, double *dy, int incy);
+
+    int blasDSWAP(int n, double *dx, int incx, double *dy, int incy);
+
+    virtual void updateConditionals(const std::map<int, std::set<int>> &variable_interaction_graph, int visited[]);
+
+    virtual void setOrder(const std::vector<int> &order);
+
+    virtual void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix) = 0;
+
+    virtual partial_solution_t *generatePartialSolution(solution_t *parent) = 0;
+
+    virtual void print();
 };
 
 class normal_distribution_t : public distribution_t {
-		public:
-			normal_distribution_t( std::vector<int> variables );
+public:
+    normal_distribution_t(std::vector<int> variables);
 
-			vec mean_vector;
-			mat covariance_matrix;
-			mat cholesky_decomposition; 
-			
-			void estimateDistribution( solution_t **selection, int selection_size );
-			partial_solution_t *generatePartialSolution( solution_t *parent = NULL );
-			
-			short generationalImprovementForOnePopulationForFOSElement( partial_solution_t** partial_solutions, int num_solutions, double *st_dev_ratio );
+    vec mean_vector;
+    mat covariance_matrix;
+    mat cholesky_decomposition;
+
+    void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+
+    partial_solution_t *generatePartialSolution(solution_t *parent = NULL);
+
+    short
+    generationalImprovementForOnePopulationForFOSElement(partial_solution_t **partial_solutions, int num_solutions,
+                                                         double *st_dev_ratio);
 };
 
 class conditional_distribution_t : public distribution_t {
-		public:
-			conditional_distribution_t(); 
-			conditional_distribution_t( const std::vector<int> &variables, const std::vector<int> &conditioned_variables );
-			conditional_distribution_t( const std::vector<int> &variables, const std::set<int> &conditioned_variables );
+public:
+    conditional_distribution_t();
 
-			std::vector<int> order;
-			std::vector<std::vector<int>> variable_groups;
-			std::vector<std::vector<int>> neighboring_groups;
-			std::vector<std::vector<int>> variables_conditioned_on;
-			std::vector<std::vector<int>> index_in_var_array; // variables[index_in_var_array[a][b]] == variable_groups[a][b]
+    conditional_distribution_t(const std::vector<int> &variables, const std::vector<int> &conditioned_variables);
 
-			std::vector<vec> mean_vectors;
-			std::vector<vec> mean_vectors_conditioned_on;
-			std::vector<mat> covariance_matrices;
-			std::vector<mat> rho_matrices;
-			std::vector<mat> cholesky_decompositions;
+    conditional_distribution_t(const std::vector<int> &variables, const std::set<int> &conditioned_variables);
 
-			void addGroupOfVariables( const std::vector<int> &indices, const std::set<int> &indices_cond );
-			void addGroupOfVariables( std::vector<int> indices, std::vector<int> indices_cond );
-			void addGroupOfVariables( int index, const std::vector<int> &indices_cond );
-			void addGroupOfVariables( int index, int index_cond );
-			void estimateDistribution( solution_t **selection, int selection_size );
+    std::vector<int> order;
+    std::vector<std::vector<int>> variable_groups;
+    std::vector<std::vector<int>> variables_conditioned_on;
+    std::vector<std::vector<int>> index_in_var_array; // variables[index_in_var_array[a][b]] == variable_groups[a][b]
 
-			void setOrder( const std::vector<int> &order );
-			void updateConditionals( const std::map<int,std::set<int>> &variable_interaction_graph, int visited[] );
+    std::vector<vec> mean_vectors;
+    std::vector<vec> mean_vectors_conditioned_on;
+    std::vector<mat> covariance_matrices;
+    std::vector<mat> rho_matrices;
+    std::vector<mat> cholesky_decompositions;
 
-			partial_solution_t *generatePartialSolution( solution_t *solution_conditioned_on = NULL ); 
-			short generationalImprovementForOnePopulationForFOSElement( partial_solution_t** partial_solutions, int num_solutions, double *st_dev_ratio );
-		private:
-			void initializeMemory();
-			void estimateConditionalGaussianML( int variable_group_index, solution_t **selection, int selection_size );
-			void print();
+    void addGroupOfVariables(const std::vector<int> &indices, const std::set<int> &indices_cond);
+
+    void addGroupOfVariables(std::vector<int> indices, std::vector<int> indices_cond);
+
+    void addGroupOfVariables(int index, const std::vector<int> &indices_cond);
+
+    void addGroupOfVariables(int index, int index_cond);
+
+    void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+
+    void setOrder(const std::vector<int> &order);
+
+    void updateConditionals(const std::map<int, std::set<int>> &variable_interaction_graph, int visited[]);
+
+    partial_solution_t *generatePartialSolution(solution_t *solution_conditioned_on = NULL);
+
+    short
+    generationalImprovementForOnePopulationForFOSElement(partial_solution_t **partial_solutions, int num_solutions,
+                                                         double *st_dev_ratio);
+
+private:
+    void initializeMemory();
+
+    void estimateConditionalGaussianML(int variable_group_index, solution_t **selection, int selection_size,
+                                       vec_t<vec_t<double>> fitness_dependency_matrix);
+
+    void print();
 };
 

@@ -1,6 +1,6 @@
 import argparse
 
-from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY
+from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, DEFAULT_BLACK_BOX
 from rvgomea.experiments.bisection_runner import run_bisection
 from rvgomea.run_config import RunConfig
 
@@ -13,6 +13,8 @@ def main():
     parser.add_argument('-l', '--linkage-model', type=str, default=DEFAULT_LINKAGE_MODEL)
     parser.add_argument('-p', '--problem', type=str, default=DEFAULT_PROBLEM)
     parser.add_argument('-d', '--dimensionality', type=int, default=DEFAULT_DIMENSIONALITY)
+    parser.add_argument('-b', '--black-box', action="store_true",
+                        default=DEFAULT_BLACK_BOX)
 
     args = parser.parse_args()
 
@@ -22,6 +24,7 @@ def main():
         random_seed=-1,
         problem=args.problem,
         dimensionality=args.dimensionality,
+        black_box=args.black_box,
         lower_init_bound=-115,
         upper_init_bound=-110,
     )

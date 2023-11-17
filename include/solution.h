@@ -40,25 +40,27 @@
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 #include "optimization.h"
 #include "tools.h"
-//#include "fitness_buffer.h"
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
-class solution_t
-{
-	public:
-		vec variables;
-		int number_of_variables;
-		int NIS; // no improvement stretch
-		
-		double objective_value;
-		double constraint_value;
-		//double buffer;
+class solution_t {
+public:
+    vec variables;
+    int number_of_variables;
+    int NIS; // no improvement stretch
 
-		solution_t( int number_of_variables );
-		solution_t( vec &variables );
-		solution_t( const solution_t &sol );
-		~solution_t();
+    double objective_value;
+    double constraint_value;
+    //double buffer;
 
-		void print();
+    solution_t(int number_of_variables);
+
+    solution_t(vec &variables);
+
+    solution_t(const solution_t &sol);
+
+    ~solution_t();
+
+    void print();
 };
 

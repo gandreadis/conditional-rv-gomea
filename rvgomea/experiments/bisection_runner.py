@@ -8,11 +8,10 @@ import pandas as pd
 
 from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.run_config import RunConfig
-from rvgomea.runner import run_rvgomea
+from rvgomea.run_rvgomea import run_rvgomea
 
-
-MAX_BISECTION_POPULATION = 10000
-INITIAL_BISECTION_POPULATION = 10
+MAX_BISECTION_POPULATION = 2048
+INITIAL_BISECTION_POPULATION = 8
 
 BISECTION_FAILURE = (MAX_BISECTION_POPULATION, DEFAULT_MAX_NUM_EVALUATIONS)
 
@@ -22,7 +21,7 @@ def bisection_worker(run_config: RunConfig):
 
 
 def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_config: int,
-                  num_cpus: int = multiprocessing.cpu_count() - 1, log_progress=False):
+                  num_cpus: int = multiprocessing.cpu_count() - 1, log_progress=False, bisection_repeat: int = 0):
     config_counter = [0]
     history = []
     history_counter = [0]
@@ -48,7 +47,7 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
                 derived_config.config_id = config_counter[0]
                 derived_config.base_dir = os.path.join(base_dir, str(derived_config.config_id))
                 derived_config.population_size = population_size
-                derived_config.random_seed = repeat
+                derived_config.random_seed = bisection_repeat * 100000 + repeat
                 configs.append(derived_config)
 
                 config_counter[0] += 1
