@@ -185,6 +185,7 @@ extern short selection_during_gom,
 extern short write_fitness_dependencies;
 
 extern short fitness_based_conditional_factors;
+extern char similarity_measure;
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Constants -=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 #ifndef PI

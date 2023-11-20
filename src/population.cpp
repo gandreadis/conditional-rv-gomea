@@ -75,6 +75,12 @@ population_t::~population_t() {
         free(sampled_solutions[j]);
     free(sampled_solutions);
 
+    if (similarity_measure == 'F') {
+        free(fitnesses_of_first_individual_variants);
+        delete first_individual_for_fitness_comparison;
+        delete second_individual_for_fitness_comparison;
+    }
+
     delete linkage_model;
 }
 
@@ -715,9 +721,6 @@ void population_t::initializeFOS() {
 
             // Only in BBO mode
             assert(fitness->black_box_optimization);
-        } else {
-            // Traditional conditional sampling only possible in GBO mode
-            assert(!fitness->black_box_optimization);
         }
 
         include_full_fos_element = (id % 10) == 1;
@@ -776,9 +779,18 @@ void population_t::initializeFOS() {
         }
         free(FOS_element_similarity_matrix);
 
+        for (int j = 0; j < linkage_model->getLength(); j++)
+            free(sampled_solutions[j]);
+        free(sampled_solutions);
+
         delete linkage_model;
     }
+
     linkage_model = new_FOS;
+
+    sampled_solutions = (partial_solution_t ***) Malloc(linkage_model->getLength() * sizeof(partial_solution_t **));
+    for (int j = 0; j < linkage_model->getLength(); j++)
+        sampled_solutions[j] = (partial_solution_t **) Malloc(population_size * sizeof(partial_solution_t *));
 }
 
 std::map<int, std::set<int>> population_t::buildVariableInteractionGraphBasedOnFitnessDependencies() {
@@ -847,10 +859,6 @@ void population_t::initializePopulationAndFitnessValues() {
     fitness->evaluate( individuals[0] );
     printf("f = %10.10e\n", individuals[0]->objective_value);
     exit(0);*/
-
-    sampled_solutions = (partial_solution_t ***) Malloc(linkage_model->getLength() * sizeof(partial_solution_t **));
-    for (int j = 0; j < linkage_model->getLength(); j++)
-        sampled_solutions[j] = (partial_solution_t **) Malloc(population_size * sizeof(partial_solution_t *));
 }
 
 void population_t::initializeFitnessDependencyMatrix() {

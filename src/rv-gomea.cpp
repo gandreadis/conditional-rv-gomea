@@ -831,7 +831,6 @@ short rvg_t::checkDistributionMultiplierTerminationCondition(int population_inde
     if (!populations[i]->population_terminated) {
         short converged = 1;
         for (int j = 0; j < populations[i]->linkage_model->getLength(); j++) {
-//            printf("%d %d %f\n", i, j, populations[i]->linkage_model->getDistributionMultiplier(j)); fflush(stdout);
             if (populations[i]->linkage_model->getDistributionMultiplier(j) > 1e-10) {
                 converged = 0;
                 break;

@@ -13,6 +13,7 @@ def main():
     parser.add_argument('-i', '--in-directory', type=str)
     parser.add_argument('-o', '--show-output', action="store_true")
     parser.add_argument('-z', '--save-fitness-dependencies', action="store_true")
+    # parser.add_argument('-u', '--debug', action="store_true")
 
     parser.add_argument('-l', '--linkage-model', type=str.lower,
                         default=DEFAULT_LINKAGE_MODEL, choices=LINKAGE_MODEL_CODES.keys())
@@ -74,7 +75,10 @@ def main():
         max_no_improvement_stretch=args.max_no_improvement_stretch,
         fitness_variance_tolerance=args.fitness_variance_tolerance,
     )
-    print(config)
+
+    if args.show_output:
+        print(config)
+        print()
 
     run_rvgomea(config, in_dir=args.in_directory, show_output=args.show_output,
                 save_fitness_dependencies=args.save_fitness_dependencies)

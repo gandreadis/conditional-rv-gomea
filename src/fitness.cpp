@@ -407,8 +407,7 @@ sphereFunction_t::sphereFunction_t(int number_of_parameters, double vtr) {
     this->vtr = vtr;
     initializeFitnessFunction();
 
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+    initializeVariableInteractionGraph();
 }
 
 void sphereFunction_t::initializeVariableInteractionGraph() {
@@ -463,8 +462,8 @@ rosenbrockFunction_t::rosenbrockFunction_t(int number_of_parameters, double vtr)
     this->vtr = vtr;
     this->number_of_subfunctions = number_of_parameters - 1;
     initializeFitnessFunction();
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+
+    initializeVariableInteractionGraph();
 }
 
 void rosenbrockFunction_t::evaluationFunction(solution_t *solution) {
@@ -571,8 +570,8 @@ sorebFunction_t::sorebFunction_t(int number_of_parameters, double vtr, double co
 
     initializeFitnessFunction();
     rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+
+    initializeVariableInteractionGraph();
 }
 
 int sorebFunction_t::getIndexOfFirstBlock(int var) {
@@ -826,8 +825,8 @@ sorebChainFunction_t::sorebChainFunction_t(int number_of_parameters, double vtr,
     this->wrap_around = wrap_around;
     initializeFitnessFunction();
     rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+
+    initializeVariableInteractionGraph();
 }
 
 void sorebChainFunction_t::evaluationFunction(solution_t *solution) {
@@ -937,8 +936,8 @@ sorebGridFunction_t::sorebGridFunction_t(int number_of_parameters, double vtr, d
     //if( !wrap_around_x ) this->number_of_subfunctions -= grid_width;
     //if( !wrap_around_y ) this->number_of_subfunctions -= grid_width;
     initializeFitnessFunction();
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+
+    initializeVariableInteractionGraph();
 }
 
 sorebGridFunction_t::~sorebGridFunction_t() {
@@ -1199,8 +1198,8 @@ sorebCubeFunction_t::sorebCubeFunction_t(int number_of_parameters, double vtr, d
     //if( !wrap_around_z ) this->number_of_subfunctions -= cube_width;
     initializeFitnessFunction();
     rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-    if (!black_box_optimization)
-        initializeVariableInteractionGraph();
+
+    initializeVariableInteractionGraph();
 }
 
 std::set<int> sorebCubeFunction_t::getNeighborsInGrid(int ind) {

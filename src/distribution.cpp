@@ -708,7 +708,7 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
         mat A12(n, n_cond, fill::none);
         for (int j = 0; j < n; j++) {
             double max_dependency = 0;
-            if (fitness_based_conditional_factors) {
+            if (similarity_measure == 'F' && fitness_based_conditional_factors) {
                 for (int k = 0; k < n_cond; k++) {
                     max_dependency = max(fitness_dependency_matrix[j][k], max_dependency);
                 }
@@ -716,7 +716,7 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
 
             for (int k = 0; k < n_cond; k++) {
                 double dependency_factor = 1.0;
-                if (fitness_based_conditional_factors && max_dependency >= 1e-16) {
+                if (similarity_measure == 'F' && fitness_based_conditional_factors && max_dependency >= 1e-16) {
                     dependency_factor = fitness_dependency_matrix[j][k] / max_dependency;
                 }
                 A12(j, k) = dependency_factor * estimateCovariance(

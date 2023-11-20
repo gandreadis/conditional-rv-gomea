@@ -89,6 +89,9 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     command += f"{config.fitness_variance_tolerance} "
     command += f"{config.max_num_seconds} "
 
+    if show_output:
+        print("Command:", command)
+
     output = os.popen(command).read()
 
     if show_output:

@@ -1,73 +1,160 @@
 import os
 import sys
 
+import matplotlib
 import pandas as pd
+from matplotlib import pyplot as plt
 import scienceplots
-import seaborn as sns
-from matplotlib import pyplot as plt, cm
 
 plt.style.use('science')
 
 # Prevent scienceplots from being purged as import
 scienceplots.listdir(".")
 
-cmap = cm.get_cmap('jet')
-NUM_COLORS = 17
+cmap = matplotlib.colormaps['Spectral']
 
 
-def get_color(index: int):
-    cmap(index / (NUM_COLORS - 1))
-
-
-LINKAGE_MODEL_COLORS = {
-    "univariate": get_color(0),
-    "full": get_color(16),
-    "lt-static-gbo": get_color(1),
-    "lt-fb-online-unpruned": get_color(15),
-    "lt-fb-online-pruned": get_color(2),
-    "ucond-gg-gbo": get_color(14),
-    "ucond-fg-gbo": get_color(3),
-    "ucond-hg-gbo": get_color(13),
-    "mcond-hg-gbo": get_color(4),
-    "ucond-gg-fb": get_color(12),
-    "ucond-fg-fb": get_color(5),
-    "ucond-hg-fb": get_color(11),
-    "mcond-hg-fb": get_color(6),
-    "ucond-gg-fb-generic": get_color(10),
-    "ucond-fg-fb-generic": get_color(7),
-    "ucond-hg-fb-generic": get_color(9),
-    "mcond-hg-fb-generic": get_color(8),
+MARKERS = {
+    "univariate": ".",
+    "full": "v",
+    "lt-static-gbo": "^",
+    "lt-fb-online-unpruned": "<",
+    "lt-fb-online-pruned": ">",
+    "ucond-gg-gbo": "*",
+    "ucond-fg-gbo": "*",
+    "ucond-hg-gbo": "*",
+    "mcond-hg-gbo": "*",
+    "ucond-gg-fb": "+",
+    "ucond-fg-fb": "+",
+    "ucond-hg-fb": "+",
+    "mcond-hg-fb": "+",
+    "ucond-gg-fb-generic": "x",
+    "ucond-fg-fb-generic": "x",
+    "ucond-hg-fb-generic": "x",
+    "mcond-hg-fb-generic": "x",
 }
 
+COLOR_ORDER = [
+    "ucond-gg-gbo",
+    "ucond-gg-fb",
+    "ucond-gg-fb-generic",
+    "univariate",
+    "ucond-fg-gbo",
+    "ucond-fg-fb",
+    "ucond-fg-fb-generic",
+    "full",
+    "ucond-hg-gbo",
+    "ucond-hg-fb",
+    "ucond-hg-fb-generic",
+    "lt-static-gbo",
+    "mcond-hg-gbo",
+    "mcond-hg-fb",
+    "mcond-hg-fb-generic",
+    "lt-fb-online-unpruned",
+    "lt-fb-online-pruned",
+]
 
-def main(directory):
+COLORS = {}
+for index, color in enumerate(COLOR_ORDER):
+    COLORS[color] = cmap(index / (len(COLOR_ORDER) - 1))
+
+
+def main(directory, configuration):
+    if configuration == "all":
+        linkage_models = [
+            "univariate",
+            "full",
+            "lt-static-gbo",
+            "lt-fb-online-unpruned",
+            "lt-fb-online-pruned",
+            "ucond-gg-gbo",
+            "ucond-fg-gbo",
+            "ucond-hg-gbo",
+            "mcond-hg-gbo",
+            "ucond-gg-fb",
+            "ucond-fg-fb",
+            "ucond-hg-fb",
+            "mcond-hg-fb",
+            "ucond-gg-fb-generic",
+            "ucond-fg-fb-generic",
+            "ucond-hg-fb-generic",
+            "mcond-hg-fb-generic",
+        ]
+    elif configuration == "structure-known":
+        linkage_models = [
+            "lt-static-gbo",
+            "ucond-gg-gbo",
+            "ucond-fg-gbo",
+            "ucond-hg-gbo",
+            "mcond-hg-gbo",
+        ]
+    elif configuration == "structure-unknown":
+        linkage_models = [
+            "univariate",
+            "full",
+            "lt-fb-online-unpruned",
+            "lt-fb-online-pruned",
+            "ucond-gg-fb",
+            "ucond-fg-fb",
+            "ucond-hg-fb",
+            "mcond-hg-fb",
+            "ucond-gg-fb-generic",
+            "ucond-fg-fb-generic",
+            "ucond-hg-fb-generic",
+            "mcond-hg-fb-generic",
+        ]
+    elif configuration == "non-conditional":
+        linkage_models = [
+            "univariate",
+            "full",
+            "lt-static-gbo",
+            "lt-fb-online-unpruned",
+            "lt-fb-online-pruned",
+        ]
+    elif configuration == "conditional":
+        linkage_models = [
+            "ucond-gg-gbo",
+            "ucond-fg-gbo",
+            "ucond-hg-gbo",
+            "mcond-hg-gbo",
+            "ucond-gg-fb",
+            "ucond-fg-fb",
+            "ucond-hg-fb",
+            "mcond-hg-fb",
+            "ucond-gg-fb-generic",
+            "ucond-fg-fb-generic",
+            "ucond-hg-fb-generic",
+            "mcond-hg-fb-generic",
+        ]
+    elif configuration == "temp":
+        linkage_models = [
+            "univariate",
+            "lt-static-gbo",
+            "lt-fb-online-unpruned",
+            "lt-fb-online-pruned",
+        ]
+    else:
+        raise Exception("Unknown linkage model configuration")
+
     df = pd.read_csv(os.path.join(directory, "aggregated_results.csv"))
 
-    f, ax = plt.subplots(figsize=(7, 7))
-    sns.lineplot(ax=ax, data=df,
-                 x="dimensionality", y="population_size", hue="linkage_model",
-                 style="linkage_model", markers=True, err_style="bars")
-    ax.legend()
-    ax.set_xlabel("Dimensionality")
-    ax.set_ylabel("Population size")
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.savefig(os.path.join(directory, 'scalability_plot_population_size.pdf'), bbox_inches='tight')
-    plt.savefig(os.path.join(directory, 'scalability_plot_population_size.png'), bbox_inches='tight')
-    plt.clf()
+    for metric, title in [("population_size", "Population size"), ("median_num_evaluations", "Number of evaluations")]:
+        f, ax = plt.subplots(figsize=(5, 5))
 
-    f, ax = plt.subplots(figsize=(7, 7))
-    sns.lineplot(ax=ax, data=df,
-                 x="dimensionality", y="median_num_evaluations", hue="linkage_model",
-                 style="linkage_model", markers=True, err_style="bars")
-    ax.legend()
-    ax.set_xlabel("Dimensionality")
-    ax.set_ylabel("Number of evaluations")
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.savefig(os.path.join(directory, 'scalability_plot_evaluations.pdf'), bbox_inches='tight')
-    plt.savefig(os.path.join(directory, 'scalability_plot_evaluations.png'), bbox_inches='tight')
+        for model in linkage_models:
+            d = df[df["linkage_model"] == model].groupby(["dimensionality"]).median(numeric_only=True).reset_index()
+            ax.plot(d["dimensionality"], d[metric], linestyle='-', color=COLORS[model], marker=MARKERS[model], label=model)
+
+        ax.legend(title='Linkage model', bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax.set_xlabel("Dimensionality")
+        ax.set_ylabel(title)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.savefig(os.path.join(directory, f'scalability_plot_{metric}_{configuration}.pdf'), bbox_inches='tight')
+        plt.savefig(os.path.join(directory, f'scalability_plot_{metric}_{configuration}.png'), bbox_inches='tight')
+        plt.clf()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    for mode in ("temp",): #("all", "structure-known", "structure-unknown", "non-conditional", "conditional"):
+        main(sys.argv[1], mode)

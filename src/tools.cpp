@@ -55,6 +55,7 @@ short selection_during_gom,
 short write_fitness_dependencies = 0;
 
 short fitness_based_conditional_factors = 1;
+char similarity_measure = 'M';
 
 /*-=-=-=-=-=-=-=-=-=-=-= Section Elementary Operations -=-=-=-=-=-=-=-=-=-=-*/
 /**

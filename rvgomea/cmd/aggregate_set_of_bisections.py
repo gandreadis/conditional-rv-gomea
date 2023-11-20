@@ -24,7 +24,8 @@ def main(directory: str):
             "problem": settings[0],
             "linkage_model": settings[1],
             "dimensionality": int(settings[2]),
-            "repeat": int(settings[3]),
+            "black_box": bool(settings[3]),
+            "repeat": int(settings[4]),
             "population_size": result["population_size"],
             "median_num_evaluations": result["median_num_evaluations"],
         })

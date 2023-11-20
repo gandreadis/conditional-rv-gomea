@@ -41,7 +41,6 @@
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 /*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
-char similarity_measure;
 int max_clique_size;
 bool include_cliques_as_fos_elements;
 bool include_full_fos_element;

@@ -24,7 +24,7 @@ OBJ-dbg=$(patsubst %.cpp,$(ODIR-dbg)/%.o,$(_OBJ))
 CC=g++-13
 CPPFLAGS=-std=c++17 -DARMA_DONT_USE_OPENMP -DARMADILLO 
 CPPFLAGS-rl=$(CPPFLAGS) -O2 -fopenmp -DARMA_NO_DEBUG 
-CPPFLAGS-dbg=$(CPPFLAGS) -DDEBUG -g -DCHECK_PARTIAL_FITNESS
+CPPFLAGS-dbg=$(CPPFLAGS) -O0 -DDEBUG -g -DCHECK_PARTIAL_FITNESS
 CPPLIBS=-lm -L/usr/local/Cellar/armadillo/12.6.5/lib -larmadillo -lblas -llapack
 
 .PHONY: clean test

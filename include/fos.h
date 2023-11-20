@@ -137,7 +137,6 @@ public:
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 /*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
-extern char similarity_measure;
 extern int max_clique_size;
 extern bool include_cliques_as_fos_elements;
 extern bool include_full_fos_element;
