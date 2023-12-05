@@ -2,7 +2,7 @@
 #
 #SBATCH --partition=rome
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=15
+#SBATCH --cpus-per-task=16
 #SBATCH --time=120:00:00
 #SBATCH -o "logs/overlapping-cliques-%j.out"
 
