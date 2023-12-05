@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=genoa
+#SBATCH --partition=gpu
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --time=120:00:00
