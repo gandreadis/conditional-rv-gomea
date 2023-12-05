@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=rome
+#SBATCH --partition=genoa
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --time=120:00:00
