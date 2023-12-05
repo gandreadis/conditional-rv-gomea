@@ -14,4 +14,4 @@ module load Armadillo/12.6.2-foss-2023a
 module load FlexiBLAS/3.3.1-GCC-12.3.0
 
 make
-run_scripts/run_reb_chain_bisection.sh mp-fb-online-fg,mp-fb-online-hg gom-non-overlapping
+run_scripts/run_reb_chain_bisection.sh mp-fb-online-hg gom-non-overlapping
