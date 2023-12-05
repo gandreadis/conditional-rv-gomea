@@ -147,10 +147,6 @@ public:
 
     void addGroupOfVariables(std::vector<int> indices, std::vector<int> indices_cond);
 
-    void addGroupOfVariables(int index, const std::vector<int> &indices_cond);
-
-    void addGroupOfVariables(int index, int index_cond);
-
     void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
 
     void setOrder(const std::vector<int> &order);

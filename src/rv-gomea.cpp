@@ -257,6 +257,8 @@ void rvg_t::parseParameters(int argc, char **argv, int *index) {
 
     selection_during_gom = 1;
     update_elitist_during_gom = 1;
+    perform_factorized_gom = 1;
+    perform_eda_gom = 0;
 
     int a, b;
 

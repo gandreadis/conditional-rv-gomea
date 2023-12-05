@@ -41,7 +41,12 @@ elif sys.argv[2] == "animation":
         cmap = LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
         cmap.set_under('darkred')
 
-        ax.imshow(get_matrix(n), cmap=cmap, vmin=1e-10)
+        matrix = get_matrix(n)
+
+        if np.sum(np.abs(matrix)) == 0:
+            continue
+
+        ax.imshow(matrix, cmap=cmap, vmin=1e-10, vmax=1)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_title(f"Generation {n:03}")

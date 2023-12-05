@@ -1,3 +1,4 @@
+import math
 import os
 
 from rvgomea.convert_statistics import convert_statistics
@@ -10,29 +11,62 @@ LINKAGE_MODEL_CODES = {
     "lt-static-gbo": -4,
     "lt-fb-online-unpruned": -5,
     "lt-fb-online-pruned": -6,
-    "ucond-gg-gbo": -1010,
-    "ucond-fg-gbo": -1100,
-    "ucond-hg-gbo": -1110,
-    "mcond-hg-gbo": -100110,
-    "ucond-gg-fb": -1011,
-    "ucond-fg-fb": -1101,
-    "ucond-hg-fb": -1111,
-    "mcond-hg-fb": -100111,
-    "ucond-gg-fb-generic": -1012,
-    "ucond-fg-fb-generic": -1102,
-    "ucond-hg-fb-generic": -1112,
-    "mcond-hg-fb-generic": -100112,
+    "mp-fb-online-gg": -7,
+    "mp-fb-online-fg": -8,
+    "mp-fb-online-hg": -9,
 }
+
+# Generate linkage model combinations
+# Label encoding: max clique - factorized elements - full element - fitness-based - seed cliques - conditional
+for max_clique_label, max_clique_size in (("uni", "1"), ("mp", "100")):
+    for factorization_label, factorization in (("gg", "01"), ("fg", "10"), ("hg", "11")):
+        for fitness_based_label, fitness_based in (("gbo", "0"), ("fb", "1"), ("fb_no_order", "2")):
+            for seed_cliques_label, seed_cliques in (("without_clique_seeding", "0"), ("with_clique_seeding", "1")):
+                for conditional_label, conditional in (("non_conditional", "0"), ("conditional", "1")):
+                    LINKAGE_MODEL_CODES[
+                        f"{max_clique_label}-{factorization_label}-{fitness_based_label}-{seed_cliques_label}-{conditional_label}"
+                    ] = f"-{max_clique_size}{factorization}{fitness_based}{seed_cliques}{conditional}"
 
 PROBLEM_CODES = {
     "sphere": 0,
+    "michalewicz": 1, # note: not compatible with VTR
     "rosenbrock": 7,
-    "soreb": 13,
-    "osoreb": 16,
+    "summation-cancellation": 8,
+    "reb2-chain-alternating": 216191,
+    "reb5-no-overlap": 506699,
+    "reb5-small-overlap": 516699,
+    "reb5-small-overlap-alternating": 516191,
+    "reb5-large-overlap": 546699,
+    "reb5-disjoint-pairs": 14,
+    "reb-grid": 20, # only square
+}
+
+# For the reb5 problems, the following problem sizes are compatible:
+# reb5-no-overlap: multiples of 5
+# reb5-small-overlap*: 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53
+# reb5-large-overlap: anything >= 5
+# reb5-disjoint-pairs: multiples of 9
+
+for rot_angle in range(10):
+    for cond_number in range(1, 7):
+        PROBLEM_CODES[f"reb-chain-condition-{cond_number}-rotation-{rot_angle * 5}"] = 210000 + cond_number * 1000 + cond_number * 100 + rot_angle * 10 + rot_angle
+
+PROBLEM_CODES["reb2-chain-weak"] = PROBLEM_CODES["reb-chain-condition-1-rotation-5"]
+PROBLEM_CODES["reb2-chain-strong"] = PROBLEM_CODES["reb-chain-condition-6-rotation-45"]
+
+INIT_RANGES = {
+    "sphere": [-115, -100],
+    "michalewicz": [0, math.pi], # note: not compatible with VTR
+    "rosenbrock": [-115, -100],
+    "summation-cancellation": [-3, 3],
+    "reb-grid": [-115, -100],
+    "reb2": [-115, -100],
+    "reb5": [-115, -100],
 }
 
 
-def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True, save_fitness_dependencies=False) -> RunResult:
+def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True,
+                save_fitness_dependencies=False) -> RunResult:
     command = ""
 
     if in_dir is not None:
@@ -72,6 +106,13 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
         raise Exception(f"Unknown problem: {config.problem}")
     problem_code = PROBLEM_CODES[config.problem.lower()]
     command += f"{problem_code} "
+
+    if "reb2" in config.problem.lower() or "reb-chain" in config.problem.lower():
+        config.lower_init_bound, config.upper_init_bound = INIT_RANGES["reb2"]
+    elif "reb5" in config.problem.lower():
+        config.lower_init_bound, config.upper_init_bound = INIT_RANGES["reb5"]
+    else:
+        config.lower_init_bound, config.upper_init_bound = INIT_RANGES[config.problem.lower()]
 
     # Set further parameters
     command += f"{config.dimensionality} "

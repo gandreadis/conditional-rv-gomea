@@ -48,6 +48,7 @@
 #include <algorithm>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
 #include <memory>
 #include <cassert>
@@ -65,6 +66,8 @@ using namespace Eigen;
 #define VEC VectorXf
 #define MAT MatrixXf
 #endif
+
+#define CHECK_FOS_COMPLETENESS_AFTER_CLIQUE_BUILDING false
 
 template<class T>
 using vec_t = std::vector<T>;
@@ -181,10 +184,11 @@ extern int cholesky_fails;
 
 extern short selection_during_gom,
         update_elitist_during_gom;
+extern short perform_eda_gom, perform_factorized_gom;
 
 extern short write_fitness_dependencies;
 
-extern short fitness_based_conditional_factors;
+extern short fitness_based_ordering;
 extern char similarity_measure;
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Constants -=-=-=-=-=-=-=-=-=-=-=-=-=-*/

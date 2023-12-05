@@ -44,9 +44,11 @@
 int max_clique_size;
 bool include_cliques_as_fos_elements;
 bool include_full_fos_element;
+bool seed_cliques_per_variable;
+bool use_conditional_sampling = false;
 int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
 prune_linkage_tree,
-learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
+        learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
 static_linkage_tree,                  /* Whether the FOS is fixed throughout optimization. */
 random_linkage_tree,                  /* Whether the fixed linkage tree is learned based on a random distance measure. */
 FOS_element_size = 0;                     /* If positive, the size of blocks of consecutive variables in the FOS. If negative, determines specific kind of linkage tree FOS. */
@@ -124,7 +126,7 @@ fos_t::fos_t(const fos_t &other) {
 }
 
 
-fos_t::fos_t(vec_t<vec_t<double>> fitness_dependency_matrix) {
+fos_t::fos_t(vec_t<vec_t<double>> fitness_dependency_matrix, bool is_marginal) {
     assert(learn_linkage_tree);
 
     double **array_version = (double **) Malloc(number_of_parameters * sizeof(double *));
@@ -135,7 +137,46 @@ fos_t::fos_t(vec_t<vec_t<double>> fitness_dependency_matrix) {
         }
     }
 
-    deriveTree(array_version);
+    if (is_marginal) {
+        double *temp_fos_indices = (double *) Malloc(number_of_parameters * sizeof(double));
+        int *grouped = (int *) Malloc(number_of_parameters * sizeof(int));
+        for (int i = 0; i < number_of_parameters; i++) {
+            grouped[i] = 0;
+        }
+
+        int i = 0;
+        while (i < number_of_parameters) {
+            if (grouped[i]) {
+                i++;
+                continue;
+            } else {
+                grouped[i] = 1;
+            }
+            int k = 1;
+            temp_fos_indices[0] = i;
+            for (int j = i + 1; j < number_of_parameters; j++) {
+                if (grouped[j]) {
+                    continue;
+                }
+                double dependency = fitness_dependency_matrix[i][j];
+                if (dependency != 0.0) {
+                    grouped[j] = 1;
+                    temp_fos_indices[k] = j;
+                    k++;
+                }
+            }
+
+            std::vector<int> vec;
+            for (int l = 0; l < k; l++) {
+                vec.push_back(temp_fos_indices[l]);
+            }
+            addGroup(vec);
+
+            i++;
+        }
+    } else {
+        deriveTree(array_version);
+    }
 }
 
 // Learn a linkage tree
@@ -150,7 +191,7 @@ fos_t::fos_t(double **covariance_matrix) {
     deriveTree(MI_matrix);
 }
 
-void fos_t::deriveTree(double** MI_matrix) {
+void fos_t::deriveTree(double **MI_matrix) {
     /* Initialize MPM to the univariate factorization */
     int **mpm = (int **) Malloc(number_of_parameters * sizeof(int *));
     int *mpm_num_ind = (int *) Malloc(number_of_parameters * sizeof(int));
@@ -205,6 +246,7 @@ void fos_t::deriveTree(double** MI_matrix) {
             S_vector = (double *) Malloc(number_of_parameters * sizeof(double));
             for (int i = 0; i < number_of_parameters; i++)
                 S_vector[i] = randu<double>();
+
         } else if (problem_index == 7) {
             S_matrix[0][0] = 0.0;
             for (int i = 1; i < number_of_parameters; i++) {
@@ -214,6 +256,16 @@ void fos_t::deriveTree(double** MI_matrix) {
                 for (int j = i + 1; j < number_of_parameters; j++) {
                     S_matrix[j][i] = randu<double>();
                     S_matrix[i][j] = S_matrix[j][i];
+                }
+            }
+
+        } else if (problem_index == 8) {
+            S_matrix[0][0] = 0.0;
+            for (int i = 1; i < number_of_parameters; i++) {
+                S_matrix[i][i] = 0.0;
+                for (int j = 0; j < i; j++) {
+                    S_matrix[i][j] = 1e2 * i + randu<double>();
+                    S_matrix[j][i] = S_matrix[i][j];
                 }
             }
 
@@ -231,11 +283,33 @@ void fos_t::deriveTree(double** MI_matrix) {
                 }
             }
 
-        } else if (problem_index == 13 || problem_index > 1000) {
+        } else if (problem_index == 20) {
+            int grid_width = round(sqrt(number_of_parameters));
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < number_of_parameters; j++) {
+                    if (i == j) {
+                        S_matrix[i][j] = 0.0;
+                    } else {
+                        int x1 = i % grid_width;
+                        int y1 = i / grid_width;
+                        int x2 = j % grid_width;
+                        int y2 = j / grid_width;
+
+                        if (abs(x1 - x2) + abs(y1 - y2) == 1) {
+                            S_matrix[i][j] = 1e8 + randu<double>();
+                        } else {
+                            S_matrix[i][j] = randu<double>();
+                        }
+                    }
+                }
+            }
+
+        } else if (problem_index == 13 || problem_index > 10000) {
             int id = problem_index;
-            double rotation_angle = (id % 10) * 5;
+            // Two rotation angles
             id /= 10;
-            double conditioning_number = id % 10;
+            id /= 10;
+            // Conditioning number
             id /= 10;
             int overlap_size = id % 10;
             id /= 10;
@@ -243,8 +317,6 @@ void fos_t::deriveTree(double** MI_matrix) {
             if (problem_index == 13) {
                 block_size = 5;
                 overlap_size = 0;
-                conditioning_number = 6;
-                rotation_angle = 45;
             }
             for (int i = 0; i + block_size <= number_of_parameters; i += (block_size - overlap_size)) {
                 for (int j = 0; j < block_size; j++) {
@@ -319,8 +391,7 @@ void fos_t::deriveTree(double** MI_matrix) {
         NN_chain_length -= 3;
 
         /* This test is required for exceptional cases in which the nearest-neighbor ordering has changed within the chain while merging within that chain */
-        if (r1 < mpm_length && r1 != r0)
-        {
+        if (r1 < mpm_length && r1 != r0) {
             int *indices = (int *) Malloc((mpm_num_ind[r0] + mpm_num_ind[r1]) * sizeof(int));
 
             int k = 0;
@@ -335,8 +406,7 @@ void fos_t::deriveTree(double** MI_matrix) {
 
             // Determine based on similarity if this FOS element should be pruned
             // Two elements A and B, merged into C, should only be kept if C isn't also fully connected, similarity-wise
-            if( prune_linkage_tree )
-            {
+            if (prune_linkage_tree) {
                 bool completely_dependent = true;
                 for (size_t i = 0; i < mpm_num_ind[r0]; i++) {
                     for (size_t j = 0; j < mpm_num_ind[r1]; j++) {
@@ -485,11 +555,135 @@ void fos_t::deriveTree(double** MI_matrix) {
     order = randomPermutation(getLength());
 }
 
-fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
-    this->is_conditional = true;
-
+fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
+             vec_t<vec_t<double>> *fitness_dependency_matrix) {
     assert(include_cliques_as_fos_elements || include_full_fos_element);
 
+    uvec var_order = randomPermutation(number_of_parameters);
+
+    conditional_distribution_t *full_cond;
+
+    if (include_full_fos_element) {
+        if (use_conditional_sampling) {
+            full_cond = new conditional_distribution_t();
+        } else {
+            std::vector<int> all_variables;
+            for (int i = 0; i < number_of_parameters; i++) {
+                all_variables.push_back(i);
+            }
+
+            normal_distribution_t *full_non_cond;
+            full_non_cond = new normal_distribution_t(all_variables);
+            addGroup(full_non_cond);
+        }
+    }
+
+    if (seed_cliques_per_variable) {
+        // Approach that seeds clique searches at each variable
+
+        std::vector<std::vector<int>> clique_candidate_list;
+        std::vector<std::set<int>> cond_candidate_list;
+        for (int i = 0; i < number_of_parameters; i++) {
+            std::vector<int> clique;
+            std::set<int> cond_candidates;
+
+            int ind = var_order[i];
+            clique.push_back(ind);
+
+            for (int x: variable_interaction_graph.at(ind)) // neighbors of ind
+            {
+                cond_candidates.insert(x);
+
+                bool add_to_clique = true;
+                std::set<int> neighbors = variable_interaction_graph.at(x);
+                if (clique.size() >= max_clique_size) {
+                    add_to_clique = false;
+                }
+
+                if (add_to_clique) {
+                    for (int y: clique) {
+                        if (neighbors.find(y) == neighbors.end()) // edge (x,y) does not exist
+                        {
+                            add_to_clique = false;
+                            break;
+                        }
+                    }
+                }
+                if (add_to_clique) {
+                    clique.push_back(x);
+
+                    cond_candidates.insert(x);
+                    for (int y: neighbors) {
+                        cond_candidates.insert(y);
+                    }
+                }
+            }
+
+            std::set<int> cond;
+            for (int c: cond_candidates) {
+                if (std::find(clique.begin(), clique.end(), c) == clique.end()) {
+                    cond.insert(c);
+                }
+            }
+
+            std::sort(clique.begin(), clique.end());
+            clique_candidate_list.push_back(clique);
+            cond_candidate_list.push_back(cond);
+        }
+
+        std::vector<bool> is_already_excluded;
+        for (int clique_a = 0; clique_a < number_of_parameters; clique_a++) {
+            bool clique_is_not_unique = false;
+            for (int clique_b = 0; clique_b < number_of_parameters; clique_b++) {
+                if (clique_a == clique_b || (is_already_excluded.size() > clique_b && is_already_excluded[clique_b])) {
+                    continue;
+                }
+
+                clique_is_not_unique |= std::includes(
+                        clique_candidate_list[clique_b].begin(), clique_candidate_list[clique_b].end(),
+                        clique_candidate_list[clique_a].begin(), clique_candidate_list[clique_a].end());
+
+                if (clique_is_not_unique) {
+                    break;
+                }
+            }
+
+            is_already_excluded.push_back(clique_is_not_unique);
+
+            if (!clique_is_not_unique) {
+                if (include_cliques_as_fos_elements) {
+                    if (use_conditional_sampling) {
+                        addConditionedGroup(clique_candidate_list[clique_a], cond_candidate_list[clique_a]);
+                    } else {
+                        addGroup(clique_candidate_list[clique_a]);
+                    }
+                }
+            }
+        }
+
+#if CHECK_FOS_COMPLETENESS_AFTER_CLIQUE_BUILDING
+        bool *variable_is_in_fos = new bool[number_of_parameters];
+
+        for (int i = 0; i < number_of_parameters; i++) {
+            variable_is_in_fos[i] = false;
+        }
+
+        for (int i = 0; i < sets.size(); i++) {
+            for (int j = 0; j < sets[i].size(); j++) {
+                variable_is_in_fos[sets[i][j]] = true;
+            }
+        }
+
+        for (int i = 0; i < number_of_parameters; i++) {
+            assert(variable_is_in_fos[i]);
+        }
+
+        delete[] variable_is_in_fos;
+#endif
+
+    }
+
+    // Conventional VIG search
     const int UNVISITED = 0;
     const int IS_VISITED = 1;
     const int IN_CLIQUE = 2;
@@ -499,14 +693,36 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
         visited[i] = UNVISITED;
     }
 
-    uvec var_order = randomPermutation(number_of_parameters);
+    std::vector<int> fitness_based_permutation(number_of_parameters);
 
-    std::vector<int> VIG_order;
-    conditional_distribution_t *full_cond;
-    if (include_full_fos_element)
-        full_cond = new conditional_distribution_t();
+    if (fitness_based_ordering) {
+        std::vector<double> aggregate_fitness_strength(number_of_parameters);
+        for (int i = 0; i < number_of_parameters; i++) {
+            aggregate_fitness_strength[i] = 0.0;
+            for (int j = 0; j < i; j++) {
+                aggregate_fitness_strength[i] -= (*fitness_dependency_matrix)[i][j];
+            }
+            if (i > 0) {
+                aggregate_fitness_strength[i] /= (double) i;
+            }
+        }
+
+        iota(fitness_based_permutation.begin(), fitness_based_permutation.end(), 0);
+        std::stable_sort(fitness_based_permutation.begin(), fitness_based_permutation.end(),
+                         [&aggregate_fitness_strength](size_t i1, size_t i2) {
+                             return aggregate_fitness_strength[i1] < aggregate_fitness_strength[i2];
+                         });
+    }
+
     for (int i = 0; i < number_of_parameters; i++) {
-        int ind = var_order[i];
+        int ind;
+
+        if (fitness_based_ordering) {
+            ind = fitness_based_permutation[i];
+        } else {
+            ind = var_order[i];
+        }
+
         if (visited[ind] == IS_VISITED)
             continue;
         visited[ind] = IN_CLIQUE;
@@ -522,8 +738,6 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
                 continue;
             visited[ind] = IS_VISITED;
 
-            VIG_order.push_back(ind);
-
             std::vector<int> clique;
             std::set<int> cond;
             clique.push_back(ind);
@@ -533,17 +747,14 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
                     cond.insert(x);
             }
 
-            /*printf("VIG:\n");
-            for( int x : variable_interaction_graph.at(ind) )
-                printf("%d,",x);
-            printf("\n");*/
             for (int x: variable_interaction_graph.at(ind)) // neighbors of ind
             {
                 if (visited[x] != IS_VISITED) {
                     bool add_to_clique = true;
                     std::set<int> neighbors = variable_interaction_graph.at(x);
-                    if (clique.size() >= max_clique_size)
+                    if (clique.size() >= max_clique_size) {
                         add_to_clique = false;
+                    }
                     if (add_to_clique) {
                         for (int y: clique) {
                             if (neighbors.find(y) == neighbors.end()) // edge (x,y) does not exist
@@ -562,10 +773,12 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
                             }
                         }
                     }
-                    if (add_to_clique)
+                    if (add_to_clique) {
                         clique.push_back(x);
+                    }
                 }
             }
+
             for (int x: clique) {
                 visited[x] = IS_VISITED;
                 for (int y: variable_interaction_graph.at(x)) // neighbors of x
@@ -576,23 +789,30 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
                     }
                 }
             }
-            if (include_cliques_as_fos_elements)
-                addConditionedGroup(clique, cond);
-            if (include_full_fos_element)
+
+            if (!seed_cliques_per_variable && include_cliques_as_fos_elements) {
+                if (use_conditional_sampling) {
+                    addConditionedGroup(clique, cond);
+                } else {
+                    addGroup(clique);
+                }
+            }
+
+            if (include_full_fos_element && use_conditional_sampling) {
                 full_cond->addGroupOfVariables(clique, cond);
+            }
         }
     }
-    if (include_full_fos_element) {
-        if (getLength() !=
-            1) // if length == 1, only 1 clique was found, which must have been the full model; in that case, do not add it again
+
+    if (include_full_fos_element && use_conditional_sampling) {
+        if (getLength() != 1) {
+            // if length == 1, only 1 clique was found, which must have been the full model;
+            // in that case, do not add it again
             addGroup(full_cond);
-        else
+        } else {
             delete full_cond;
+        }
     }
-    /*print();
-    for( auto d : distributions )
-        d->print();*/
-    //exit(0);
 }
 
 
@@ -600,7 +820,6 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph) {
 {
 	this->include_cliques_as_fos_elements = include_cliques_as_fos_elements;
 	this->include_full_fos_element = include_full_fos_element;
-	this->is_conditional = true;
 	assert( include_cliques_as_fos_elements || include_full_fos_element );
 	if( include_cliques_as_fos_elements )
 	{
@@ -843,13 +1062,15 @@ partial_solution_t *fos_t::generatePartialSolution(int FOS_index, solution_t *so
     return (distributions[FOS_index]->generatePartialSolution(solution_conditioned_on));
 }
 
-void fos_t::estimateDistributions(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix) {
+void fos_t::estimateDistributions(solution_t **selection, int selection_size,
+                                  vec_t<vec_t<double>> fitness_dependency_matrix) {
     for (int i = 0; i < getLength(); i++)
         estimateDistribution(i, selection, selection_size, fitness_dependency_matrix);
     order = randomPermutation(getLength());
 }
 
-void fos_t::estimateDistribution(int FOS_index, solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix) {
+void fos_t::estimateDistribution(int FOS_index, solution_t **selection, int selection_size,
+                                 vec_t<vec_t<double>> fitness_dependency_matrix) {
     distributions[FOS_index]->estimateDistribution(selection, selection_size, fitness_dependency_matrix);
 }
 

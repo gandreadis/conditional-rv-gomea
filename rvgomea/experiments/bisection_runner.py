@@ -17,7 +17,9 @@ BISECTION_FAILURE = (MAX_BISECTION_POPULATION, DEFAULT_MAX_NUM_EVALUATIONS)
 
 
 def bisection_worker(run_config: RunConfig):
-    return run_rvgomea(run_config, run_config.base_dir, save_statistics=False)
+    result = run_rvgomea(run_config, run_config.base_dir, save_statistics=False)
+    os.system(f"rm -rf {run_config.base_dir}")
+    return result
 
 
 def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_config: int,

@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX
+    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX, DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.experiments.bisection_runner import run_bisection
 from rvgomea.run_config import RunConfig
 
@@ -38,10 +38,13 @@ def main():
     # Prepare directory
     os.system(f"mkdir -p {output_dir}")
 
+    failed_settings = []
     results = []
     for problem in problems:
         for linkage_model in linkage_models:
-            for dimensionality in dimensionalities:
+            for dimensionality in sorted(dimensionalities):
+                all_repeats_passed = True
+
                 for repeat in range(num_repeats):
                     print(f"[Problem] {problem:<15}  "
                           f"[Linkage] {linkage_model:<15}  "
@@ -55,14 +58,12 @@ def main():
                         problem=problem,
                         dimensionality=dimensionality,
                         black_box=black_box,
-                        lower_init_bound=-115,
-                        upper_init_bound=-110,
                     )
 
                     result_population_size, result_median_num_evaluations = run_bisection(
                         os.path.join(output_dir,
                                      f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
-                        base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, num_cpus=4, bisection_repeat=repeat
+                        base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
                     )
 
                     results.append({
@@ -76,6 +77,22 @@ def main():
                     })
 
                     print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}")
+
+                    if int(results[-1]["median_num_evaluations"]) >= int(DEFAULT_MAX_NUM_EVALUATIONS):
+                        failed_settings.append(results[-1])
+                        all_repeats_passed = False
+                        break
+
+                if not all_repeats_passed:
+                    print("Not all repeats passed, abandoning all larger dimensionalities")
+                    break
+
+    def filter_dict(d):
+        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
+
+    for f in failed_settings:
+        results = [r for r in results
+                   if filter_dict(r) != filter_dict(f)]
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(output_dir, "aggregated_results.csv"))

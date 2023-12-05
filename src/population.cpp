@@ -214,10 +214,7 @@ void population_t::computeRanks() {
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 void population_t::estimateDistribution() {
-    if (!linkage_model->is_conditional) {
-        /*if( fitness->hasVariableInteractionGraph() )
-            linkage_model->randomizeOrder(fitness->variable_interaction_graph);
-        else*/
+    if (!use_conditional_sampling) {
         linkage_model->randomizeOrder();
     }
 
@@ -343,73 +340,120 @@ void population_t::generateAndEvaluateNewSolutions() {
 
     double alpha_AMS = 0.5 * tau * (((double) population_size) / ((double) (population_size - 1)));
     int number_of_AMS_solutions = (int) (alpha_AMS * (population_size - 1));
-    /*for(int j = 0; j < linkage_model->getLength(); j++ )
-    {
-        samples_drawn_from_normal[j] = 0;
-        out_of_bounds_draws[j]       = 0;
-    }*/ // BLA - resets every generation in distribution class?
 
     int first_to_adapt = 0;
 
-    linkage_model->randomizeOrder();
-    for (int g = 0; g < linkage_model->getLength(); g++) {
-        int FOS_index = linkage_model->order[g];
-        double t = getTimer();
+    if (perform_factorized_gom) {
+        linkage_model->randomizeOrder();
+        for (int g = 0; g < linkage_model->getLength(); g++) {
+            int FOS_index = linkage_model->order[g];
+            double t = getTimer();
 
-        if (selection_during_gom) {
-            makeSelection();
-            estimateDistribution(FOS_index);
-        }
-        if (update_elitist_during_gom)
-            updateElitist();
-
-        for (int k = num_elitists_to_copy; k < population_size; k++)
-            sampled_solutions[FOS_index][k] = linkage_model->generatePartialSolution(FOS_index, individuals[k]);
-
-        if (number_of_generations > 0) {
-            for (int k = num_elitists_to_copy; k <= number_of_AMS_solutions; k++)
-                applyPartialAMS(sampled_solutions[FOS_index][k], linkage_model->getDistributionMultiplier(FOS_index));
-        }
-
-        for (int k = num_elitists_to_copy; k < population_size; k++)
-            fitness->evaluatePartialSolution(individuals[k], sampled_solutions[FOS_index][k]);
-
-        int num_improvements = 0;
-        short *accept_improvement = (short *) Malloc(population_size * sizeof(short));
-        for (int k = num_elitists_to_copy; k < population_size; k++) {
-            accept_improvement[k] = checkForImprovement(individuals[k], sampled_solutions[FOS_index][k]);
-            individual_improved[k] = accept_improvement[k];
-            if (accept_improvement[k]) num_improvements++;
-        }
-
-        for (int k = num_elitists_to_copy; k < population_size; k++) {
-            if (accept_improvement[k] || randomRealUniform01() < linkage_model->getAcceptanceRate()) {
-                sampled_solutions[FOS_index][k]->is_accepted = 1;
-                insertImprovement(individuals[k], sampled_solutions[FOS_index][k]);
-            } else {
-                for (int i = 0; i < sampled_solutions[FOS_index][k]->num_touched_variables; i++) {
-                    int ind = sampled_solutions[FOS_index][k]->touched_indices[i];
-                    sampled_solutions[FOS_index][k]->touched_variables[i] = individuals[k]->variables[ind];
-                }
-                sampled_solutions[FOS_index][k]->objective_value = individuals[k]->objective_value;
-                sampled_solutions[FOS_index][k]->constraint_value = individuals[k]->constraint_value;
+            if (selection_during_gom) {
+                makeSelection();
+                estimateDistribution(FOS_index);
+            }
+            if (update_elitist_during_gom) {
+                updateElitist();
             }
 
-            if (fitness->betterFitness(sampled_solutions[FOS_index][k]->objective_value,
-                                       sampled_solutions[FOS_index][k]->constraint_value, objective_value_elitist,
-                                       constraint_value_elitist))
-                sampled_solutions[FOS_index][k]->improves_elitist = 1;
-        }
-        free(accept_improvement);
+            for (int k = num_elitists_to_copy; k < population_size; k++) {
+                sampled_solutions[FOS_index][k] = linkage_model->generatePartialSolution(FOS_index, individuals[k]);
+            }
 
-        gomtime += getTimer() - t;
-        linkage_model->adaptDistributionMultiplier(FOS_index, &sampled_solutions[FOS_index][num_elitists_to_copy],
-                                                   population_size - num_elitists_to_copy);
+            if (number_of_generations > 0) {
+                for (int k = num_elitists_to_copy; k <= number_of_AMS_solutions; k++)
+                    applyPartialAMS(sampled_solutions[FOS_index][k],
+                                    linkage_model->getDistributionMultiplier(FOS_index));
+            }
+
+            for (int k = num_elitists_to_copy; k < population_size; k++) {
+                fitness->evaluatePartialSolution(individuals[k], sampled_solutions[FOS_index][k]);
+            }
+
+            int num_improvements = 0;
+            short *accept_improvement = (short *) Malloc(population_size * sizeof(short));
+            for (int k = num_elitists_to_copy; k < population_size; k++) {
+                accept_improvement[k] = checkForImprovement(individuals[k], sampled_solutions[FOS_index][k]);
+                individual_improved[k] = accept_improvement[k];
+                if (accept_improvement[k]) num_improvements++;
+            }
+
+            for (int k = num_elitists_to_copy; k < population_size; k++) {
+                if (accept_improvement[k] || randomRealUniform01() < linkage_model->getAcceptanceRate()) {
+                    sampled_solutions[FOS_index][k]->is_accepted = 1;
+                    insertImprovement(individuals[k], sampled_solutions[FOS_index][k]);
+                } else {
+                    for (int i = 0; i < sampled_solutions[FOS_index][k]->num_touched_variables; i++) {
+                        int ind = sampled_solutions[FOS_index][k]->touched_indices[i];
+                        sampled_solutions[FOS_index][k]->touched_variables[i] = individuals[k]->variables[ind];
+                    }
+                    sampled_solutions[FOS_index][k]->objective_value = individuals[k]->objective_value;
+                    sampled_solutions[FOS_index][k]->constraint_value = individuals[k]->constraint_value;
+                }
+
+                if (fitness->betterFitness(sampled_solutions[FOS_index][k]->objective_value,
+                                           sampled_solutions[FOS_index][k]->constraint_value, objective_value_elitist,
+                                           constraint_value_elitist))
+                    sampled_solutions[FOS_index][k]->improves_elitist = 1;
+            }
+            free(accept_improvement);
+
+            gomtime += getTimer() - t;
+            linkage_model->adaptDistributionMultiplier(FOS_index, &sampled_solutions[FOS_index][num_elitists_to_copy],
+                                                       population_size - num_elitists_to_copy);
+        }
+
+        for (int g = 0; g < linkage_model->getLength(); g++)
+            for (int k = num_elitists_to_copy; k < population_size; k++)
+                delete (sampled_solutions[g][k]);
     }
 
-    for (int g = 0; g < linkage_model->getLength(); g++)
-        for (int k = num_elitists_to_copy; k < population_size; k++)
-            delete (sampled_solutions[g][k]);
+    if (perform_eda_gom) {
+        solution_t **full_solutions = (solution_t **) Malloc(population_size * sizeof(solution_t *));
+        for (int k = num_elitists_to_copy; k < population_size; k++) {
+            full_solutions[k] = new solution_t(fitness->number_of_parameters);
+
+            for (int i = 0; i < fitness->number_of_parameters; i++) {
+                full_solutions[k]->variables[i] = -1e16;
+            }
+        }
+
+        linkage_model->randomizeOrder();
+        for (int g = 0; g < linkage_model->getLength(); g++) {
+            int FOS_index = linkage_model->order[g];
+
+            for (int k = num_elitists_to_copy; k < population_size; k++) {
+                partial_solution_t *partial_solution = linkage_model->generatePartialSolution(FOS_index,
+                                                                                              individuals[k]);
+
+                for (int i = 0; i < partial_solution->num_touched_variables; i++) {
+                    full_solutions[k]->variables[partial_solution->touched_indices[i]] = partial_solution->touched_variables[i];
+                }
+
+                delete partial_solution;
+            }
+        }
+
+        for (int k = num_elitists_to_copy; k < population_size; k++) {
+            // Sanity check
+            for (int i = 0; i < fitness->number_of_parameters; i++) {
+                assert(full_solutions[k]->variables[i] != -1e16);
+            }
+
+            fitness->evaluate(full_solutions[k]);
+
+            if (fitness->betterFitness(full_solutions[k], individuals[k])) {
+                for (int i = 0; i < fitness->number_of_parameters; i++) {
+                    individuals[k]->variables[i] = full_solutions[k]->variables[i];
+                }
+                individuals[k]->objective_value = full_solutions[k]->objective_value;
+                individuals[k]->constraint_value = full_solutions[k]->constraint_value;
+                individual_improved[k] = 1;
+            }
+        }
+    }
+
 
     if (number_of_generations > 0) {
         for (int k = num_elitists_to_copy; k <= number_of_AMS_solutions; k++)
@@ -651,7 +695,7 @@ void population_t::initializeFOS() {
     random_linkage_tree = 0;
     prune_linkage_tree = 0;
     FOS_element_ub = number_of_parameters;
-    fitness_based_conditional_factors = 1;
+    fitness_based_ordering = 1;
 
     assert(FOS_element_size != 0);
 
@@ -685,7 +729,7 @@ void population_t::initializeFOS() {
             updateFitnessDependencyMatrix();
         }
 
-        new_FOS = new fos_t(fitness_dependency_matrix);
+        new_FOS = new fos_t(fitness_dependency_matrix, false);
 
     } else if (FOS_element_size == -6) {
         static_linkage_tree = 0;
@@ -699,10 +743,64 @@ void population_t::initializeFOS() {
             updateFitnessDependencyMatrix();
         }
 
-        new_FOS = new fos_t(fitness_dependency_matrix);
+        new_FOS = new fos_t(fitness_dependency_matrix, false);
+
+    } else if (FOS_element_size == -7) { // mp-fb-online-gg
+        static_linkage_tree = 0;
+        learn_linkage_tree = 1;
+        similarity_measure = 'F';
+        FOS_element_ub = 100;
+        prune_linkage_tree = 1;
+        perform_factorized_gom = 0;
+        perform_eda_gom = 1;
+
+        if (linkage_model == NULL) {
+            initializeFitnessDependencyMatrix();
+            updateFitnessDependencyMatrix();
+        }
+
+        new_FOS = new fos_t(fitness_dependency_matrix, true);
+
+    } else if (FOS_element_size == -8) { // mp-fb-online-fg
+        static_linkage_tree = 0;
+        learn_linkage_tree = 1;
+        similarity_measure = 'F';
+        FOS_element_ub = 100;
+        prune_linkage_tree = 1;
+        perform_factorized_gom = 1;
+        perform_eda_gom = 0;
+
+        if (linkage_model == NULL) {
+            initializeFitnessDependencyMatrix();
+            updateFitnessDependencyMatrix();
+        }
+
+        new_FOS = new fos_t(fitness_dependency_matrix, true);
+
+    } else if (FOS_element_size == -9) { // mp-fb-online-hg
+        static_linkage_tree = 0;
+        learn_linkage_tree = 1;
+        similarity_measure = 'F';
+        FOS_element_ub = 100;
+        prune_linkage_tree = 1;
+        perform_factorized_gom = 1;
+        perform_eda_gom = 1;
+
+        if (linkage_model == NULL) {
+            initializeFitnessDependencyMatrix();
+            updateFitnessDependencyMatrix();
+        }
+
+        new_FOS = new fos_t(fitness_dependency_matrix, true);
 
     } else if (FOS_element_size <= -10) {
         int id = -1 * FOS_element_size;
+
+        use_conditional_sampling = (id % 10) > 0;
+        id /= 10;
+
+        seed_cliques_per_variable = (id % 10) > 0;
+        id /= 10;
 
         int is_fitness_based = (id % 10) > 0;
         id /= 10;
@@ -710,7 +808,7 @@ void population_t::initializeFOS() {
             similarity_measure = 'F';
 
             if (is_fitness_based == 2) {
-                fitness_based_conditional_factors = 0;
+                fitness_based_ordering = 0;
             }
 
             if (linkage_model == NULL) {
@@ -731,7 +829,20 @@ void population_t::initializeFOS() {
 
         max_clique_size = id;
 
-        new_FOS = new fos_t(fitness->variable_interaction_graph);
+        if (max_clique_size == 1) {
+            seed_cliques_per_variable = false;
+        }
+
+        if (!use_conditional_sampling) {
+            // In non-conditional setting, generational, factorized and hybrid GOM have a different connotation
+            perform_factorized_gom = include_cliques_as_fos_elements;
+            perform_eda_gom = include_full_fos_element;
+
+            include_cliques_as_fos_elements = true;
+            include_full_fos_element = false;
+        }
+
+        new_FOS = new fos_t(fitness->variable_interaction_graph, ((is_fitness_based && fitness_based_ordering) ? &fitness_dependency_matrix : NULL));
     }
 
     if (linkage_model != NULL) {
@@ -804,7 +915,7 @@ std::map<int, std::set<int>> population_t::buildVariableInteractionGraphBasedOnF
             if (i == j) {
                 continue;
             }
-            if (fitness_dependency_matrix[i][j] > 0.0) {
+            if (fitness_dependency_matrix[i][j] != 0.0) {
                 vig[i].insert(j);
             }
         }
@@ -1071,24 +1182,26 @@ int population_t::computeFitnessDependency(int k, solution_t *individual_to_comp
     change_i_j = change_i_j / original_objective;
 
     double delta_i = fabs(1.0 - change_i);
-    double delta_j = fabs(change_j - change_i_j);
+    double delta_ij = fabs(change_j - change_i_j);
     delta_i = nround(delta_i, 12);
-    delta_j = nround(delta_j, 12);
+    delta_ij = nround(delta_ij, 12);
 
     double dependency = 0.0;
     double inverted_difference;
 
-    if (delta_j == 0.0) {
+//    bool is_positive_dependency = delta_ij > delta_i;
+
+    if (delta_ij == 0.0) {
         double temp = delta_i;
-        delta_i = delta_j;
-        delta_j = temp;
+        delta_i = delta_ij;
+        delta_ij = temp;
     }
 
-    if (delta_j != 0.0) {
-        inverted_difference = nround(fabs((double) delta_i / delta_j), 6);
+    if (delta_ij != 0.0) {
+        inverted_difference = nround(fabs((double) delta_i / delta_ij), 6);
 
         if (inverted_difference > 1.0) {
-            inverted_difference = nround(fabs((double) delta_j / delta_i), 6);
+            inverted_difference = nround(fabs((double) delta_ij / delta_i), 6);
         }
     } else {
         inverted_difference = 1.0;
@@ -1101,6 +1214,10 @@ int population_t::computeFitnessDependency(int k, solution_t *individual_to_comp
     } else {
         dependency = 0.0;
     }
+
+//    if (!is_positive_dependency) {
+//        dependency = -dependency;
+//    }
 
     fitness_dependency_matrix[i][j] = dependency;
     fitness_dependency_matrix[j][i] = dependency;

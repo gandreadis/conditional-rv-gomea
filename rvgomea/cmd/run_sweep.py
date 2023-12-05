@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE
+    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.experiments.bisection_runner import run_bisection
 from rvgomea.run_config import RunConfig
 from rvgomea.run_rvgomea import run_rvgomea
@@ -42,6 +42,7 @@ def main():
     # Prepare directory
     os.system(f"mkdir -p {output_dir}")
 
+    failed_settings = []
     results = []
     for problem in problems:
         for linkage_model in linkage_models:
@@ -59,8 +60,6 @@ def main():
                         problem=problem,
                         dimensionality=dimensionality,
                         black_box=black_box,
-                        lower_init_bound=-115,
-                        upper_init_bound=-110,
                     )
 
                     result = run_rvgomea(
@@ -79,6 +78,17 @@ def main():
                     })
 
                     print(f"[Evals] {int(results[-1]['median_num_evaluations']):8}")
+
+                    if int(results[-1]["median_num_evaluations"]) >= int(DEFAULT_MAX_NUM_EVALUATIONS):
+                        failed_settings.append(results[-1])
+                        break
+
+    def filter_dict(d):
+        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
+
+    for f in failed_settings:
+        results = [r for r in results
+                   if filter_dict(r) != filter_dict(f)]
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(output_dir, "aggregated_results.csv"))

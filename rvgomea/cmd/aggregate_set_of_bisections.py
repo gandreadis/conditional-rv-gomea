@@ -5,8 +5,11 @@ from glob import glob
 
 import pandas as pd
 
+from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
+
 
 def main(directory: str):
+    failed_settings = []
     results = []
     for bisection_path in glob(os.path.join(directory, "*")):
         if not os.path.isdir(bisection_path):
@@ -29,6 +32,16 @@ def main(directory: str):
             "population_size": result["population_size"],
             "median_num_evaluations": result["median_num_evaluations"],
         })
+
+        if int(result["median_num_evaluations"]) == int(DEFAULT_MAX_NUM_EVALUATIONS):
+            failed_settings.append(results[-1])
+
+    def filter_dict(d):
+        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
+
+    for f in failed_settings:
+        results = [r for r in results
+                   if filter_dict(r) != filter_dict(f)]
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(directory, "aggregated_results.csv"))

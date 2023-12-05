@@ -5,13 +5,14 @@ import matplotlib
 import pandas as pd
 from matplotlib import pyplot as plt
 import scienceplots
+import seaborn as sns
 
 plt.style.use('science')
 
 # Prevent scienceplots from being purged as import
 scienceplots.listdir(".")
 
-cmap = matplotlib.colormaps['Spectral']
+cmap = matplotlib.colormaps['tab20c']
 
 
 MARKERS = {
@@ -20,6 +21,8 @@ MARKERS = {
     "lt-static-gbo": "^",
     "lt-fb-online-unpruned": "<",
     "lt-fb-online-pruned": ">",
+    "mp-fb-online-fg": "o",
+    "mp-fb-online-hg": "o",
     "ucond-gg-gbo": "*",
     "ucond-fg-gbo": "*",
     "ucond-hg-gbo": "*",
@@ -38,6 +41,7 @@ COLOR_ORDER = [
     "ucond-gg-gbo",
     "ucond-gg-fb",
     "ucond-gg-fb-generic",
+    "mp-fb-online-fg",
     "univariate",
     "ucond-fg-gbo",
     "ucond-fg-fb",
@@ -46,6 +50,7 @@ COLOR_ORDER = [
     "ucond-hg-gbo",
     "ucond-hg-fb",
     "ucond-hg-fb-generic",
+    "mp-fb-online-hg",
     "lt-static-gbo",
     "mcond-hg-gbo",
     "mcond-hg-fb",
@@ -128,10 +133,8 @@ def main(directory, configuration):
         ]
     elif configuration == "temp":
         linkage_models = [
-            "univariate",
-            "lt-static-gbo",
-            "lt-fb-online-unpruned",
-            "lt-fb-online-pruned",
+            "mp-fb-online-fg",
+            "mp-fb-online-hg",
         ]
     else:
         raise Exception("Unknown linkage model configuration")
@@ -139,11 +142,13 @@ def main(directory, configuration):
     df = pd.read_csv(os.path.join(directory, "aggregated_results.csv"))
 
     for metric, title in [("population_size", "Population size"), ("median_num_evaluations", "Number of evaluations")]:
-        f, ax = plt.subplots(figsize=(5, 5))
+        f, ax = plt.subplots(figsize=(6, 6))
+        # sns.lineplot(ax=ax, data=df[df["linkage_model"].str.contains("gbo")], x="dimensionality", y=metric, hue="linkage_model", style="linkage_model")
 
         for model in linkage_models:
             d = df[df["linkage_model"] == model].groupby(["dimensionality"]).median(numeric_only=True).reset_index()
-            ax.plot(d["dimensionality"], d[metric], linestyle='-', color=COLORS[model], marker=MARKERS[model], label=model)
+            ax.plot(d["dimensionality"], d[metric], linestyle='-', color=COLORS[model], marker=MARKERS[model],
+                    label=model)
 
         ax.legend(title='Linkage model', bbox_to_anchor=(1.05, 1), loc='upper left')
         ax.set_xlabel("Dimensionality")

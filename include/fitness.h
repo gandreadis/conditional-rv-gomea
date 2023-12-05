@@ -220,6 +220,24 @@ private:
     double subfunction(double x);
 };
 
+class michalewiczFunction_t : public fitness_t {
+public:
+    michalewiczFunction_t(int number_of_parameters, double vtr);
+
+    double getLowerRangeBound(int dimension);
+
+    double getUpperRangeBound(int dimension);
+
+    void initializeVariableInteractionGraph();
+
+private:
+    void evaluationFunction(solution_t *solution);
+
+    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
+
+    double subfunction(int i, double x);
+};
+
 class rosenbrockFunction_t : public fitness_t {
 public:
     rosenbrockFunction_t(int number_of_parameters, double vtr);
@@ -240,14 +258,31 @@ private:
     double subfunction(double x, double y);
 };
 
+class summationCancellationFunction_t : public fitness_t {
+public:
+    summationCancellationFunction_t(int number_of_parameters, double vtr);
+
+    double getLowerRangeBound(int dimension);
+
+    double getUpperRangeBound(int dimension);
+
+    void initializeVariableInteractionGraph();
+
+private:
+    void evaluationFunction(solution_t *solution);
+
+    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
+};
+
 class sorebFunction_t : public fitness_t {
 public:
-    double **rotation_matrix;
-    double conditioning_number, rotation_angle;
+    double **rotation_matrix_1;
+    double **rotation_matrix_2;
+    double conditioning_number_1, conditioning_number_2, rotation_angle_1, rotation_angle_2;
     int overlap_size;
 
-    sorebFunction_t(int number_of_parameters, double vtr, double conditioning_number, double rotation_angle,
-                    int block_size, int overlap_size);
+    sorebFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
+                    double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size);
 
     ~sorebFunction_t();
 
@@ -262,7 +297,38 @@ private:
 
     void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
 
-    double subfunction(double *vars, int num_vars);
+    double subfunction(int index_start, double *vars, int num_vars);
+
+    int getStartingIndexOfBlock(int block_index);
+
+    int getIndexOfFirstBlock(int var);
+};
+
+class sorebDisjointBlocksFunction_t : public fitness_t {
+public:
+    double **rotation_matrix_1;
+    double **rotation_matrix_2;
+    double conditioning_number_1, conditioning_number_2, rotation_angle_1, rotation_angle_2;
+    int overlap_size;
+    int dual_block_size;
+
+    sorebDisjointBlocksFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
+                    double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size);
+
+    ~sorebDisjointBlocksFunction_t();
+
+    double getLowerRangeBound(int dimension);
+
+    double getUpperRangeBound(int dimension);
+
+    void initializeVariableInteractionGraph();
+
+private:
+    void evaluationFunction(solution_t *solution);
+
+    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
+
+    double subfunction(int index_start, double *vars, int num_vars);
 
     int getStartingIndexOfBlock(int block_index);
 
@@ -282,6 +348,8 @@ public:
     double getLowerRangeBound(int dimension);
 
     double getUpperRangeBound(int dimension);
+
+    void initializeVariableInteractionGraph();
 
 private:
     void evaluationFunction(solution_t *solution);

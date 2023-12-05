@@ -671,19 +671,6 @@ conditional_distribution_t::addGroupOfVariables(const std::vector<int> &indices,
     addGroupOfVariables(indices, cond);
 }
 
-void conditional_distribution_t::addGroupOfVariables(int index, const std::vector<int> &indices_cond) {
-    std::vector<int> indices;
-    indices.push_back(index);
-    addGroupOfVariables(indices, indices_cond);
-}
-
-void conditional_distribution_t::addGroupOfVariables(int index, int index_cond) {
-    std::vector<int> indices, indices_cond;
-    indices.push_back(index);
-    indices_cond.push_back(index_cond);
-    addGroupOfVariables(indices, indices_cond);
-}
-
 void conditional_distribution_t::estimateConditionalGaussianML(int variable_group_index, solution_t **selection,
                                                                int selection_size,
                                                                vec_t<vec_t<double>> fitness_dependency_matrix) {
@@ -700,6 +687,7 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
 
     covariance_matrices[i] = estimateRegularCovarianceMatrixML(vars, mean_vectors[i], selection, selection_size);
 
+
     std::vector<int> vars_cond = variables_conditioned_on[i];
     int n_cond = vars_cond.size();
     if (n_cond > 0) {
@@ -707,19 +695,8 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
 
         mat A12(n, n_cond, fill::none);
         for (int j = 0; j < n; j++) {
-            double max_dependency = 0;
-            if (similarity_measure == 'F' && fitness_based_conditional_factors) {
-                for (int k = 0; k < n_cond; k++) {
-                    max_dependency = max(fitness_dependency_matrix[j][k], max_dependency);
-                }
-            }
-
             for (int k = 0; k < n_cond; k++) {
-                double dependency_factor = 1.0;
-                if (similarity_measure == 'F' && fitness_based_conditional_factors && max_dependency >= 1e-16) {
-                    dependency_factor = fitness_dependency_matrix[j][k] / max_dependency;
-                }
-                A12(j, k) = dependency_factor * estimateCovariance(
+                A12(j, k) = estimateCovariance(
                         vars[j], vars_cond[k], selection, selection_size
                 ) * distribution_multiplier;
             }
@@ -732,7 +709,6 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
         if (pinv(A22inv, A22)) {
             rho_matrices[i] = A12 * A22inv;
             mat submat = A12 * A22inv * A12.t();
-            //mat zeros = A22*A22inv*A22 - A22;
             covariance_matrices[i] -= submat;
         } else {
             //printf("pseudo-inverse failed\n");

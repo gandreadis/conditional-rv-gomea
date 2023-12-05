@@ -1,19 +1,9 @@
 export PYTHONPATH="$PYTHONPATH:."
 
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l univariate
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l full
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l lt-static-gbo
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l lt-fb-online-unpruned
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l lt-fb-online-pruned
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l ucond-gg-gbo
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l ucond-fg-gbo
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l ucond-hg-gbo
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -l mcond-hg-gbo
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-gg-fb
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-fg-fb
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-hg-fb
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l mcond-hg-fb
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-gg-fb-generic
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-fg-fb-generic
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l ucond-hg-fb-generic
-python rvgomea/cmd/run.py -x -115 -y -110 -p rosenbrock -d 30 -i test_run -o -s 64 -b -l mcond-hg-fb-generic
+OPTIONS=("univariate" "full" "lt-static-gbo" "lt-fb-online-unpruned" "lt-fb-online-pruned" "mp-fb-online-gg" "mp-fb-online-fg" "mp-fb-online-hg" "mp-hg-fb_no_order-without_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-non_conditional")
+
+for option in "${OPTIONS[@]}"
+do
+  python rvgomea/cmd/run.py -p reb2-chain-weak -d 10 -i test_run -o -b -s 32 -l ${option}
+  echo ""
+done

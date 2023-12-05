@@ -55,11 +55,11 @@ public:
 
     fos_t(double **covariance_matrix);
 
-    fos_t(vec_t<vec_t<double>> fitness_dependency_matrix);
+    fos_t(vec_t<vec_t<double>> fitness_dependency_matrix, bool is_marginal);
 
     fos_t(FILE *file);
 
-    fos_t(const std::map<int, std::set<int>> &variable_interaction_graph);
+    fos_t(const std::map<int, std::set<int>> &variable_interaction_graph, vec_t<vec_t<double>> *fitness_dependency_matrix);
 
     fos_t(const fos_t &f);
 
@@ -122,8 +122,6 @@ public:
     std::vector<std::vector<int>> sets;
     std::vector<uvec> variables_conditioned_on;
 
-    bool is_conditional = false;
-
     void print();
 
     uvec order;
@@ -140,6 +138,8 @@ public:
 extern int max_clique_size;
 extern bool include_cliques_as_fos_elements;
 extern bool include_full_fos_element;
+extern bool seed_cliques_per_variable;
+extern bool use_conditional_sampling;
 extern int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
 prune_linkage_tree,
 learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
