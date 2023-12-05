@@ -7,10 +7,17 @@ export PYTHONPATH="$PYTHONPATH:."
 # Desc:   FG vs HG
 # Models: mp-fb-online-fg,mp-fb-online-hg
 # ID:     gom-non-overlapping
+# (copy over / reuse one of first)
 
 # Desc:   FG vs HG
 # Models: mp-fg-fb_no_order-with_clique_seeding-non_conditional,mp-hg-fb_no_order-with_clique_seeding-non_conditional
 # ID:     gom-overlapping
+# (copy over / reuse one of first)
+
+# Desc:   Conditional
+# Models: uni-hg-gbo-without_clique_seeding-conditional,mp-hg-gbo-with_clique_seeding-conditional,uni-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-with_clique_seeding-conditional
+# ID:     conditional
+# (copy over / reuse one of first)
 
 models=$1
 id=$2
