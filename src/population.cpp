@@ -804,6 +804,7 @@ void population_t::initializeFOS() {
 
         int is_fitness_based = (id % 10) > 0;
         id /= 10;
+
         if (is_fitness_based) {
             similarity_measure = 'F';
 

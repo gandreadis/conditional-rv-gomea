@@ -695,7 +695,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
 
     std::vector<int> fitness_based_permutation(number_of_parameters);
 
-    if (fitness_based_ordering) {
+    if (similarity_measure == 'F' && fitness_based_ordering) {
         std::vector<double> aggregate_fitness_strength(number_of_parameters);
         for (int i = 0; i < number_of_parameters; i++) {
             aggregate_fitness_strength[i] = 0.0;
