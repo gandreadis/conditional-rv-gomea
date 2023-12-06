@@ -1,8 +1,9 @@
 build/
 archive/
 data/
-test_run/
+test_run*/
 test_bisection/
+gecco/
 
 random_seed.dat
 RV-GOMEA
