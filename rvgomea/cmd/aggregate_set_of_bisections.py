@@ -12,7 +12,7 @@ def main(directory: str):
     failed_settings = []
     results = []
     for bisection_path in glob(os.path.join(directory, "*")):
-        if not os.path.isdir(bisection_path):
+        if not os.path.isdir(bisection_path) or bisection_path.endswith("plots"):
             continue
 
         try:

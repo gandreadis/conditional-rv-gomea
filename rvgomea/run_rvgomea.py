@@ -43,7 +43,7 @@ PROBLEM_CODES = {
 
 # For the reb5 problems, the following problem sizes are compatible:
 # reb5-no-overlap: multiples of 5
-# reb5-small-overlap*: 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53
+# reb5-small-overlap*: 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77, 81
 # reb5-large-overlap: anything >= 5
 # reb5-disjoint-pairs: multiples of 9
 

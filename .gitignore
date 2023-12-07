@@ -3,7 +3,7 @@ archive/
 data/
 test_run*/
 test_bisection/
-gecco/
+gecco-data/
 
 random_seed.dat
 RV-GOMEA

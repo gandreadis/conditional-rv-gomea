@@ -980,6 +980,9 @@ void printTimer(void) {
 void initializeRandomNumberGenerator(void) {
     struct timeval tv;
 
+    // Catch case in which random seed is set to 0
+    random_seed++;
+
     while (random_seed == 0) {
         gettimeofday(&tv, NULL);
         random_seed = (int64_t) tv.tv_usec;
