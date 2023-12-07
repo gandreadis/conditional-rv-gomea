@@ -7,7 +7,7 @@ sbatch <<EOT
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --time=120:00:00
-#SBATCH -o "logs/scalability-${1}-%j.out"
+#SBATCH -o "logs/scalability-%j.out"
 
 module purge
 module load 2023
