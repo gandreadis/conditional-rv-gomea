@@ -64,6 +64,10 @@ INIT_RANGES = {
     "reb5": [-115, -100],
 }
 
+CUSTOM_VTR = {
+    "summation-cancellation": 1e-6,
+}
+
 
 def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True,
                 save_fitness_dependencies=False) -> RunResult:
@@ -106,6 +110,9 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
         raise Exception(f"Unknown problem: {config.problem}")
     problem_code = PROBLEM_CODES[config.problem.lower()]
     command += f"{problem_code} "
+
+    if config.problem.lower() in CUSTOM_VTR.keys():
+        config.vtr = CUSTOM_VTR[config.problem.lower()]
 
     if "reb2" in config.problem.lower() or "reb-chain" in config.problem.lower():
         config.lower_init_bound, config.upper_init_bound = INIT_RANGES["reb2"]

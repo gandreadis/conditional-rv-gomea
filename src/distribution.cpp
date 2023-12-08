@@ -450,7 +450,16 @@ mat distribution_t::choleskyDecomposition(const mat &matrix) {
         k = 0;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
-                result(i, j) = i != j ? 0.0 : sqrt(matrix(i, j));
+                if (i == j) {
+                    double matrix_value = matrix(i, j);
+                    if (matrix_value <= 0) {
+                        matrix_value = 1e-12;
+                    }
+                    result(i, j) = sqrt(matrix_value);
+                } else {
+                    result(i, j) = 0.0;
+                }
+
                 k++;
             }
         }
@@ -687,7 +696,6 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
 
     covariance_matrices[i] = estimateRegularCovarianceMatrixML(vars, mean_vectors[i], selection, selection_size);
 
-
     std::vector<int> vars_cond = variables_conditioned_on[i];
     int n_cond = vars_cond.size();
     if (n_cond > 0) {
@@ -711,7 +719,7 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
             mat submat = A12 * A22inv * A12.t();
             covariance_matrices[i] -= submat;
         } else {
-            //printf("pseudo-inverse failed\n");
+            printf("pseudo-inverse failed\n"); fflush(stdout);
         }
     }
     cholesky_decompositions[i] = choleskyDecomposition(covariance_matrices[i]);
