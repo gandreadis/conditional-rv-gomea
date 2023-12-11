@@ -5,7 +5,7 @@ sbatch <<EOT
 #SBATCH --partition=gpu
 #SBATCH --gpus=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=30
+#SBATCH --cpus-per-task=15
 #SBATCH --time=120:00:00
 #SBATCH -o "logs/scalability-${1}-%j.out"
 
@@ -19,3 +19,5 @@ make
 run_scripts/run_scalability_bisection.sh "${1}" "${2}"
 
 EOT
+
+# bash deploy/scalability.slurm 1 2

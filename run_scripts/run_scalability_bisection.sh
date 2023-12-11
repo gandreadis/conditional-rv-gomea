@@ -1,17 +1,17 @@
 export PYTHONPATH="$PYTHONPATH:."
 
-# sphere:  10,20,40,80
-# rosenbrock:  10,20,40,80
-# summation-cancellation:  10,20,40,80
-# reb2-chain-weak:  10,20,40,80
-# reb2-chain-strong:  10,20,40,80
-# reb2-chain-alternating:  10,20,40,80
-# reb5-no-overlap:  10,20,40,80
-# reb5-small-overlap:  9,21,41,81
-# reb5-small-overlap-alternating:  9,21,41,81
-# reb5-large-overlap:  10,20,40,80
-# reb5-disjoint-pairs:  9,18,36,72
-# reb-grid:  16,36,64,81
+# sphere  10,20,40,80
+# rosenbrock  10,20,40,80
+# summation-cancellation  10,20,40,80
+# reb2-chain-weak  10,20,40,80
+# reb2-chain-strong  10,20,40,80
+# reb2-chain-alternating  10,20,40,80
+# reb5-no-overlap  10,20,40,80
+# reb5-small-overlap  9,21,41,81
+# reb5-small-overlap-alternating  9,21,41,81
+# reb5-large-overlap  10,20,40,80
+# reb5-disjoint-pairs  9,18,36,72
+# reb-grid  16,36,64,81
 
 problem=$1
 dimensionalities=$2
