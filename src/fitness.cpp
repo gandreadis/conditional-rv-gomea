@@ -640,6 +640,7 @@ void summationCancellationFunction_t::initializeVariableInteractionGraph() {
 
     for (int i = 0; i < number_of_parameters; i++) {
         for (int j = 0; j < i; j++) {
+            assert(i != j);
             variable_interaction_graph[i].insert(j);
             variable_interaction_graph[j].insert(i);
         }
@@ -658,7 +659,7 @@ void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
         absolute_sum += abs(gamma_sum);
     }
 
-    double result = 100000 - (1 / (1e-5 + absolute_sum));
+    double result = absolute_sum;// = 100000 - (1 / (1e-5 + absolute_sum));
 
     solution->objective_value = result;
     solution->constraint_value = 0;
