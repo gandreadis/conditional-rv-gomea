@@ -80,8 +80,10 @@ def main():
         print(config)
         print()
 
-    run_rvgomea(config, in_dir=args.in_directory, show_output=args.show_output,
-                save_fitness_dependencies=args.save_fitness_dependencies)
+    succeeded = run_rvgomea(config, in_dir=args.in_directory, show_output=args.show_output,
+                save_fitness_dependencies=args.save_fitness_dependencies).succeeded
+
+    exit(0 if succeeded else 1)
 
 
 if __name__ == '__main__':

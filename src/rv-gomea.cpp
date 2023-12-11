@@ -422,8 +422,20 @@ void rvg_t::initializeProblem(int problem_index, double vtr) {
     fitness = fitness_t::getFitnessClass(problem_index, number_of_parameters, vtr);
     if (fitness == NULL) {
         printf("Unknown problem index.\n");
-        exit(0);
+        fflush(stdout);
+        exit(1);
     }
+
+    // Check if variable interaction graph does not include self-loops
+    for (int i = 0; i < number_of_parameters; i++) {
+        std::set<int> dependent_set = fitness->variable_interaction_graph[i];
+        if (std::find(dependent_set.begin(), dependent_set.end(), i) != dependent_set.end()) {
+            printf("Variable interaction graph includes itself.\n");
+            fflush(stdout);
+            exit(2);
+        }
+    }
+
     fitness->use_vtr = use_vtr;
     fitness->black_box_optimization = black_box_evaluations;
     fitness->vtr_hit_status = 0;

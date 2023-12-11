@@ -43,7 +43,7 @@ def main():
     for problem in problems:
         for linkage_model in linkage_models:
             for dimensionality in sorted(dimensionalities):
-                all_repeats_passed = True
+                num_failed_repeats = 0
 
                 for repeat in range(num_repeats):
                     print(f"[Problem] {problem:<15}  "
@@ -78,13 +78,15 @@ def main():
 
                     print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}")
 
-                    if int(results[-1]["median_num_evaluations"]) >= int(DEFAULT_MAX_NUM_EVALUATIONS):
+                    if results[-1]["median_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
                         failed_settings.append(results[-1])
-                        all_repeats_passed = False
-                        break
+                        num_failed_repeats += 1
 
-                if not all_repeats_passed:
-                    print("Not all repeats passed, abandoning all larger dimensionalities")
+                        if num_failed_repeats >= num_repeats * 0.5:
+                            break
+
+                if num_failed_repeats >= num_repeats * 0.5:
+                    print("Majority of all repeats did not pass, abandoning all larger dimensionalities")
                     break
 
     def filter_dict(d):

@@ -1,9 +1,9 @@
 export PYTHONPATH="$PYTHONPATH:."
 
-OPTIONS=("univariate" "full" "lt-static-gbo" "lt-fb-online-unpruned" "lt-fb-online-pruned" "mp-fb-online-gg" "mp-fb-online-fg" "mp-fb-online-hg" "mp-hg-fb_no_order-without_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-non_conditional")
+OPTIONS=("univariate" "full" "lt-static-gbo" "lt-fb-online-pruned" "mp-fb-online-gg" "mp-fb-online-fg" "mp-fb-online-hg" "mp-hg-gbo-without_clique_seeding-conditional" "mp-hg-fb_no_order-without_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-non_conditional")
 
 for option in "${OPTIONS[@]}"
 do
-  python rvgomea/cmd/run.py -p reb2-chain-weak -d 10 -i test_run -o -b -s 32 -l ${option}
+  python rvgomea/cmd/run.py -p reb2-chain-weak -d 10 -i test_run -o -b -s 32 -l ${option} || exit 1
   echo ""
 done

@@ -23,7 +23,7 @@ def bisection_worker(run_config: RunConfig):
 
 
 def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_config: int,
-                  num_cpus: int = multiprocessing.cpu_count() - 1, log_progress=False, bisection_repeat: int = 0):
+                  num_cpus: int = multiprocessing.cpu_count(), log_progress=False, bisection_repeat: int = 0):
     config_counter = [0]
     history = []
     history_counter = [0]
@@ -57,11 +57,16 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
             with Pool(num_cpus) as pool:
                 results = list(pool.imap_unordered(bisection_worker, configs))
 
-            all_passed = all(r.succeeded for r in results)
-            if all_passed:
-                median_num_evaluations = np.median([r.statistics["evaluations"].iloc[-1] for r in results])
-            else:
-                median_num_evaluations = DEFAULT_MAX_NUM_EVALUATIONS
+            median_num_evaluations = np.median([
+                (r.statistics["evaluations"].iloc[-1] if r.succeeded else DEFAULT_MAX_NUM_EVALUATIONS)
+                for r in results
+            ])
+
+            # all_passed = all(r.succeeded for r in results)
+            # if all_passed:
+            #     median_num_evaluations = np.median([r.statistics["evaluations"].iloc[-1] for r in results])
+            # else:
+            #     median_num_evaluations = DEFAULT_MAX_NUM_EVALUATIONS
 
             population_size_cache[population_size] = median_num_evaluations
 

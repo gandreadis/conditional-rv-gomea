@@ -15,8 +15,8 @@ scienceplots.listdir(".")
 
 AGGREGATE = True
 
-cmap = LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
-cmap.set_under('darkred')
+cmap = "BuPu" #LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
+# cmap.set_under('darkred')
 
 
 def get_matrix(generation: int, df):
@@ -37,18 +37,21 @@ def main(base_directory, problem_ids, problem_labels):
                 df = pd.read_csv(os.path.join(base_directory, problem_id, str(i),
                                               "fitness_dependency_monitoring_per_generation.dat"))
                 num_generations = int(np.max(df["generation"]))
-                matrix = get_matrix(num_generations, df)[:20,:20]
+                matrix = get_matrix(int(num_generations * 0.5), df)[:20,:20]
                 matrices.append(matrix)
 
             mean_dsm = np.mean(matrices, axis=0)
+            max_dep = np.max(mean_dsm)
+            if max_dep > 0:
+                mean_dsm /= max_dep
             mean_dsm.tofile(os.path.join(base_directory, problem_id, "dsm.dat"))
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(10, 7))
 
     axs = ImageGrid(fig, 111,
                     nrows_ncols=(3, 4),
                     share_all=True,
-                    axes_pad=0.05,
+                    axes_pad=0.4,
                     cbar_mode='single',
                     cbar_location='right',
                     cbar_pad=0.1,
@@ -56,23 +59,24 @@ def main(base_directory, problem_ids, problem_labels):
 
     cb = None
     for i, (problem_id, problem_label) in enumerate(zip(problem_ids, problem_labels)):
-        ax = axs[i // 4, i % 4]
+        ax = axs[i]
 
         dsm = np.fromfile(os.path.join(base_directory, problem_id, "dsm.dat"))
+        dsm = np.reshape(dsm, (20, 20))
 
         ax.set_title(problem_label)
         ax.tick_params(axis=u'both', which=u'both', length=0)
         ax.set_xticks(list(range(0, 20, 4)))
         ax.set_yticks(list(range(0, 20, 4)))
-        cb = ax.imshow(dsm, cmap=cmap, vmin=1e-12, vmax=1)
+        cb = ax.imshow(dsm, cmap=cmap, vmin=0, vmax=1)
 
     axs.cbar_axes[0].colorbar(cb, label="Dependency strength")
 
     # Global labels
-    fig.add_subplot(111, frameon=False)
-    plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
-    plt.xlabel('Variable')
-    plt.ylabel('Variable')
+    # fig.add_subplot(111, frameon=False)
+    # plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
+    # plt.xlabel('Variable')
+    # plt.ylabel('Variable')
 
     plt.tight_layout()
 

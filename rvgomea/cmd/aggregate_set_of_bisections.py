@@ -33,7 +33,7 @@ def main(directory: str):
             "median_num_evaluations": result["median_num_evaluations"],
         })
 
-        if int(result["median_num_evaluations"]) == int(DEFAULT_MAX_NUM_EVALUATIONS):
+        if result["median_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
             failed_settings.append(results[-1])
 
     def filter_dict(d):

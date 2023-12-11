@@ -8,8 +8,8 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import scienceplots
-from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
+from matplotlib.ticker import MultipleLocator
 from mpl_toolkits.axes_grid1 import ImageGrid
 
 plt.style.use('science')
@@ -45,18 +45,17 @@ grid = ImageGrid(fig, 111,
                  )
 
 ax = grid[0]
-cmap = LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
-cmap.set_under('darkred')
+cmap = "BuPu"
 
 dsm = get_matrix(num_generations)
-cb = ax.imshow(dsm, cmap=cmap, vmin=1e-12, vmax=1)
+cb = ax.imshow(dsm, cmap=cmap, vmin=0, vmax=1)
 grid.cbar_axes[0].colorbar(cb, label="Dependency strength")
 
 ax.tick_params(axis=u'both', which=u'both', length=0)
 ax.set_xlabel("Variable")
 ax.set_ylabel("Variable")
-ax.set_xticks(list(range(0, 20, 4)))
-ax.set_yticks(list(range(0, 20, 4)))
+ax.set_xticks(list(range(0, 16, 2)))
+ax.set_yticks(list(range(0, 16, 2)))
 # ax.set_xlim(-0.5, 19.5)
 # ax.set_ylim(19.5, -0.5)
 
@@ -71,8 +70,35 @@ plt.close(fig)
 
 fig, ax = plt.subplots(1, 1, figsize=(3, 3))
 
+# m = np.zeros((16, 16))
+#
+# for x in range(4):
+#     for y in range(4):
+#         i = x * 4 + y
+#         if x > 0:
+#             j = (x - 1) * 4 + y
+#             m[i, j] = 1
+#             m[j, i] = 1
+#         if x < 3:
+#             j = (x + 1) * 4 + y
+#             m[i, j] = 1
+#             m[j, i] = 1
+#         if y > 0:
+#             j = x * 4 + y - 1
+#             m[i, j] = 1
+#             m[j, i] = 1
+#         if y < 3:
+#             j = x * 4 + y + 1
+#             m[i, j] = 1
+#             m[j, i] = 1
+
 G = nx.from_numpy_array(dsm)
-pos = nx.circular_layout(G)
+pos = {}
+
+for x in range(4):
+    for y in range(4):
+        pos[x * 4 + y] = (y, 3 - x)
+
 nx.draw_networkx_nodes(G, pos=pos, ax=ax, edgecolors='black', node_color='white', )
 nx.draw_networkx_edges(G, pos=pos, ax=ax)
 
@@ -124,8 +150,9 @@ for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
     ax.set_yticks([])
     ax.set_xlabel("Variable")
     ax.set_ylabel("FOS set")
-    ax.set_xticks(list(range(0, 20, 4)))
+    ax.set_xticks(list(range(0, 16, 2)))
     ax.tick_params(axis='both', which='both', length=0)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
     plt.grid(which="both")
 
     for label in ax.xaxis.get_majorticklabels():

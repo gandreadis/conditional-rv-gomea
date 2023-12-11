@@ -4,8 +4,7 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS
-from rvgomea.experiments.bisection_runner import run_bisection
+   DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.run_config import RunConfig
 from rvgomea.run_rvgomea import run_rvgomea
 
@@ -79,9 +78,8 @@ def main():
 
                     print(f"[Evals] {int(results[-1]['median_num_evaluations']):8}")
 
-                    if int(results[-1]["median_num_evaluations"]) >= int(DEFAULT_MAX_NUM_EVALUATIONS):
+                    if results[-1]["median_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
                         failed_settings.append(results[-1])
-                        break
 
     def filter_dict(d):
         return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}

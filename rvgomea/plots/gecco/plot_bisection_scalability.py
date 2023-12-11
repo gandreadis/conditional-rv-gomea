@@ -16,9 +16,9 @@ cmap = matplotlib.colormaps['tab20c']
 LABELS = {
     "univariate": "Univariate",
     "full": "Full",
-    "lt-fb-online-pruned": "FB-LT",
     "mp-hg-gbo-without_clique_seeding-conditional": "Static-MCond-HG",
     "mp-hg-gbo-with_clique_seeding-conditional": "Static-MCond-HG-MC",
+    "lt-fb-online-pruned": "FB-LT",
     "uni-hg-fb_no_order-without_clique_seeding-conditional": "FB-UCond-HG",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "FB-MCond-HG",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "FB-MCond-HG-MC",
@@ -27,9 +27,9 @@ LABELS = {
 MARKERS = {
     "univariate": "+",
     "full": "*",
-    "lt-fb-online-pruned": "o",
     "mp-hg-gbo-without_clique_seeding-conditional": ">",
     "mp-hg-gbo-with_clique_seeding-conditional": "<",
+    "lt-fb-online-pruned": "o",
     "uni-hg-fb_no_order-without_clique_seeding-conditional": "s",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "x",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "X",
@@ -38,9 +38,9 @@ MARKERS = {
 COLOR_ORDER = {
     "univariate": 0,
     "full": 4,
-    "lt-fb-online-pruned": 1,
-    "mp-hg-gbo-without_clique_seeding-conditional": 5,
-    "mp-hg-gbo-with_clique_seeding-conditional": 2,
+    "mp-hg-gbo-without_clique_seeding-conditional": 1,
+    "mp-hg-gbo-with_clique_seeding-conditional": 5,
+    "lt-fb-online-pruned": 2,
     "uni-hg-fb_no_order-without_clique_seeding-conditional": 6,
     "mp-hg-fb_no_order-without_clique_seeding-conditional": 3,
     "mp-hg-fb_no_order-with_clique_seeding-conditional": 7,
@@ -60,10 +60,13 @@ def main(base_directory, problem_ids, problem_labels):
 
     for metric, metric_label in [("population_size", "Population size"),
                                  ("median_num_evaluations", "Num. evaluations")]:
-        fig, axs = plt.subplots(3, 4, figsize=(8, 6))
+        fig, axs = plt.subplots(3, 4, figsize=(10, 7), sharex=True, sharey=True)
 
         handles, labels = None, None
         for i, (problem_id, problem_label) in enumerate(zip(problem_ids, problem_labels)):
+            if problem_id == "summation-cancellation":
+                continue
+
             ax = axs[i // 4, i % 4]
             df = pd.read_csv(os.path.join(base_directory + problem_id, "aggregated_results.csv"))
 
@@ -78,7 +81,7 @@ def main(base_directory, problem_ids, problem_labels):
             plt.xscale('log')
             plt.yscale('log')
 
-        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.06), ncol=len(LABELS))
+        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.06), ncol=len(LABELS) // 2)
         # ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.06), ncol=len(LABELS))
 
         # Global labels

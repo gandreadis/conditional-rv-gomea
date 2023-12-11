@@ -16,10 +16,16 @@ plt.style.use('science')
 scienceplots.listdir(".")
 
 ranges = {
-    "conditional": [5e3, 2e5]
+    "conditional": [5e3, 2e5],
+    "gom-overlapping": [1e3, 1e7],
+    "gom-non-overlapping": [1e3, 1e7],
+    "overlapping-cliques": [1e3, 1e7],
 }
 palettes = {
-    "conditional": "viridis"
+    "conditional": "viridis",
+    "gom-overlapping": "inferno",
+    "gom-non-overlapping": "inferno",
+    "overlapping-cliques": "inferno",
 }
 
 

@@ -29,7 +29,7 @@ for max_clique_label, max_clique_size in (("uni", "1"), ("mp", "100")):
 
 PROBLEM_CODES = {
     "sphere": 0,
-    "michalewicz": 1, # note: not compatible with VTR
+    "michalewicz": 1,  # note: not compatible with VTR
     "rosenbrock": 7,
     "summation-cancellation": 8,
     "reb2-chain-alternating": 216191,
@@ -38,7 +38,7 @@ PROBLEM_CODES = {
     "reb5-small-overlap-alternating": 516191,
     "reb5-large-overlap": 546699,
     "reb5-disjoint-pairs": 14,
-    "reb-grid": 20, # only square
+    "reb-grid": 20,  # only square
 }
 
 # For the reb5 problems, the following problem sizes are compatible:
@@ -49,14 +49,15 @@ PROBLEM_CODES = {
 
 for rot_angle in range(10):
     for cond_number in range(1, 7):
-        PROBLEM_CODES[f"reb-chain-condition-{cond_number}-rotation-{rot_angle * 5}"] = 210000 + cond_number * 1000 + cond_number * 100 + rot_angle * 10 + rot_angle
+        PROBLEM_CODES[
+            f"reb-chain-condition-{cond_number}-rotation-{rot_angle * 5}"] = 210000 + cond_number * 1000 + cond_number * 100 + rot_angle * 10 + rot_angle
 
 PROBLEM_CODES["reb2-chain-weak"] = PROBLEM_CODES["reb-chain-condition-1-rotation-5"]
 PROBLEM_CODES["reb2-chain-strong"] = PROBLEM_CODES["reb-chain-condition-6-rotation-45"]
 
 INIT_RANGES = {
     "sphere": [-115, -100],
-    "michalewicz": [0, math.pi], # note: not compatible with VTR
+    "michalewicz": [0, math.pi],  # note: not compatible with VTR
     "rosenbrock": [-115, -100],
     "summation-cancellation": [-3, 3],
     "reb-grid": [-115, -100],
@@ -154,6 +155,11 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     # Save run config for future reference
     config.to_json(os.path.join(processed_base_dir, "run_config.json"))
 
+    if not os.path.exists(os.path.join(processed_base_dir, "statistics.dat")):
+        if show_output:
+            print("Aborting, no statistics.dat found")
+        return RunResult(config, None, False)
+
     # Convert statistics to CSV
     statistics = convert_statistics(os.path.join(processed_base_dir, "statistics.dat"),
                                     os.path.join(processed_base_dir, "statistics.csv")
@@ -161,7 +167,8 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     assert len(statistics) > 0, f"No generations were executed with RunConfig {config}"
 
     succeeded = (statistics["best_objective"].iloc[-1] <= config.vtr and
-                 statistics["evaluations"].iloc[-1] <= config.max_num_evaluations)
+                 statistics["evaluations"].iloc[-1] <= config.max_num_evaluations and
+                 statistics["seconds"].iloc[-1] <= config.max_num_seconds)
 
     if show_output:
         print(f"Succeeded: {succeeded}")
