@@ -22,7 +22,7 @@ export PYTHONPATH="$PYTHONPATH:."
 models=$1
 id=$2
 CONDITIONS=("1" "2" "3" "4" "5" "6")
-ROTATIONS=("5" "10" "15" "20" "25" "30" "35" "40" "45")
+ROTATIONS=("0" "5" "10" "15" "20" "25" "30" "35" "40" "45")
 
 for c in "${CONDITIONS[@]}"
 do
