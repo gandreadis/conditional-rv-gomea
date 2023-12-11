@@ -659,7 +659,7 @@ void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
         absolute_sum += fabs(gamma_sum);
     }
 
-    double result = absolute_sum;// = 100000 - (1 / (1e-5 + absolute_sum));
+    double result = fabs(solution->variables[0]);// = 100000 - (1 / (1e-5 + absolute_sum));
 
     solution->objective_value = result;
     solution->constraint_value = 0;
