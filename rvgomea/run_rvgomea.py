@@ -66,7 +66,7 @@ INIT_RANGES = {
 }
 
 CUSTOM_VTR = {
-    "summation-cancellation": 1e-6,
+    "summation-cancellation": 1e-10,
 }
 
 

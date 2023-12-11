@@ -447,7 +447,6 @@ mat distribution_t::choleskyDecomposition(const mat &matrix) {
     if (info != n) /* Matrix is not positive definite */
     {
         cholesky_fails++;
-        printf("1.\n"); fflush(stdout);
         k = 0;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
