@@ -447,13 +447,14 @@ mat distribution_t::choleskyDecomposition(const mat &matrix) {
     if (info != n) /* Matrix is not positive definite */
     {
         cholesky_fails++;
+        printf("1.\n"); fflush(stdout);
         k = 0;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
                 if (i == j) {
                     double matrix_value = matrix(i, j);
                     if (matrix_value <= 0) {
-                        matrix_value = 1e-12;
+                        matrix_value = 1;
                     }
                     result(i, j) = sqrt(matrix_value);
                 } else {
