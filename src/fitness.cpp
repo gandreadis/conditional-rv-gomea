@@ -653,10 +653,10 @@ void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
     }
 
     double gamma_sum = solution->variables[0];
-    double absolute_sum = abs(solution->variables[0]);
+    double absolute_sum = fabs(solution->variables[0]);
     for (int i = 1; i < number_of_parameters; i++) {
         gamma_sum += solution->variables[i];
-        absolute_sum += abs(gamma_sum);
+        absolute_sum += fabs(gamma_sum);
     }
 
     double result = absolute_sum;// = 100000 - (1 / (1e-5 + absolute_sum));
