@@ -634,11 +634,15 @@ summationCancellationFunction_t::summationCancellationFunction_t(int number_of_p
 
 void summationCancellationFunction_t::initializeVariableInteractionGraph() {
     for (int i = 0; i < number_of_parameters; i++) {
-        std::set<int> dependent_vars;
+        std::set<int> empty_set;
+        variable_interaction_graph[i] = empty_set;
+    }
+
+    for (int i = 0; i < number_of_parameters; i++) {
         for (int j = 0; j < i; j++) {
-            dependent_vars.insert(j);
+            variable_interaction_graph[i].insert(j);
+            variable_interaction_graph[j].insert(i);
         }
-        variable_interaction_graph[i] = dependent_vars;
     }
 }
 
@@ -654,7 +658,7 @@ void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
         absolute_sum += abs(gamma_sum);
     }
 
-    double result = absolute_sum;// 100000 - (1 / (1e-5 + absolute_sum));
+    double result = gamma_sum;// 100000 - (1 / (1e-5 + absolute_sum));
 
     solution->objective_value = result;
     solution->constraint_value = 0;
