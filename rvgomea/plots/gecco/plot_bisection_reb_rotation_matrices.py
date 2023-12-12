@@ -16,16 +16,10 @@ plt.style.use('science')
 scienceplots.listdir(".")
 
 ranges = {
-    "conditional": [5e3, 2e5],
-    "gom-overlapping": [1e3, 1e7],
-    "gom-non-overlapping": [1e3, 1e7],
-    "overlapping-cliques": [1e3, 1e7],
+    "lt-vs-mcond": [1e3, 1e7],
 }
 palettes = {
-    "conditional": "viridis",
-    "gom-overlapping": "inferno",
-    "gom-non-overlapping": "inferno",
-    "overlapping-cliques": "inferno",
+    "lt-vs-mcond": "inferno",
 }
 
 
@@ -42,14 +36,13 @@ def main(directory, linkage_model_ids, linkage_model_labels):
     fig = plt.figure(figsize=(10, 3))
 
     grid = ImageGrid(fig, 111,
-                    nrows_ncols=(1, num_models),
-                    share_all=True,
-                    axes_pad=0.05,
-                    cbar_mode='single',
-                    cbar_location='right',
-                    cbar_pad=0.1,
-                     aspect=False
-                    )
+                     nrows_ncols=(1, num_models),
+                     share_all=True,
+                     axes_pad=0.05,
+                     cbar_mode='single',
+                     cbar_location='right',
+                     cbar_pad=0.1,
+                     aspect=False)
 
     cb = None
     for i, ax in enumerate(grid):
@@ -70,14 +63,16 @@ def main(directory, linkage_model_ids, linkage_model_labels):
 
         ax.set_title(linkage_model_labels[i].strip())
 
-        cb = ax.imshow(matrix_flipped, cmap=palettes[run_id], norm=LogNorm(vmin=ranges[run_id][0], vmax=ranges[run_id][1]), extent=[0.5, 6.5, 2.5, 47.5],
+        cb = ax.imshow(matrix_flipped, cmap=palettes[run_id],
+                       norm=LogNorm(vmin=ranges[run_id][0], vmax=ranges[run_id][1]), extent=[0.5, 6.5, 2.5, 47.5],
                        aspect="auto")
-        ax.tick_params(axis=u'both', which=u'both',length=0)
+        ax.tick_params(axis=u'both', which=u'both', length=0)
 
-        for rot_angle in range(1, 10):
+        for rot_angle in range(10):
             actual_angle = rot_angle * 5
             for cond_number in range(1, 7):
-                text = ax.text(cond_number + 0.33, actual_angle, f"{int(round(matrix[rot_angle - 1, cond_number - 1] / 1e3))}k",
+                text = ax.text(cond_number + 0.33, actual_angle,
+                               f"{int(round(matrix[rot_angle - 1, cond_number - 1] / 1e3))}k",
                                ha="right", va="center", color="w", fontsize="x-small")
 
     grid.cbar_axes[0].colorbar(cb, label="Num. evaluations")
@@ -91,6 +86,7 @@ def main(directory, linkage_model_ids, linkage_model_labels):
     plt.tight_layout()
     plt.savefig(os.path.join(plot_directory, f"bisection_matrices_{run_id}.png"), bbox_inches='tight')
     plt.savefig(os.path.join(plot_directory, f"bisection_matrices_{run_id}.pdf"), bbox_inches='tight')
+
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2].split(","), sys.argv[3].split(","))

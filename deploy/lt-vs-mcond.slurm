@@ -14,4 +14,4 @@ module load Armadillo/12.6.2-foss-2023a
 module load FlexiBLAS/3.3.1-GCC-12.3.0
 
 make
-run_scripts/run_reb_chain_bisection.sh lt-fb-online-pruned,mp-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-with_clique_seeding-conditional lt-vs-mcond
+run_scripts/run_reb_chain_bisection.sh lt-fb-online-pruned,mp-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-with_clique_seeding-conditional,full lt-vs-mcond

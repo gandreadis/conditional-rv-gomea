@@ -1,6 +1,7 @@
 import os.path
 import sys
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -15,8 +16,8 @@ scienceplots.listdir(".")
 
 AGGREGATE = True
 
-cmap = "BuPu" #LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
-# cmap.set_under('darkred')
+cmap = matplotlib.colormaps["plasma"] #LinearSegmentedColormap.from_list('', ['blue', 'purple'])
+cmap.set_under('white')
 
 
 def get_matrix(generation: int, df):
@@ -68,7 +69,7 @@ def main(base_directory, problem_ids, problem_labels):
         ax.tick_params(axis=u'both', which=u'both', length=0)
         ax.set_xticks(list(range(0, 20, 4)))
         ax.set_yticks(list(range(0, 20, 4)))
-        cb = ax.imshow(dsm, cmap=cmap, vmin=0, vmax=1)
+        cb = ax.imshow(dsm, cmap=cmap, vmin=1e-6, vmax=1)
 
     axs.cbar_axes[0].colorbar(cb, label="Dependency strength")
 

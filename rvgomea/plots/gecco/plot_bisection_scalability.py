@@ -81,8 +81,7 @@ def main(base_directory, problem_ids, problem_labels):
             plt.xscale('log')
             plt.yscale('log')
 
-        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.06), ncol=len(LABELS) // 2)
-        # ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.06), ncol=len(LABELS))
+        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=len(LABELS) // 2)
 
         # Global labels
         fig.add_subplot(111, frameon=False)

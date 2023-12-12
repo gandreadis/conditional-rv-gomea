@@ -29,13 +29,14 @@ def main():
         upper_init_bound=-110,
     )
 
-    result_population_size, result_median_num_evaluations = run_bisection(
+    result_population_size, result_median_num_evaluations, result_corrected_num_evaluations = run_bisection(
         "test_bisection", base_run_config, 30, num_cpus=4,
         log_progress=True
     )
 
-    print(f"Pop. size:               {result_population_size}")
-    print(f"Median num. evaluations: {result_median_num_evaluations}")
+    print(f"Pop. size:                  {result_population_size}")
+    print(f"Median num. evaluations:    {result_median_num_evaluations}")
+    print(f"Corrected num. evaluations: {result_corrected_num_evaluations}")
 
 
 if __name__ == '__main__':

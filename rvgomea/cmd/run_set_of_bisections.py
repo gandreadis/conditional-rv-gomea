@@ -60,7 +60,7 @@ def main():
                         black_box=black_box,
                     )
 
-                    result_population_size, result_median_num_evaluations = run_bisection(
+                    result_population_size, result_median_num_evaluations, result_corrected_num_evaluations = run_bisection(
                         os.path.join(output_dir,
                                      f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
                         base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
@@ -74,11 +74,12 @@ def main():
                         "repeat": repeat,
                         "population_size": result_population_size,
                         "median_num_evaluations": result_median_num_evaluations,
+                        "corrected_num_evaluations": result_corrected_num_evaluations,
                     })
 
-                    print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}")
+                    print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}  [Corr-Evals] {int(result_corrected_num_evaluations):8}")
 
-                    if results[-1]["median_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
+                    if results[-1]["corrected_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
                         failed_settings.append(results[-1])
                         num_failed_repeats += 1
 
