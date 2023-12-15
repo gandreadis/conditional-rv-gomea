@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-   DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS
+    DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_NUM_BISECTION_REPEATS
 from rvgomea.run_config import RunConfig
 from rvgomea.run_rvgomea import run_rvgomea
 
@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-b', '--black-box', action="store_true",
                         default=DEFAULT_BLACK_BOX)
     parser.add_argument('-r', '--num-repeats', type=int,
-                        default=5)
+                        default=DEFAULT_NUM_BISECTION_REPEATS)
     parser.add_argument('-s', '--population-size', type=int,
                         default=DEFAULT_POPULATION_SIZE)
 
@@ -63,7 +63,8 @@ def main():
 
                     result = run_rvgomea(
                         config,
-                        in_dir=os.path.join(output_dir, f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
+                        in_dir=os.path.join(output_dir,
+                                            f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
                     )
 
                     results.append({

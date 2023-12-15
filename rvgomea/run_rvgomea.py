@@ -23,9 +23,10 @@ for max_clique_label, max_clique_size in (("uni", "1"), ("mp", "100")):
         for fitness_based_label, fitness_based in (("gbo", "0"), ("fb", "1"), ("fb_no_order", "2")):
             for seed_cliques_label, seed_cliques in (("without_clique_seeding", "0"), ("with_clique_seeding", "1")):
                 for conditional_label, conditional in (("non_conditional", "0"), ("conditional", "1")):
-                    LINKAGE_MODEL_CODES[
-                        f"{max_clique_label}-{factorization_label}-{fitness_based_label}-{seed_cliques_label}-{conditional_label}"
-                    ] = f"-{max_clique_size}{factorization}{fitness_based}{seed_cliques}{conditional}"
+                    for set_cover_label, set_cover in (("", "0"), ("-set_cover", "1")):
+                        LINKAGE_MODEL_CODES[
+                            f"{max_clique_label}-{factorization_label}-{fitness_based_label}-{seed_cliques_label}-{conditional_label}{set_cover_label}"
+                        ] = f"-{max_clique_size}{factorization}{fitness_based}{seed_cliques}{conditional}{set_cover}"
 
 PROBLEM_CODES = {
     "sphere": 0,
@@ -143,6 +144,10 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
 
     output = os.popen(command).read()
 
+    lines = output.split("\n")
+    lines = [l for l in lines if len(l.strip()) > 0]
+    cholesky_fails = int(lines[-1].split(" ")[-1])
+
     if show_output:
         print(output)
 
@@ -158,7 +163,7 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     if not os.path.exists(os.path.join(processed_base_dir, "statistics.dat")):
         if show_output:
             print("Aborting, no statistics.dat found")
-        return RunResult(config, None, False)
+        return RunResult(config, None, -1, False)
 
     # Convert statistics to CSV
     statistics = convert_statistics(os.path.join(processed_base_dir, "statistics.dat"),
@@ -173,4 +178,4 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     if show_output:
         print(f"Succeeded: {succeeded}")
 
-    return RunResult(config, statistics, succeeded)
+    return RunResult(config, statistics, cholesky_fails, succeeded)

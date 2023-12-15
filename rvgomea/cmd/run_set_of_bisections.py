@@ -38,8 +38,6 @@ def main():
     # Prepare directory
     os.system(f"mkdir -p {output_dir}")
 
-    failed_settings = []
-    results = []
     for problem in problems:
         for linkage_model in linkage_models:
             for dimensionality in sorted(dimensionalities):
@@ -66,21 +64,9 @@ def main():
                         base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
                     )
 
-                    results.append({
-                        "problem": problem,
-                        "linkage_model": linkage_model,
-                        "dimensionality": dimensionality,
-                        "black_box": black_box,
-                        "repeat": repeat,
-                        "population_size": result_population_size,
-                        "median_num_evaluations": result_median_num_evaluations,
-                        "corrected_num_evaluations": result_corrected_num_evaluations,
-                    })
-
                     print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}  [Corr-Evals] {int(result_corrected_num_evaluations):8}")
 
-                    if results[-1]["corrected_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
-                        failed_settings.append(results[-1])
+                    if result_corrected_num_evaluations >= DEFAULT_MAX_NUM_EVALUATIONS:
                         num_failed_repeats += 1
 
                         if num_failed_repeats >= num_repeats * 0.5:
@@ -89,16 +75,6 @@ def main():
                 if num_failed_repeats >= num_repeats * 0.5:
                     print("Majority of all repeats did not pass, abandoning all larger dimensionalities")
                     break
-
-    def filter_dict(d):
-        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
-
-    for f in failed_settings:
-        results = [r for r in results
-                   if filter_dict(r) != filter_dict(f)]
-
-    df = pd.DataFrame(results)
-    df.to_csv(os.path.join(output_dir, "aggregated_results.csv"))
 
 
 if __name__ == '__main__':

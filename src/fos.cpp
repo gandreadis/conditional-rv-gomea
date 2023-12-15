@@ -578,6 +578,94 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         }
     }
 
+    if (use_set_cover) {
+        std::vector<std::pair<int, int>> candidate_sets;
+
+        std::vector<bool> covered_variables;
+
+        for (int i = 0; i < number_of_parameters; i++) {
+            covered_variables.push_back(false);
+            for (int x: variable_interaction_graph.at(i)) {
+                if (i < x) {
+                    candidate_sets.push_back(std::pair<int, int>(i, x));
+                }
+            }
+        }
+
+        while (true) {
+            uvec candidate_order = randomPermutation(candidate_sets.size());
+
+            // Determine which set to add next, with maximum added cover
+            int max_cover_increase = 0;
+            int max_cover_increase_index = -1;
+            for (int candidate_index = 0; candidate_index < candidate_sets.size(); candidate_index++) {
+                std::pair<int, int> candidate = candidate_sets[candidate_order[candidate_index]];
+
+                int cover_increase = 0;
+                if (!covered_variables[candidate.first]) {
+                    cover_increase++;
+                }
+                if (!covered_variables[candidate.second]) {
+                    cover_increase++;
+                }
+
+                if (cover_increase > max_cover_increase) {
+                    max_cover_increase = cover_increase;
+                    max_cover_increase_index = candidate_index;
+                }
+
+                if (cover_increase == 2) {
+                    break;
+                }
+            }
+
+            assert(max_cover_increase > 0);
+
+            std::pair<int, int> candidate = candidate_sets[candidate_order[max_cover_increase_index]];
+            covered_variables[candidate.first] = true;
+            covered_variables[candidate.second] = true;
+
+            std::vector<int> variables;
+            variables.push_back(candidate.first);
+            variables.push_back(candidate.second);
+
+            std::set<int> conditioned_variables;
+
+            for (int x: variable_interaction_graph.at(candidate.first)) {
+                if (x == candidate.first || x == candidate.second) {
+                    continue;
+                }
+                conditioned_variables.insert(x);
+            }
+            for (int x: variable_interaction_graph.at(candidate.second)) {
+                if (x == candidate.first || x == candidate.second) {
+                    continue;
+                }
+
+                conditioned_variables.insert(x);
+            }
+
+            if (use_conditional_sampling) {
+                addConditionedGroup(variables, conditioned_variables);
+            } else {
+                addGroup(variables);
+            }
+
+            candidate_sets.erase(candidate_sets.begin() + candidate_order[max_cover_increase_index]);
+
+            // Check if all variables are covered
+            bool some_uncovered = false;
+            for (int i = 0; i < number_of_parameters; i++) {
+                if (!covered_variables[i]) {
+                    some_uncovered = true;
+                }
+            }
+            if (!some_uncovered) {
+                break;
+            }
+        }
+    }
+
     if (seed_cliques_per_variable) {
         // Approach that seeds clique searches at each variable
 
@@ -790,7 +878,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
                 }
             }
 
-            if (!seed_cliques_per_variable && include_cliques_as_fos_elements) {
+            if (!seed_cliques_per_variable && !use_set_cover && include_cliques_as_fos_elements) {
                 if (use_conditional_sampling) {
                     addConditionedGroup(clique, cond);
                 } else {
@@ -812,6 +900,30 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         } else {
             delete full_cond;
         }
+    }
+
+    // Write set cover results
+    if (use_set_cover && write_fitness_dependencies) {
+        FILE *f = fopen("set_cover_fos.dat", "w");
+
+        for (size_t i = 0; i < sets.size(); i++) {
+            fprintf(f, "[");
+            int c = 0;
+            for (int v: sets[i]) {
+                if (c == sets[i].size() - 1)
+                    fprintf(f, "%d", v);
+                else
+                    fprintf(f, "%d^", v);
+                c++;
+            }
+            fprintf(f, "]");
+            if (i < sets.size() - 1) {
+                fprintf(f, "|");
+            }
+        }
+        fprintf(f, "\n");
+
+        fclose(f);
     }
 }
 

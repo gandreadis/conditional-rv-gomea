@@ -58,6 +58,8 @@ short write_fitness_dependencies = 0;
 short fitness_based_ordering = 1;
 char similarity_measure = 'M';
 
+bool use_set_cover = false;
+
 /*-=-=-=-=-=-=-=-=-=-=-= Section Elementary Operations -=-=-=-=-=-=-=-=-=-=-*/
 /**
  * Allocates memory and exits the program in case of a memory allocation failure.

@@ -796,14 +796,24 @@ void population_t::initializeFOS() {
     } else if (FOS_element_size <= -10) {
         int id = -1 * FOS_element_size;
 
+        use_set_cover = (id % 10) > 0;
+        id /= 10;
+
         use_conditional_sampling = (id % 10) > 0;
         id /= 10;
 
         seed_cliques_per_variable = (id % 10) > 0;
         id /= 10;
 
+        // Make sure that, if at all, either set cover or clique seeding is used as strategy, not both
+        assert(!(use_set_cover && seed_cliques_per_variable));
+
         int is_fitness_based = (id % 10) > 0;
         id /= 10;
+
+        if (use_set_cover) {
+            assert(is_fitness_based == 0);
+        }
 
         if (is_fitness_based) {
             similarity_measure = 'F';

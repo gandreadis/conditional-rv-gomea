@@ -1,14 +1,13 @@
 import argparse
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, DEFAULT_BLACK_BOX
-from rvgomea.experiments.bisection_runner import run_bisection
+from rvgomea.experiments.pop_sweep_runner import run_pop_sweep
 from rvgomea.run_config import RunConfig
 
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='Single bisection',
-        description='Run a single bisection')
+        prog='Single pop sweep')
 
     parser.add_argument('-l', '--linkage-model', type=str, default=DEFAULT_LINKAGE_MODEL)
     parser.add_argument('-p', '--problem', type=str, default=DEFAULT_PROBLEM)
@@ -29,14 +28,10 @@ def main():
         upper_init_bound=-110,
     )
 
-    result_population_size, result_median_num_evaluations, result_corrected_num_evaluations = run_bisection(
-        "test_bisection", base_run_config, 4, num_cpus=4,
+    run_pop_sweep(
+        "test_pop_sweep", base_run_config, 30, num_cpus=5,
         log_progress=True
     )
-
-    print(f"Pop. size:                  {result_population_size}")
-    print(f"Median num. evaluations:    {result_median_num_evaluations}")
-    print(f"Corrected num. evaluations: {result_corrected_num_evaluations}")
 
 
 if __name__ == '__main__':

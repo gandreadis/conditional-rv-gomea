@@ -5,11 +5,17 @@ from glob import glob
 
 import pandas as pd
 
-from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
+from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_NUM_BISECTION_REPEATS
+
+FILTER_KEYS = ("problem", "linkage_model", "dimensionality", "black_box")
+
+def filter_dict(d):
+    return tuple(d[key] for key in FILTER_KEYS)
+
 
 
 def main(directory: str):
-    failed_settings = []
+    failed_settings = {}
     results = []
     for bisection_path in glob(os.path.join(directory, "*")):
         if not os.path.isdir(bisection_path) or bisection_path.endswith("plots"):
@@ -31,17 +37,18 @@ def main(directory: str):
             "repeat": int(settings[4]),
             "population_size": result["population_size"],
             "median_num_evaluations": result["median_num_evaluations"],
+            "corrected_num_evaluations": result["corrected_num_evaluations"],
         })
 
-        if result["median_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
-            failed_settings.append(results[-1])
-
-    def filter_dict(d):
-        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
+        if result["corrected_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
+            s = filter_dict(results[-1])
+            if s not in failed_settings.keys():
+                failed_settings[s] = 0
+            failed_settings[s] += 1
 
     for f in failed_settings:
         results = [r for r in results
-                   if filter_dict(r) != filter_dict(f)]
+                   if not (filter_dict(r) in failed_settings.keys() and failed_settings[filter_dict(r)] >= 0.5 * DEFAULT_NUM_BISECTION_REPEATS)]
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(directory, "aggregated_results.csv"))

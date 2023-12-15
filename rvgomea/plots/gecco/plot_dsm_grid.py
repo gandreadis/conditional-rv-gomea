@@ -16,7 +16,7 @@ scienceplots.listdir(".")
 
 AGGREGATE = True
 
-cmap = matplotlib.colormaps["plasma"] #LinearSegmentedColormap.from_list('', ['blue', 'purple'])
+cmap = matplotlib.colormaps["coolwarm"] #LinearSegmentedColormap.from_list('', ['blue', 'purple'])
 cmap.set_under('white')
 
 
@@ -71,7 +71,8 @@ def main(base_directory, problem_ids, problem_labels):
         ax.set_yticks(list(range(0, 20, 4)))
         cb = ax.imshow(dsm, cmap=cmap, vmin=1e-6, vmax=1)
 
-    axs.cbar_axes[0].colorbar(cb, label="Dependency strength")
+    cbar = axs.cbar_axes[0].colorbar(cb, label="Dependency strength", extend='min', ticks=[1e-6, 0.2, 0.4, 0.6, 0.8, 1.0])
+    cbar.ax.set_yticklabels(['$<10^{-6}$', '0.2', '0.4', '0.6', '0.8', '1.0'])
 
     # Global labels
     # fig.add_subplot(111, frameon=False)

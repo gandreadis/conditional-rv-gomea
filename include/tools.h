@@ -190,6 +190,7 @@ extern short write_fitness_dependencies;
 
 extern short fitness_based_ordering;
 extern char similarity_measure;
+extern bool use_set_cover;
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Constants -=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 #ifndef PI

@@ -1,4 +1,5 @@
 import json
+import math
 import multiprocessing
 import os
 from multiprocessing import Pool
@@ -10,8 +11,8 @@ from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.run_config import RunConfig
 from rvgomea.run_rvgomea import run_rvgomea
 
-MAX_BISECTION_POPULATION = 2048
-INITIAL_BISECTION_POPULATION = 8
+MAX_BISECTION_POPULATION = 8192
+MIN_BISECTION_POPULATION = 8
 
 BISECTION_FAILURE = (MAX_BISECTION_POPULATION, DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_MAX_NUM_EVALUATIONS)
 
@@ -79,7 +80,8 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
             population_size_cache[population_size] = median_num_evaluations, corrected_num_evaluations
 
         if log_progress:
-            print(f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:8}  [CORR-NUM-EVALS] {corrected_num_evaluations:8}")
+            print(
+                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:10.0}  [CORR-NUM-EVALS] {corrected_num_evaluations:10.0}")
 
         history.append({
             "iteration": history_counter[0],
@@ -95,25 +97,38 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
     os.system(f"rm -rf {base_dir}")
     os.system(f"mkdir -p {base_dir}")
 
-    # Start out with initial set of populations
-    pop_size_a = INITIAL_BISECTION_POPULATION
-    med_evals_a, cor_evals_a = test_population_size(pop_size_a)
-    pop_size_b = pop_size_a * 2
-    med_evals_b, cor_evals_b = test_population_size(pop_size_b)
-    pop_size_d = pop_size_a * 4
-    med_evals_d, cor_evals_d = test_population_size(pop_size_d)
+    # Start out with guideline
+    pop_size_guideline = min(int(17 + 3 * math.pow(base_run_config.dimensionality, 1.5)), MAX_BISECTION_POPULATION)
+    pop_size_upper = pop_size_guideline
+    med_evals_upper, cor_evals_upper = test_population_size(pop_size_upper)
+    med_evals_guideline, cor_evals_guideline = med_evals_upper, cor_evals_upper
 
-    # Increase population size range
-    while cor_evals_d <= cor_evals_b or cor_evals_b >= DEFAULT_MAX_NUM_EVALUATIONS:
-        pop_size_b = pop_size_d
-        med_evals_b = med_evals_d
-        cor_evals_b = cor_evals_d
-        pop_size_d *= 2
-        med_evals_d, cor_evals_d = test_population_size(pop_size_d)
+    # Need to search for higher pop size, despite guideline
+    while cor_evals_upper >= DEFAULT_MAX_NUM_EVALUATIONS:
+        pop_size_upper *= 2
+        if pop_size_upper > MAX_BISECTION_POPULATION:
+            pop_size_upper = pop_size_guideline
+            med_evals_upper, cor_evals_upper = med_evals_guideline, cor_evals_guideline
+            break
 
-        if pop_size_d > MAX_BISECTION_POPULATION:
-            save_history(*BISECTION_FAILURE)
-            return BISECTION_FAILURE
+        med_evals_upper, cor_evals_upper = test_population_size(pop_size_upper)
+
+    pop_size_lower = int(pop_size_upper * 0.5)
+    med_evals_lower, cor_evals_lower = test_population_size(pop_size_lower)
+
+    while cor_evals_lower < cor_evals_upper:
+        pop_size_lower = int(pop_size_upper * 0.5)
+        if pop_size_lower < MIN_BISECTION_POPULATION:
+            pop_size_lower = MIN_BISECTION_POPULATION
+            med_evals_lower, cor_evals_lower = test_population_size(pop_size_lower)
+            break
+
+        med_evals_lower, cor_evals_lower = test_population_size(pop_size_lower)
+
+    pop_size_a = pop_size_lower
+    med_evals_a, cor_evals_a = med_evals_lower, cor_evals_lower
+    pop_size_d = pop_size_upper
+    med_evals_d, cor_evals_d = med_evals_upper, cor_evals_upper
 
     # Conduct bisection
     num_iterations = 0

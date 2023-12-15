@@ -9,4 +9,5 @@ from rvgomea.run_config import RunConfig
 class RunResult:
     config: RunConfig
     statistics: pd.DataFrame
+    cholesky_fails: int
     succeeded: bool
