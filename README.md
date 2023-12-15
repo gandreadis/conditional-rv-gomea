@@ -23,7 +23,7 @@ make && run_scripts/test_all_models
 CWI m3
 ```shell
 screen -S runner
-(run_scripts/run_scalability_bisection.sh sphere 10,20,40,80 && run_scripts/run_scalability_bisection.sh rosenbrock 10,20,40,80 && run_scripts/run_scalability_bisection.sh summation-cancellation 10,20,40,80) 2>&1 | tee log.txt
+(run_scripts/run_set_cover_scalability_bisection.sh && run_scripts/run_scalability_bisection.sh sphere 10,20,40,80 && run_scripts/run_scalability_bisection.sh rosenbrock 10,20,40,80 && run_scripts/run_scalability_bisection.sh summation-cancellation 10,20,40,80) 2>&1 | tee log.txt
 
 Ctrl+A + d  --> to detach
 ```

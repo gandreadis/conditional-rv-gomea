@@ -61,7 +61,7 @@ def main():
                     result_population_size, result_median_num_evaluations, result_corrected_num_evaluations = run_bisection(
                         os.path.join(output_dir,
                                      f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
-                        base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
+                        base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat, log_progress=True
                     )
 
                     print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}  [Corr-Evals] {int(result_corrected_num_evaluations):8}")
