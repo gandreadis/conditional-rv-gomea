@@ -81,7 +81,7 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
 
         if log_progress:
             print(
-                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:10.0}  [CORR-NUM-EVALS] {corrected_num_evaluations:10.0}")
+                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:10}  [CORR-NUM-EVALS] {corrected_num_evaluations:12}")
 
         history.append({
             "iteration": history_counter[0],
@@ -117,7 +117,7 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
     med_evals_lower, cor_evals_lower = test_population_size(pop_size_lower)
 
     while cor_evals_lower < cor_evals_upper:
-        pop_size_lower = int(pop_size_upper * 0.5)
+        pop_size_lower = int(pop_size_lower * 0.5)
         if pop_size_lower < MIN_BISECTION_POPULATION:
             pop_size_lower = MIN_BISECTION_POPULATION
             med_evals_lower, cor_evals_lower = test_population_size(pop_size_lower)
