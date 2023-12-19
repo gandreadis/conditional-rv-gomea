@@ -10,7 +10,7 @@ do
   echo ${problem}
   for i in {1..30}
   do
-    python rvgomea/cmd/run.py -l mp-hg-fb_no_order-without_clique_seeding-conditional -p $problem -d $size -s 200 -i gecco-data/dsm_grid/${problem}/${i} -r ${i} -o -z || exit 1
+    python rvgomea/cmd/run.py -l mp-hg-fb_no_order-with_clique_seeding-conditional -p $problem -d $size -s 250 -i gecco-data/dsm_grid/${problem}/${i} -r ${i} -o -z || exit 1
     echo ""
   done
   echo "///////"

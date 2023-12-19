@@ -42,6 +42,12 @@ def main(base_directory, problem_ids, problem_labels):
                 matrices.append(matrix)
 
             mean_dsm = np.mean(matrices, axis=0)
+
+            zero_counter = np.zeros_like(matrices[-1])
+            for m in matrices:
+                zero_counter += m == 0
+
+            mean_dsm = np.where(zero_counter > 25, 0, mean_dsm)
             max_dep = np.max(mean_dsm)
             if max_dep > 0:
                 mean_dsm /= max_dep

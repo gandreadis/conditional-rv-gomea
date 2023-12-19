@@ -1020,7 +1020,7 @@ osorebFunction_t::osorebFunction_t(int number_of_parameters, double vtr) {
     this->vtr = vtr;
     this->rotation_angle = 45;
     this->rotation_block_size = 5;
-    this->number_of_large_rotated_blocks = (number_of_parameters + 4) / 5;
+    this->number_of_large_rotated_blocks = (number_of_parameters + 4) / this->rotation_block_size;
     this->number_of_small_rotated_blocks = number_of_large_rotated_blocks - 1;
     this->number_of_subfunctions = number_of_large_rotated_blocks + number_of_small_rotated_blocks;
     initializeFitnessFunction();
@@ -1065,13 +1065,6 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         }
         result -= subfunction(variables_copy, rotation_block_size);
 
-        double variables_copy_smallblock[2];
-        for (int j = 0; j < 2; j++) {
-            variables_copy_smallblock[j] = parent->variables[block_start + j - 1];
-            variables_used.insert(block_start + j - 1);
-        }
-        result -= subfunction(variables_copy_smallblock, 2);
-
         int j = 0;
         while (i + j < solution->num_touched_variables &&
                block_ind == solution->touched_indices[i + j] / rotation_block_size) {
@@ -1081,14 +1074,41 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         }
         result += subfunction(variables_copy, rotation_block_size);
 
+        delete[] variables_copy;
+    }
+
+    for (int i = 0; i < solution->num_touched_variables; i++) {
+        int ind = solution->touched_indices[i];
+
+        if (ind < 4) {
+            continue;
+        }
+
+        int block_ind = (ind + 1) / rotation_block_size;
+        int block_start = block_ind * rotation_block_size;
+
         if (i > 0) {
-            if (solution->touched_indices[i - 1] == ind - 1)
-                variables_copy_smallblock[0] = solution->touched_variables[i - 1];
+            assert(ind > solution->touched_indices[i - 1]); // assume indices are sorted
+            int prev_block_ind = (solution->touched_indices[i - 1] + 1) / rotation_block_size;
+            if (block_ind == prev_block_ind)
+                continue;
+        }
+
+        double variables_copy_smallblock[2];
+        for (int j = 0; j < 2; j++) {
+            variables_copy_smallblock[j] = parent->variables[block_start + j - 1];
+            variables_used.insert(block_start + j - 1);
+        }
+        result -= subfunction(variables_copy_smallblock, 2);
+
+        if (i > 0 && solution->touched_indices[i - 1] == ind - 1) {
+            variables_copy_smallblock[0] = solution->touched_variables[i - 1];
             variables_copy_smallblock[1] = solution->touched_variables[i];
+        } else if (i < solution->num_touched_variables - 1 && solution->touched_indices[i + 1] == ind + 1) {
+            variables_copy_smallblock[0] = solution->touched_variables[i];
+            variables_copy_smallblock[1] = solution->touched_variables[i + 1];
         }
         result += subfunction(variables_copy_smallblock, 2);
-
-        delete[] variables_copy;
     }
 
     solution->objective_value = parent->objective_value + result;
