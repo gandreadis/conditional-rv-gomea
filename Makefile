@@ -33,10 +33,6 @@ default: $(EXE)
 all: $(EXE)
 debug: $(EXE-dbg)
 
-$(CECDIR)/%.o: $(CECDIR)/%.cpp $(CECDEPS)
-	@mkdir -p $(ODIR)
-	$(CC) $(CPPFLAGS-rl) -c -o $@ $<
-
 $(ODIR)/%.o: %.cpp $(DEPS)
 	@mkdir -p $(ODIR)
 	$(CC) $(CPPFLAGS-rl) $(INC) -c -o $@ $< $(CPPLIBS)

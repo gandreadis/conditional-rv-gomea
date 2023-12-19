@@ -7,11 +7,11 @@ import pandas as pd
 
 from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_NUM_BISECTION_REPEATS
 
-FILTER_KEYS = ("problem", "linkage_model", "dimensionality", "black_box")
+FILTER_KEYS = ("problem", "linkage_model", "dimensionality")
+
 
 def filter_dict(d):
-    return tuple(d[key] for key in FILTER_KEYS)
-
+    return tuple(d[key] for key in FILTER_KEYS if key in d)
 
 
 def main(directory: str):
@@ -29,12 +29,12 @@ def main(directory: str):
             continue
 
         settings = bisection_path.split("/")[-1].split(",")
+
         results.append({
             "problem": settings[0],
             "linkage_model": settings[1],
             "dimensionality": int(settings[2]),
-            "black_box": bool(settings[3]),
-            "repeat": int(settings[4]),
+            "repeat": int(settings[3]),
             "population_size": result["population_size"],
             "median_num_evaluations": result["median_num_evaluations"],
             "corrected_num_evaluations": result["corrected_num_evaluations"],
@@ -46,9 +46,11 @@ def main(directory: str):
                 failed_settings[s] = 0
             failed_settings[s] += 1
 
-    for f in failed_settings:
-        results = [r for r in results
-                   if not (filter_dict(r) in failed_settings.keys() and failed_settings[filter_dict(r)] >= 0.5 * DEFAULT_NUM_BISECTION_REPEATS)]
+    results = [
+        r for r in results
+        if not (filter_dict(r) in failed_settings.keys() and failed_settings[
+            filter_dict(r)] >= 0.5 * DEFAULT_NUM_BISECTION_REPEATS)
+    ]
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(directory, "aggregated_results.csv"))

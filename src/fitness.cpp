@@ -65,36 +65,36 @@ fitness_t *fitness_t::getFitnessClass(int problem_index, int number_of_parameter
     switch (problem_index) {
         case 0 :
             return (new sphereFunction_t(number_of_parameters, vtr));
-        case 1 :
-            return (new michalewiczFunction_t(number_of_parameters, vtr));
+//        case 1 :
+//            return (new michalewiczFunction_t(number_of_parameters, vtr));
         case 7 :
             return (new rosenbrockFunction_t(number_of_parameters, vtr));
-        case 8 :
-            return (new summationCancellationFunction_t(number_of_parameters, vtr));
+//        case 8 :
+//            return (new summationCancellationFunction_t(number_of_parameters, vtr));
         case 13:
             return (new sorebFunction_t(number_of_parameters, vtr, 6, 6, 45, 45, 5, 0));
         case 14:
             return (new sorebDisjointBlocksFunction_t(number_of_parameters, vtr, 6, 1, 45, 5, 5, 1));
         case 16:
             return (new osorebFunction_t(number_of_parameters, vtr));
-        case 17:
-            return (new BD2FunctionHypervolume_t(number_of_parameters, vtr));
+//        case 17:
+//            return (new BD2FunctionHypervolume_t(number_of_parameters, vtr));
 //        case 10:
 //            return (new sorebChainFunction_t(number_of_parameters, vtr, 6, -45, 0));
         case 20:
             return (new sorebGridFunction_t(number_of_parameters, vtr, 6, -45, 0, 0));
-        case 21:
-            return (new sorebGridFunction_t(number_of_parameters, vtr, 6, -45, 1, 0));
-        case 22:
-            return (new sorebGridFunction_t(number_of_parameters, vtr, 6, -45, 1, 1));
-        case 30:
-            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 0, 0, 0));
-        case 31:
-            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 0, 0));
-        case 32:
-            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 1, 0));
-        case 33:
-            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 1, 1));
+//        case 21:
+//            return (new sorebGridFunction_t(number_of_parameters, vtr, 6, -45, 1, 0));
+//        case 22:
+//            return (new sorebGridFunction_t(number_of_parameters, vtr, 6, -45, 1, 1));
+//        case 30:
+//            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 0, 0, 0));
+//        case 31:
+//            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 0, 0));
+//        case 32:
+//            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 1, 0));
+//        case 33:
+//            return (new sorebCubeFunction_t(number_of_parameters, vtr, 6, -45, 1, 1, 1));
         default:
             return NULL;
     }
@@ -425,11 +425,9 @@ void sphereFunction_t::evaluationFunction(solution_t *solution) {
     double result = 0.0;
     for (int i = 0; i < number_of_subfunctions; i++)
         result += subfunction(solution->variables[i]);
-    //solution->buffer = result;
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
@@ -440,12 +438,10 @@ void sphereFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         result += subfunction(solution->touched_variables[i]);
         result -= subfunction(parent->variables[ind]);
     }
-    //solution->buffer = result;
 
     solution->objective_value = parent->objective_value + result;
     solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += solution->num_touched_variables / (double) number_of_subfunctions;
+    number_of_evaluations += solution->num_touched_variables / (double) number_of_parameters;
 }
 
 double sphereFunction_t::subfunction(double x) {
@@ -460,60 +456,57 @@ double sphereFunction_t::getUpperRangeBound(int dimension) {
     return (1e308);
 }
 
-michalewiczFunction_t::michalewiczFunction_t(int number_of_parameters, double vtr) {
-    this->name = "Michalewicz function";
-    this->number_of_parameters = number_of_parameters;
-    this->number_of_subfunctions = number_of_parameters;
-    this->vtr = vtr;
-    initializeFitnessFunction();
-
-    initializeVariableInteractionGraph();
-}
-
-void michalewiczFunction_t::initializeVariableInteractionGraph() {
-    for (int i = 0; i < number_of_parameters; i++) {
-        std::set<int> empty_set;
-        variable_interaction_graph[i] = empty_set;
-    }
-}
-
-void michalewiczFunction_t::evaluationFunction(solution_t *solution) {
-    double result = 0.0;
-    for (int i = 0; i < number_of_subfunctions; i++)
-        result += subfunction(i, solution->variables[i]);
-
-    solution->objective_value = result;
-    solution->constraint_value = 0;
-    full_number_of_evaluations++;
-    number_of_evaluations++;
-}
-
-void michalewiczFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
-    double result = 0.0;
-    for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
-        result += subfunction(i, solution->touched_variables[i]);
-        result -= subfunction(i, parent->variables[ind]);
-    }
-    //solution->buffer = result;
-
-    solution->objective_value = parent->objective_value + result;
-    solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += solution->num_touched_variables / (double) number_of_subfunctions;
-}
-
-double michalewiczFunction_t::subfunction(int i, double x) {
-    return -sin(x) * pow(sin(((i + 1) * x * x) / PI), 20.0);
-}
-
-double michalewiczFunction_t::getLowerRangeBound(int dimension) {
-    return 0;
-}
-
-double michalewiczFunction_t::getUpperRangeBound(int dimension) {
-    return PI;
-}
+//michalewiczFunction_t::michalewiczFunction_t(int number_of_parameters, double vtr) {
+//    this->name = "Michalewicz function";
+//    this->number_of_parameters = number_of_parameters;
+//    this->number_of_subfunctions = number_of_parameters;
+//    this->vtr = vtr;
+//    initializeFitnessFunction();
+//
+//    initializeVariableInteractionGraph();
+//}
+//
+//void michalewiczFunction_t::initializeVariableInteractionGraph() {
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        std::set<int> empty_set;
+//        variable_interaction_graph[i] = empty_set;
+//    }
+//}
+//
+//void michalewiczFunction_t::evaluationFunction(solution_t *solution) {
+//    double result = 0.0;
+//    for (int i = 0; i < number_of_subfunctions; i++)
+//        result += subfunction(i, solution->variables[i]);
+//
+//    solution->objective_value = result;
+//    solution->constraint_value = 0;
+//    number_of_evaluations++;
+//}
+//
+//void michalewiczFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+//    double result = 0.0;
+//    for (int i = 0; i < solution->num_touched_variables; i++) {
+//        int ind = solution->touched_indices[i];
+//        result += subfunction(i, solution->touched_variables[i]);
+//        result -= subfunction(i, parent->variables[ind]);
+//    }
+//
+//    solution->objective_value = parent->objective_value + result;
+//    solution->constraint_value = parent->constraint_value;
+//    number_of_evaluations += solution->num_touched_variables / (double) number_of_subfunctions;
+//}
+//
+//double michalewiczFunction_t::subfunction(int i, double x) {
+//    return -sin(x) * pow(sin(((i + 1) * x * x) / PI), 20.0);
+//}
+//
+//double michalewiczFunction_t::getLowerRangeBound(int dimension) {
+//    return 0;
+//}
+//
+//double michalewiczFunction_t::getUpperRangeBound(int dimension) {
+//    return PI;
+//}
 
 rosenbrockFunction_t::rosenbrockFunction_t(int number_of_parameters, double vtr) {
     this->name = "Rosenbrock function";
@@ -540,44 +533,41 @@ void rosenbrockFunction_t::evaluationFunction(solution_t *solution) {
     double result = 0.0;
     for (int i = 0; i < number_of_parameters - 1; i++)
         result += subfunction(solution->variables[i], solution->variables[i + 1]);
-    //solution->buffer = result;
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
 void rosenbrockFunction_t::univariatePartialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
     assert(solution->num_touched_variables == 1);
 
-    int num_subfunctions_evaluated = 0;
+    std::set<int> variables_used;
     double result = 0.0;
     int ind = solution->touched_indices[0];
     if (ind > 0) {
         result += subfunction(parent->variables[ind - 1], solution->touched_variables[0]);
         result -= subfunction(parent->variables[ind - 1], parent->variables[ind]);
-        num_subfunctions_evaluated++;
+        variables_used.insert(ind - 1);
+        variables_used.insert(ind);
     }
     if (ind < number_of_subfunctions) {
         result += subfunction(solution->touched_variables[0], parent->variables[ind + 1]);
         result -= subfunction(parent->variables[ind], parent->variables[ind + 1]);
-        num_subfunctions_evaluated++;
+        variables_used.insert(ind);
+        variables_used.insert(ind + 1);
     }
 
-    //solution->buffer = result;
     solution->objective_value = parent->objective_value + result;
     solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+    number_of_evaluations += variables_used.size() / (double) number_of_parameters;
 }
-
 
 void rosenbrockFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
     if (solution->num_touched_variables == 1) {
         univariatePartialEvaluationFunction(parent, solution);
     } else {
-        int num_subfunctions_evaluated = 0;
+        std::set<int> variables_used;
         double result = 0.0;
         int *order = mergeSortInt(solution->touched_indices.data(), solution->num_touched_variables);
         for (int i = 0; i < solution->num_touched_variables; i++) {
@@ -589,24 +579,24 @@ void rosenbrockFunction_t::partialEvaluationFunction(solution_t *parent, partial
 
                 result += subfunction(y, solution->touched_variables[i]);
                 result -= subfunction(parent->variables[ind - 1], parent->variables[ind]);
-                num_subfunctions_evaluated++;
+                variables_used.insert(ind - 1);
+                variables_used.insert(ind);
             }
             if (ind < number_of_subfunctions) {
                 double y = parent->variables[ind + 1];
                 if (!(i < solution->num_touched_variables - 1 && solution->touched_indices[i + 1] == ind + 1)) {
                     result += subfunction(solution->touched_variables[i], y);
                     result -= subfunction(parent->variables[ind], parent->variables[ind + 1]);
-                    num_subfunctions_evaluated++;
+                    variables_used.insert(ind);
+                    variables_used.insert(ind + 1);
                 }
             }
         }
         free(order);
 
-        //solution->buffer = result;
         solution->objective_value = parent->objective_value + result;
         solution->constraint_value = parent->constraint_value;
-        full_number_of_evaluations++;
-        number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+        number_of_evaluations += variables_used.size() / (double) number_of_parameters;
     }
 }
 
@@ -622,62 +612,94 @@ double rosenbrockFunction_t::getUpperRangeBound(int dimension) {
     return (1e308);
 }
 
-summationCancellationFunction_t::summationCancellationFunction_t(int number_of_parameters, double vtr) {
-    this->name = "Summation cancellation function";
-    this->number_of_parameters = number_of_parameters;
-    this->vtr = vtr;
-    this->number_of_subfunctions = number_of_parameters;
-    initializeFitnessFunction();
-
-    initializeVariableInteractionGraph();
-}
-
-void summationCancellationFunction_t::initializeVariableInteractionGraph() {
-    for (int i = 0; i < number_of_parameters; i++) {
-        std::set<int> empty_set;
-        variable_interaction_graph[i] = empty_set;
-    }
-
-    for (int i = 0; i < number_of_parameters; i++) {
-        for (int j = 0; j < i; j++) {
-            assert(i != j);
-            variable_interaction_graph[i].insert(j);
-            variable_interaction_graph[j].insert(i);
-        }
-    }
-}
-
-void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
-    for (int i = 0; i < number_of_parameters; i++) {
-        assert(!isnan(solution->variables[i]));
-    }
-
-    double gamma_sum = solution->variables[0];
-    double absolute_sum = fabs(solution->variables[0]);
-    for (int i = 1; i < number_of_parameters; i++) {
-        gamma_sum += solution->variables[i];
-        absolute_sum += fabs(gamma_sum);
-    }
-
-    double result = 10000000 - (100 / (1e-5 + absolute_sum));
-
-    solution->objective_value = result;
-    solution->constraint_value = 0;
-    full_number_of_evaluations++;
-    number_of_evaluations++;
-}
-
-void summationCancellationFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
-    assert(0);
-}
-
-double summationCancellationFunction_t::getLowerRangeBound(int dimension) {
-    return (-3);
-}
-
-double summationCancellationFunction_t::getUpperRangeBound(int dimension) {
-    return (3);
-}
+//summationCancellationFunction_t::summationCancellationFunction_t(int number_of_parameters, double vtr) {
+//    this->name = "Summation cancellation function";
+//    this->number_of_parameters = number_of_parameters;
+//    this->vtr = vtr;
+//    this->number_of_subfunctions = number_of_parameters;
+//    initializeFitnessFunction();
+//
+//    initializeVariableInteractionGraph();
+//}
+//
+//void summationCancellationFunction_t::initializeVariableInteractionGraph() {
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        std::set<int> empty_set;
+//        variable_interaction_graph[i] = empty_set;
+//    }
+//
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        for (int j = 0; j < i; j++) {
+//            assert(i != j);
+//            variable_interaction_graph[i].insert(j);
+//            variable_interaction_graph[j].insert(i);
+//        }
+//    }
+//}
+//
+//void summationCancellationFunction_t::evaluationFunction(solution_t *solution) {
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        assert(!isnan(solution->variables[i]));
+//    }
+//
+//    double gamma_sum = solution->variables[0];
+//    double absolute_sum = fabs(solution->variables[0]);
+//    for (int i = 1; i < number_of_parameters; i++) {
+//        gamma_sum += solution->variables[i];
+//        absolute_sum += fabs(gamma_sum);
+//    }
+//
+//    double result = 10000000.0 - (100.0 / (1e-5 + absolute_sum));
+//
+//    solution->objective_value = result;
+//    solution->constraint_value = 0;
+//    number_of_evaluations++;
+//}
+//
+//void summationCancellationFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+//    int max_index = -1;
+//    for (int i = 0; i < solution->num_touched_variables; i++) {
+//        int ind = solution->touched_indices[i];
+//        if (ind > max_index) {
+//            max_index = ind;
+//        }
+//    }
+//    evaluatePartialSolutionBlackBox(parent, solution);
+//    number_of_evaluations--;
+//    // subfunction_indices = variables_used
+//    number_of_evaluations += subfunction_indices.size() / (double) number_of_parameters;
+////    std::set<int> variables_used;
+////    double result = 0.0;
+////    int *order = mergeSortInt(solution->touched_indices.data(), solution->num_touched_variables);
+////    for (int i = 0; i < solution->num_touched_variables; i++) {
+////        int ind = solution->touched_indices[order[i]];
+////        if (ind == 0) {
+////
+////        } else {
+////            double y = parent->variables[ind - 1];
+////            if (i > 0 && solution->touched_indices[i - 1] == ind - 1)
+////                y = solution->touched_variables[i - 1];
+////
+////            result += subfunction(y, solution->touched_variables[i]);
+////            result -= subfunction(parent->variables[ind - 1], parent->variables[ind]);
+////            variables_used.insert(ind - 1);
+////            variables_used.insert(ind);
+////        }
+////    }
+////    free(order);
+////
+////    solution->objective_value = parent->objective_value + result;
+////    solution->constraint_value = parent->constraint_value;
+////    number_of_evaluations += variables_used.size() / (double) number_of_parameters;
+//}
+//
+//double summationCancellationFunction_t::getLowerRangeBound(int dimension) {
+//    return (-3);
+//}
+//
+//double summationCancellationFunction_t::getUpperRangeBound(int dimension) {
+//    return (3);
+//}
 
 sorebFunction_t::sorebFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
                                  double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size) {
@@ -725,7 +747,6 @@ void sorebFunction_t::evaluationFunction(solution_t *solution) {
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
@@ -733,7 +754,7 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
     double result = 0.0;
     int last_evaluated_block = -1;
     double variables_copy[rotation_block_size];
-    int num_subfunctions_evaluated = 0;
+    std::set<int> variables_used;
 
     for (int i = 0; i < solution->num_touched_variables; i++) {
         int ind = solution->touched_indices[i];
@@ -746,8 +767,10 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
         {
             if (block_ind > last_evaluated_block) {
                 int block_start = getStartingIndexOfBlock(block_ind);
-                for (int j = 0; j < rotation_block_size; j++)
+                for (int j = 0; j < rotation_block_size; j++) {
                     variables_copy[j] = parent->variables[block_start + j];
+                    variables_used.insert(block_start + j);
+                }
                 result -= subfunction(block_start, variables_copy, rotation_block_size);
 
                 int j = 0;
@@ -759,7 +782,6 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
                     j++;
                 }
                 result += subfunction(block_start, variables_copy, rotation_block_size);
-                num_subfunctions_evaluated++;
 
                 last_evaluated_block = block_ind;
             }
@@ -770,8 +792,7 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
 
     solution->objective_value = parent->objective_value + result;
     solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+    number_of_evaluations += variables_used.size() / (double) number_of_parameters;
 }
 
 double sorebFunction_t::subfunction(int start_index, double *vars, int num_vars) {
@@ -874,7 +895,7 @@ int sorebDisjointBlocksFunction_t::getIndexOfFirstBlock(int var) {
 }
 
 int sorebDisjointBlocksFunction_t::getStartingIndexOfBlock(int block_index) {
-    int dual_block_offset = (block_index / 2) * dual_block_size;
+    int dual_block_offset = (int) floor(block_index / 2) * dual_block_size;
     return dual_block_offset + ((block_index % 2) * (rotation_block_size - overlap_size));
 }
 
@@ -888,7 +909,6 @@ void sorebDisjointBlocksFunction_t::evaluationFunction(solution_t *solution) {
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
@@ -896,7 +916,7 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
     double result = 0.0;
     int last_evaluated_block = -1;
     double variables_copy[rotation_block_size];
-    int num_subfunctions_evaluated = 0;
+    std::set<int> variables_used;
 
     for (int i = 0; i < solution->num_touched_variables; i++) {
         int ind = solution->touched_indices[i];
@@ -909,8 +929,10 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
         {
             if (block_ind > last_evaluated_block) {
                 int block_start = getStartingIndexOfBlock(block_ind);
-                for (int j = 0; j < rotation_block_size; j++)
+                for (int j = 0; j < rotation_block_size; j++) {
                     variables_copy[j] = parent->variables[block_start + j];
+                    variables_used.insert(block_start + j);
+                }
                 result -= subfunction(block_start, variables_copy, rotation_block_size);
 
                 int j = 0;
@@ -922,7 +944,6 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
                     j++;
                 }
                 result += subfunction(block_start, variables_copy, rotation_block_size);
-                num_subfunctions_evaluated++;
 
                 last_evaluated_block = block_ind;
             }
@@ -933,8 +954,7 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
 
     solution->objective_value = parent->objective_value + result;
     solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+    number_of_evaluations += variables_used.size() / (double) number_of_parameters;
 }
 
 double sorebDisjointBlocksFunction_t::subfunction(int start_index, double *vars, int num_vars) {
@@ -1011,8 +1031,6 @@ osorebFunction_t::osorebFunction_t(int number_of_parameters, double vtr) {
 }
 
 void osorebFunction_t::evaluationFunction(solution_t *solution) {
-    assert(black_box_optimization);
-
     double result = 0.0;
     for (int i = 0; i < number_of_large_rotated_blocks; i++) {
         result += subfunction(&solution->variables[rotation_block_size * i], rotation_block_size);
@@ -1023,12 +1041,11 @@ void osorebFunction_t::evaluationFunction(solution_t *solution) {
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
 void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
-    int num_subfunctions_evaluated = 0;
+    std::set<int> variables_used;
     double result = 0.0;
     for (int i = 0; i < solution->num_touched_variables; i++) {
         int ind = solution->touched_indices[i];
@@ -1042,13 +1059,17 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
 
         int block_start = block_ind * rotation_block_size;
         double *variables_copy = new double[rotation_block_size];
-        for (int j = 0; j < rotation_block_size; j++)
+        for (int j = 0; j < rotation_block_size; j++) {
             variables_copy[j] = parent->variables[block_start + j];
+            variables_used.insert(block_start + j);
+        }
         result -= subfunction(variables_copy, rotation_block_size);
 
         double variables_copy_smallblock[2];
-        for (int j = 0; j < 2; j++)
+        for (int j = 0; j < 2; j++) {
             variables_copy_smallblock[j] = parent->variables[block_start + j - 1];
+            variables_used.insert(block_start + j - 1);
+        }
         result -= subfunction(variables_copy_smallblock, 2);
 
         int j = 0;
@@ -1059,7 +1080,6 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
             j++;
         }
         result += subfunction(variables_copy, rotation_block_size);
-        num_subfunctions_evaluated++;
 
         if (i > 0) {
             if (solution->touched_indices[i - 1] == ind - 1)
@@ -1067,15 +1087,13 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
             variables_copy_smallblock[1] = solution->touched_variables[i];
         }
         result += subfunction(variables_copy_smallblock, 2);
-        num_subfunctions_evaluated++;
 
         delete[] variables_copy;
     }
 
     solution->objective_value = parent->objective_value + result;
     solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+    number_of_evaluations += variables_used.size() / (double) number_of_parameters;
 }
 
 double osorebFunction_t::subfunction(double *vars, int num_vars) {
@@ -1142,113 +1160,111 @@ osorebFunction_t::~osorebFunction_t() {
     }
 }
 
-sorebChainFunction_t::sorebChainFunction_t(int number_of_parameters, double vtr, double conditioning_number,
-                                           double rotation_angle, bool wrap_around) {
-    this->name = "Chain of Sum of Rotated Ellipsoid Blocks function";
-    this->number_of_parameters = number_of_parameters;
-    this->vtr = vtr;
-    this->rotation_angle = rotation_angle;
-    this->rotation_block_size = 2;
-    this->number_of_subfunctions = number_of_parameters - 1;
-    this->conditioning_number = conditioning_number;
-    this->wrap_around = wrap_around;
-    initializeFitnessFunction();
-    rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-
-    initializeVariableInteractionGraph();
-}
-
-void sorebChainFunction_t::evaluationFunction(solution_t *solution) {
-    double result = 0.0;
-    for (int i = 0; i < number_of_subfunctions; i++)
-        result += subfunction(&solution->variables[i], rotation_block_size);
-
-    solution->objective_value = result;
-    solution->constraint_value = 0;
-    full_number_of_evaluations++;
-    number_of_evaluations++;
-}
-
-void sorebChainFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
-    int num_subfunctions_evaluated = 0;
-    double result = 0.0;
-    for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
-        double *variables_copy = new double[rotation_block_size];
-        if (ind > 0) {
-            variables_copy[0] = parent->variables[ind - 1];
-            variables_copy[1] = parent->variables[ind];
-            result -= subfunction(variables_copy, rotation_block_size);
-
-            if (i > 0 && solution->touched_indices[i - 1] == ind - 1)
-                variables_copy[0] = solution->touched_variables[i - 1];
-            variables_copy[1] = solution->touched_variables[i];
-            result += subfunction(variables_copy, rotation_block_size);
-            num_subfunctions_evaluated++;
-        }
-        if (ind < number_of_parameters - 1 &&
-            !(i < solution->num_touched_variables - 1 && solution->touched_indices[i + 1] == ind + 1)) {
-            variables_copy[0] = parent->variables[ind];
-            variables_copy[1] = parent->variables[ind + 1];
-            result -= subfunction(variables_copy, rotation_block_size);
-
-            variables_copy[0] = solution->touched_variables[i];
-            if (i + 1 < solution->num_touched_variables && solution->touched_indices[i + 1] == ind + 1)
-                variables_copy[1] = solution->touched_variables[i + 1];
-            result += subfunction(variables_copy, rotation_block_size);
-            num_subfunctions_evaluated++;
-        }
-        delete[] variables_copy;
-    }
-
-    solution->objective_value = parent->objective_value + result;
-    solution->constraint_value = parent->constraint_value;
-    full_number_of_evaluations++;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
-}
-
-double sorebChainFunction_t::subfunction(double *vars, int num_vars) {
-    double *rotated_vars = vars;
-    if (rotation_angle != 0.0)
-        rotated_vars = rotateVariables(vars, num_vars, rotation_matrix);
-    double result = 0.0;
-    for (int i = 0; i < num_vars; i++)
-        result += pow(10.0, conditioning_number * (((double) (i)) / ((double) (rotation_block_size - 1)))) *
-                  rotated_vars[i] * rotated_vars[i];
-    if (rotation_angle != 0.0)
-        free(rotated_vars);
-    return (result);
-}
-
-double sorebChainFunction_t::getLowerRangeBound(int dimension) {
-    return (-1e308);
-}
-
-double sorebChainFunction_t::getUpperRangeBound(int dimension) {
-    return (1e308);
-}
-
-void sorebChainFunction_t::initializeVariableInteractionGraph() {
-    for (int i = 0; i < number_of_parameters; i++) {
-        std::set<int> dependent_vars;
-        if (i > 0 || wrap_around)
-            dependent_vars.insert((i + number_of_parameters - 1) % number_of_parameters);
-        if (i + 1 < number_of_parameters || wrap_around)
-            dependent_vars.insert((i + 1) % number_of_parameters);
-        variable_interaction_graph[i] = dependent_vars;
-    }
-    /*for( auto p : variable_interaction_graph )
-	{
-		printf("[%d] ",p.first);
-		for( int x : p.second )
-			printf("%d ",x);
-	}
-	printf("\n");*/
-}
-
-sorebChainFunction_t::~sorebChainFunction_t() {
-    ezilaitiniObjectiveRotationMatrix(rotation_matrix, rotation_angle, rotation_block_size);
-}
+//sorebChainFunction_t::sorebChainFunction_t(int number_of_parameters, double vtr, double conditioning_number,
+//                                           double rotation_angle, bool wrap_around) {
+//    this->name = "Chain of Sum of Rotated Ellipsoid Blocks function";
+//    this->number_of_parameters = number_of_parameters;
+//    this->vtr = vtr;
+//    this->rotation_angle = rotation_angle;
+//    this->rotation_block_size = 2;
+//    this->number_of_subfunctions = number_of_parameters - 1;
+//    this->conditioning_number = conditioning_number;
+//    this->wrap_around = wrap_around;
+//    initializeFitnessFunction();
+//    rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
+//
+//    initializeVariableInteractionGraph();
+//}
+//
+//void sorebChainFunction_t::evaluationFunction(solution_t *solution) {
+//    double result = 0.0;
+//    for (int i = 0; i < number_of_subfunctions; i++)
+//        result += subfunction(&solution->variables[i], rotation_block_size);
+//
+//    solution->objective_value = result;
+//    solution->constraint_value = 0;
+//    number_of_evaluations++;
+//}
+//
+//void sorebChainFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+//    int num_subfunctions_evaluated = 0;
+//    double result = 0.0;
+//    for (int i = 0; i < solution->num_touched_variables; i++) {
+//        int ind = solution->touched_indices[i];
+//        double *variables_copy = new double[rotation_block_size];
+//        if (ind > 0) {
+//            variables_copy[0] = parent->variables[ind - 1];
+//            variables_copy[1] = parent->variables[ind];
+//            result -= subfunction(variables_copy, rotation_block_size);
+//
+//            if (i > 0 && solution->touched_indices[i - 1] == ind - 1)
+//                variables_copy[0] = solution->touched_variables[i - 1];
+//            variables_copy[1] = solution->touched_variables[i];
+//            result += subfunction(variables_copy, rotation_block_size);
+//            num_subfunctions_evaluated++;
+//        }
+//        if (ind < number_of_parameters - 1 &&
+//            !(i < solution->num_touched_variables - 1 && solution->touched_indices[i + 1] == ind + 1)) {
+//            variables_copy[0] = parent->variables[ind];
+//            variables_copy[1] = parent->variables[ind + 1];
+//            result -= subfunction(variables_copy, rotation_block_size);
+//
+//            variables_copy[0] = solution->touched_variables[i];
+//            if (i + 1 < solution->num_touched_variables && solution->touched_indices[i + 1] == ind + 1)
+//                variables_copy[1] = solution->touched_variables[i + 1];
+//            result += subfunction(variables_copy, rotation_block_size);
+//            num_subfunctions_evaluated++;
+//        }
+//        delete[] variables_copy;
+//    }
+//
+//    solution->objective_value = parent->objective_value + result;
+//    solution->constraint_value = parent->constraint_value;
+//    number_of_evaluations += num_subfunctions_evaluated / (double) numberof;
+//}
+//
+//double sorebChainFunction_t::subfunction(double *vars, int num_vars) {
+//    double *rotated_vars = vars;
+//    if (rotation_angle != 0.0)
+//        rotated_vars = rotateVariables(vars, num_vars, rotation_matrix);
+//    double result = 0.0;
+//    for (int i = 0; i < num_vars; i++)
+//        result += pow(10.0, conditioning_number * (((double) (i)) / ((double) (rotation_block_size - 1)))) *
+//                  rotated_vars[i] * rotated_vars[i];
+//    if (rotation_angle != 0.0)
+//        free(rotated_vars);
+//    return (result);
+//}
+//
+//double sorebChainFunction_t::getLowerRangeBound(int dimension) {
+//    return (-1e308);
+//}
+//
+//double sorebChainFunction_t::getUpperRangeBound(int dimension) {
+//    return (1e308);
+//}
+//
+//void sorebChainFunction_t::initializeVariableInteractionGraph() {
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        std::set<int> dependent_vars;
+//        if (i > 0 || wrap_around)
+//            dependent_vars.insert((i + number_of_parameters - 1) % number_of_parameters);
+//        if (i + 1 < number_of_parameters || wrap_around)
+//            dependent_vars.insert((i + 1) % number_of_parameters);
+//        variable_interaction_graph[i] = dependent_vars;
+//    }
+//    /*for( auto p : variable_interaction_graph )
+//	{
+//		printf("[%d] ",p.first);
+//		for( int x : p.second )
+//			printf("%d ",x);
+//	}
+//	printf("\n");*/
+//}
+//
+//sorebChainFunction_t::~sorebChainFunction_t() {
+//    ezilaitiniObjectiveRotationMatrix(rotation_matrix, rotation_angle, rotation_block_size);
+//}
 
 sorebGridFunction_t::sorebGridFunction_t(int number_of_parameters, double vtr, double conditioning_number,
                                          double rotation_angle, bool wrap_around_x, bool wrap_around_y) {
@@ -1321,7 +1337,6 @@ void sorebGridFunction_t::evaluationFunction(solution_t *solution) {
 
     solution->objective_value = result;
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 
@@ -1405,28 +1420,28 @@ void sorebGridFunction_t::partialEvaluationFunction(solution_t *parent, partial_
 	}
 	solution->objective_value = parent->objective_value + result;
 	solution->constraint_value = parent->constraint_value;
-	full_number_of_evaluations++;
 	number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;*/
 
     std::set<int> subfunction_indices;
     for (int i = 0; i < solution->num_touched_variables; i++) {
         int ind = solution->touched_indices[i];
         subfunction_indices.insert(ind);
-        for (int x: getNeighborsInGrid(ind))
+        for (int x: getNeighborsInGrid(ind)) {
             subfunction_indices.insert(x);
+        }
     }
 
-    int num_subfunctions_evaluated;
-    if (solution->num_touched_variables == 1) {
-        num_subfunctions_evaluated = 1 + getNeighborsInGrid(solution->touched_indices[0]).size();
-        assert(num_subfunctions_evaluated == subfunction_indices.size());
-    } else
-        num_subfunctions_evaluated = subfunction_indices.size();
+//    if (solution->num_touched_variables == 1) {
+//        num_subfunctions_evaluated = 1 + getNeighborsInGrid(solution->touched_indices[0]).size();
+//        assert(num_subfunctions_evaluated == subfunction_indices.size());
+//    } else {
+//        num_subfunctions_evaluated = subfunction_indices.size();
+//    }
 
-    assert(num_subfunctions_evaluated <= number_of_subfunctions);
     evaluatePartialSolutionBlackBox(parent, solution);
     number_of_evaluations--;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+    // subfunction_indices = variables_used
+    number_of_evaluations += subfunction_indices.size() / (double) number_of_parameters;
 }
 
 double sorebGridFunction_t::subfunction(double *vars, int num_vars) {
@@ -1497,300 +1512,298 @@ void sorebGridFunction_t::initializeVariableInteractionGraph() {
     }
 }
 
-sorebCubeFunction_t::sorebCubeFunction_t(int number_of_parameters, double vtr, double conditioning_number,
-                                         double rotation_angle, bool wrap_around_x, bool wrap_around_y,
-                                         bool wrap_around_z) {
-    this->name = "Chain of Sum of Rotated Ellipsoid Blocks function";
-    this->number_of_parameters = number_of_parameters;
-    this->vtr = vtr;
-    this->rotation_angle = rotation_angle;
-    this->conditioning_number = conditioning_number;
-    this->wrap_around_x = wrap_around_x;
-    this->wrap_around_y = wrap_around_y;
-    this->wrap_around_z = wrap_around_z;
-    this->number_of_subfunctions = number_of_parameters;
-    this->cube_width = round(cbrt(number_of_parameters));
-    assert(cube_width * cube_width * cube_width == number_of_parameters);
-    //if( !wrap_around_x ) this->number_of_subfunctions -= cube_width;
-    //if( !wrap_around_y ) this->number_of_subfunctions -= cube_width;
-    //if( !wrap_around_z ) this->number_of_subfunctions -= cube_width;
-    initializeFitnessFunction();
-    rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-
-    initializeVariableInteractionGraph();
-}
-
-std::set<int> sorebCubeFunction_t::getNeighborsInGrid(int ind) {
-    int x = ind % cube_width;
-    ind /= cube_width;
-    int y = ind % cube_width;
-    ind /= cube_width;
-    int z = ind % cube_width;
-    int ind_xnext = z * cube_width * cube_width + y * cube_width + (x + 1) % cube_width;
-
-    int ind_ynext = z * cube_width * cube_width + ((y + 1) % cube_width) * cube_width + x;
-    int ind_znext = ((z + 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
-    int ind_xprev = z * cube_width * cube_width + y * cube_width + (x + cube_width - 1) % cube_width;
-    int ind_yprev = z * cube_width * cube_width + ((y + cube_width - 1) % cube_width) * cube_width + x;
-    int ind_zprev = ((z + cube_width - 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
-
-    std::set<int> dependent_vars;
-    if (x > 0 || wrap_around_x)
-        dependent_vars.insert(ind_xprev);
-    if (x + 1 < cube_width || wrap_around_x)
-        dependent_vars.insert(ind_xnext);
-    if (y > 0 || wrap_around_y)
-        dependent_vars.insert(ind_yprev);
-    if (y + 1 < cube_width || wrap_around_y)
-        dependent_vars.insert(ind_ynext);
-    if (z > 0 || wrap_around_z)
-        dependent_vars.insert(ind_zprev);
-    if (z + 1 < cube_width || wrap_around_z)
-        dependent_vars.insert(ind_znext);
-
-    return (dependent_vars);
-}
-
-void sorebCubeFunction_t::initializeVariableInteractionGraph() {
-    for (int z = 0; z < cube_width; z++) {
-        for (int y = 0; y < cube_width; y++) {
-            for (int x = 0; x < cube_width; x++) {
-                int ind = z * cube_width * cube_width + y * cube_width + x;
-                std::set<int> neighbors = getNeighborsInGrid(ind);
-                std::set<int> dependent_vars;
-                for (int x: neighbors) {
-                    dependent_vars.insert(x);
-                    for (int y: getNeighborsInGrid(x))
-                        if (y != ind) dependent_vars.insert(y);
-                }
-                variable_interaction_graph[ind] = dependent_vars;
-            }
-        }
-    }
-    /*for( auto p : variable_interaction_graph )
-	{
-		printf("[%d] ",p.first);
-		for( int x : p.second )
-			printf("%d ",x);
-	}
-	printf("\n");*/
-
-}
-
-void sorebCubeFunction_t::evaluationFunction(solution_t *solution) {
-    double result = 0.0;
-    double *var_tmp = new double[7];
-    for (int z = 0; z < cube_width; z++) {
-        for (int y = 0; y < cube_width; y++) {
-            for (int x = 0; x < cube_width; x++) {
-                int num_vars = 0;
-                int ind = z * cube_width * cube_width + y * cube_width + x;
-                var_tmp[num_vars++] = solution->variables[ind];
-
-                int ind_xprev = z * cube_width * cube_width + y * cube_width + (x + cube_width - 1) % cube_width;
-                if (x > 0 || wrap_around_x)
-                    var_tmp[num_vars++] = solution->variables[ind_xprev];
-                int ind_xnext = z * cube_width * cube_width + y * cube_width + (x + 1) % cube_width;
-                if (x + 1 < cube_width || wrap_around_x)
-                    var_tmp[num_vars++] = solution->variables[ind_xnext];
-
-                int ind_yprev = z * cube_width * cube_width + ((y + cube_width - 1) % cube_width) * cube_width + x;
-                if (y > 0 || wrap_around_y)
-                    var_tmp[num_vars++] = solution->variables[ind_yprev];
-                int ind_ynext = z * cube_width * cube_width + ((y + 1) % cube_width) * cube_width + x;
-                if (y + 1 < cube_width || wrap_around_y)
-                    var_tmp[num_vars++] = solution->variables[ind_ynext];
-
-                int ind_zprev = ((z + cube_width - 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
-                if (z > 0 || wrap_around_z)
-                    var_tmp[num_vars++] = solution->variables[ind_zprev];
-                int ind_znext = ((z + 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
-                if (z + 1 < cube_width || wrap_around_z)
-                    var_tmp[num_vars++] = solution->variables[ind_znext];
-
-                result += subfunction(var_tmp, num_vars);
-            }
-        }
-    }
-    delete[] var_tmp;
-
-    solution->objective_value = result;
-    solution->constraint_value = 0;
-    full_number_of_evaluations++;
-    number_of_evaluations++;
-}
-
-void sorebCubeFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
-    /*int num_subfunctions_evaluated = 0;
-	double result = 0.0;
-	double *variables_copy = new double[2];
-	for( int i = 0; i < solution->num_touched_variables; i++ )
-	{
-		int ind = solution->touched_indices[i];
-
-		int indc = ind;
-		int x = indc%cube_width;
-		indc /= cube_width;
-		int y = indc%cube_width;
-		indc /= cube_width;
-		int z = indc%cube_width;
-
-		int ind_xnext = z*cube_width*cube_width + y*cube_width + (x+1)%cube_width;
-		int ind_ynext = z*cube_width*cube_width + ((y+1)%cube_width)*cube_width + x;
-		int ind_znext = ((z+1)%cube_width)*cube_width*cube_width + y*cube_width + x;
-		int ind_xprev = z*cube_width*cube_width + y*cube_width + (x+cube_width-1)%cube_width;
-		int ind_yprev = z*cube_width*cube_width + ((y+cube_width-1)%cube_width)*cube_width + x;
-		int ind_zprev = ((z+cube_width-1)%cube_width)*cube_width*cube_width + y*cube_width + x;
-		int ind_touched_xnext = solution->getTouchedIndex(ind_xnext);
-		int ind_touched_ynext = solution->getTouchedIndex(ind_ynext);
-		int ind_touched_znext = solution->getTouchedIndex(ind_znext);
-		int ind_touched_xprev = solution->getTouchedIndex(ind_xprev);
-		int ind_touched_yprev = solution->getTouchedIndex(ind_yprev);
-		int ind_touched_zprev = solution->getTouchedIndex(ind_zprev);
-
-		if( ind_touched_xprev == -1 && (x > 0 || wrap_around_x) ) // ind was not touched; if it was, this subfunction was already recomputed
-		{
-			variables_copy[0] = parent->variables[ind_xprev];
-			variables_copy[1] = parent->variables[ind];
-			result -= subfunction( variables_copy, 2 );
-
-			variables_copy[1] = solution->touched_variables[i];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-		if( ind_touched_yprev == -1 && (y > 0 || wrap_around_y) ) // ind_left was not touched; if it was, this subfunction was already recomputed
-		{
-			variables_copy[0] = parent->variables[ind_yprev];
-			variables_copy[1] = parent->variables[ind];
-			result -= subfunction( variables_copy, 2 );
-
-			variables_copy[1] = solution->touched_variables[i];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-		if( ind_touched_zprev == -1 && (z > 0 || wrap_around_z) ) // ind_left was not touched; if it was, this subfunction was already recomputed
-		{
-			variables_copy[0] = parent->variables[ind_zprev];
-			variables_copy[1] = parent->variables[ind];
-			result -= subfunction( variables_copy, 2 );
-
-			variables_copy[1] = solution->touched_variables[i];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-
-		if( x+1 < cube_width || wrap_around_x )
-		{
-			// subtract old subfunction for xnext
-			variables_copy[0] = parent->variables[ind];
-			variables_copy[1] = parent->variables[ind_xnext];
-			result -= subfunction( variables_copy, 2 );
-
-			// add new subfunction for xnext
-			variables_copy[0] = solution->touched_variables[i];
-			if( ind_touched_xnext == -1 )
-				variables_copy[1] = parent->variables[ind_xnext];
-			else
-				variables_copy[1] = solution->touched_variables[ind_touched_xnext];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-
-		if( y+1 < cube_width || wrap_around_y )
-		{
-			// subtract old subfunction for ynext
-			variables_copy[0] = parent->variables[ind];
-			variables_copy[1] = parent->variables[ind_ynext];
-			result -= subfunction( variables_copy, 2 );
-
-			// add new subfunction for ynext
-			variables_copy[0] = solution->touched_variables[i];
-			if( ind_touched_ynext == -1 )
-				variables_copy[1] = parent->variables[ind_ynext];
-			else
-				variables_copy[1] = solution->touched_variables[ind_touched_ynext];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-
-		if( z+1 < cube_width || wrap_around_z )
-		{
-			// subtract old subfunction for znext
-			variables_copy[0] = parent->variables[ind];
-			variables_copy[1] = parent->variables[ind_znext];
-			result -= subfunction( variables_copy, 2 );
-
-			// add new subfunction for znext
-			variables_copy[0] = solution->touched_variables[i];
-			if( ind_touched_znext == -1 )
-				variables_copy[1] = parent->variables[ind_znext];
-			else
-				variables_copy[1] = solution->touched_variables[ind_touched_znext];
-			result += subfunction( variables_copy, 2 );
-			num_subfunctions_evaluated++;
-		}
-
-		delete[] variables_copy;
-	}
-	solution->objective_value = parent->objective_value + result;
-	solution->constraint_value = parent->constraint_value;
-	full_number_of_evaluations++;
-	number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;*/
-    std::set<int> subfunction_indices;
-    for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
-        subfunction_indices.insert(ind);
-        for (int x: getNeighborsInGrid(ind))
-            subfunction_indices.insert(x);
-    }
-
-    int num_subfunctions_evaluated;
-    if (solution->num_touched_variables == 1) {
-        num_subfunctions_evaluated = 1 + getNeighborsInGrid(solution->touched_indices[0]).size();
-        assert(num_subfunctions_evaluated == subfunction_indices.size());
-    } else
-        num_subfunctions_evaluated = subfunction_indices.size();
-
-    assert(num_subfunctions_evaluated <= number_of_subfunctions);
-    evaluatePartialSolutionBlackBox(parent, solution);
-    number_of_evaluations--;
-    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
-}
-
-double sorebCubeFunction_t::subfunction(double *vars, int num_vars) {
-    double *rotated_vars = vars;
-    if (rotation_angle != 0.0) {
-        if (rotation_matrices.find(num_vars) == rotation_matrices.end())
-            rotation_matrices[num_vars] = initializeObjectiveRotationMatrix(rotation_angle, num_vars);
-        double **rotation_matrix = rotation_matrices.find(num_vars)->second;
-        rotated_vars = rotateVariables(vars, num_vars, rotation_matrix);
-    }
-    double result = 0.0;
-    for (int i = 0; i < num_vars; i++)
-        result += pow(10.0, conditioning_number * (((double) (i)) / ((double) (num_vars - 1)))) * rotated_vars[i] *
-                  rotated_vars[i];
-    if (rotation_angle != 0.0)
-        free(rotated_vars);
-    return (result);
-}
-
-double sorebCubeFunction_t::getLowerRangeBound(int dimension) {
-    return (-1e308);
-}
-
-double sorebCubeFunction_t::getUpperRangeBound(int dimension) {
-    return (1e308);
-}
-
-sorebCubeFunction_t::~sorebCubeFunction_t() {
-    for (auto it: rotation_matrices) {
-        int n = it.first;
-        double **rot_mat = it.second;
-        for (int i = 0; i < n; i++)
-            free(rot_mat[i]);
-        free(rot_mat);
-    }
-}
+//sorebCubeFunction_t::sorebCubeFunction_t(int number_of_parameters, double vtr, double conditioning_number,
+//                                         double rotation_angle, bool wrap_around_x, bool wrap_around_y,
+//                                         bool wrap_around_z) {
+//    this->name = "Chain of Sum of Rotated Ellipsoid Blocks function";
+//    this->number_of_parameters = number_of_parameters;
+//    this->vtr = vtr;
+//    this->rotation_angle = rotation_angle;
+//    this->conditioning_number = conditioning_number;
+//    this->wrap_around_x = wrap_around_x;
+//    this->wrap_around_y = wrap_around_y;
+//    this->wrap_around_z = wrap_around_z;
+//    this->number_of_subfunctions = number_of_parameters;
+//    this->cube_width = round(cbrt(number_of_parameters));
+//    assert(cube_width * cube_width * cube_width == number_of_parameters);
+//    //if( !wrap_around_x ) this->number_of_subfunctions -= cube_width;
+//    //if( !wrap_around_y ) this->number_of_subfunctions -= cube_width;
+//    //if( !wrap_around_z ) this->number_of_subfunctions -= cube_width;
+//    initializeFitnessFunction();
+//    rotation_matrix = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
+//
+//    initializeVariableInteractionGraph();
+//}
+//
+//std::set<int> sorebCubeFunction_t::getNeighborsInGrid(int ind) {
+//    int x = ind % cube_width;
+//    ind /= cube_width;
+//    int y = ind % cube_width;
+//    ind /= cube_width;
+//    int z = ind % cube_width;
+//    int ind_xnext = z * cube_width * cube_width + y * cube_width + (x + 1) % cube_width;
+//
+//    int ind_ynext = z * cube_width * cube_width + ((y + 1) % cube_width) * cube_width + x;
+//    int ind_znext = ((z + 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
+//    int ind_xprev = z * cube_width * cube_width + y * cube_width + (x + cube_width - 1) % cube_width;
+//    int ind_yprev = z * cube_width * cube_width + ((y + cube_width - 1) % cube_width) * cube_width + x;
+//    int ind_zprev = ((z + cube_width - 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
+//
+//    std::set<int> dependent_vars;
+//    if (x > 0 || wrap_around_x)
+//        dependent_vars.insert(ind_xprev);
+//    if (x + 1 < cube_width || wrap_around_x)
+//        dependent_vars.insert(ind_xnext);
+//    if (y > 0 || wrap_around_y)
+//        dependent_vars.insert(ind_yprev);
+//    if (y + 1 < cube_width || wrap_around_y)
+//        dependent_vars.insert(ind_ynext);
+//    if (z > 0 || wrap_around_z)
+//        dependent_vars.insert(ind_zprev);
+//    if (z + 1 < cube_width || wrap_around_z)
+//        dependent_vars.insert(ind_znext);
+//
+//    return (dependent_vars);
+//}
+//
+//void sorebCubeFunction_t::initializeVariableInteractionGraph() {
+//    for (int z = 0; z < cube_width; z++) {
+//        for (int y = 0; y < cube_width; y++) {
+//            for (int x = 0; x < cube_width; x++) {
+//                int ind = z * cube_width * cube_width + y * cube_width + x;
+//                std::set<int> neighbors = getNeighborsInGrid(ind);
+//                std::set<int> dependent_vars;
+//                for (int x: neighbors) {
+//                    dependent_vars.insert(x);
+//                    for (int y: getNeighborsInGrid(x))
+//                        if (y != ind) dependent_vars.insert(y);
+//                }
+//                variable_interaction_graph[ind] = dependent_vars;
+//            }
+//        }
+//    }
+//    /*for( auto p : variable_interaction_graph )
+//	{
+//		printf("[%d] ",p.first);
+//		for( int x : p.second )
+//			printf("%d ",x);
+//	}
+//	printf("\n");*/
+//
+//}
+//
+//void sorebCubeFunction_t::evaluationFunction(solution_t *solution) {
+//    double result = 0.0;
+//    double *var_tmp = new double[7];
+//    for (int z = 0; z < cube_width; z++) {
+//        for (int y = 0; y < cube_width; y++) {
+//            for (int x = 0; x < cube_width; x++) {
+//                int num_vars = 0;
+//                int ind = z * cube_width * cube_width + y * cube_width + x;
+//                var_tmp[num_vars++] = solution->variables[ind];
+//
+//                int ind_xprev = z * cube_width * cube_width + y * cube_width + (x + cube_width - 1) % cube_width;
+//                if (x > 0 || wrap_around_x)
+//                    var_tmp[num_vars++] = solution->variables[ind_xprev];
+//                int ind_xnext = z * cube_width * cube_width + y * cube_width + (x + 1) % cube_width;
+//                if (x + 1 < cube_width || wrap_around_x)
+//                    var_tmp[num_vars++] = solution->variables[ind_xnext];
+//
+//                int ind_yprev = z * cube_width * cube_width + ((y + cube_width - 1) % cube_width) * cube_width + x;
+//                if (y > 0 || wrap_around_y)
+//                    var_tmp[num_vars++] = solution->variables[ind_yprev];
+//                int ind_ynext = z * cube_width * cube_width + ((y + 1) % cube_width) * cube_width + x;
+//                if (y + 1 < cube_width || wrap_around_y)
+//                    var_tmp[num_vars++] = solution->variables[ind_ynext];
+//
+//                int ind_zprev = ((z + cube_width - 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
+//                if (z > 0 || wrap_around_z)
+//                    var_tmp[num_vars++] = solution->variables[ind_zprev];
+//                int ind_znext = ((z + 1) % cube_width) * cube_width * cube_width + y * cube_width + x;
+//                if (z + 1 < cube_width || wrap_around_z)
+//                    var_tmp[num_vars++] = solution->variables[ind_znext];
+//
+//                result += subfunction(var_tmp, num_vars);
+//            }
+//        }
+//    }
+//    delete[] var_tmp;
+//
+//    solution->objective_value = result;
+//    solution->constraint_value = 0;
+//    number_of_evaluations++;
+//}
+//
+//void sorebCubeFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+//    /*int num_subfunctions_evaluated = 0;
+//	double result = 0.0;
+//	double *variables_copy = new double[2];
+//	for( int i = 0; i < solution->num_touched_variables; i++ )
+//	{
+//		int ind = solution->touched_indices[i];
+//
+//		int indc = ind;
+//		int x = indc%cube_width;
+//		indc /= cube_width;
+//		int y = indc%cube_width;
+//		indc /= cube_width;
+//		int z = indc%cube_width;
+//
+//		int ind_xnext = z*cube_width*cube_width + y*cube_width + (x+1)%cube_width;
+//		int ind_ynext = z*cube_width*cube_width + ((y+1)%cube_width)*cube_width + x;
+//		int ind_znext = ((z+1)%cube_width)*cube_width*cube_width + y*cube_width + x;
+//		int ind_xprev = z*cube_width*cube_width + y*cube_width + (x+cube_width-1)%cube_width;
+//		int ind_yprev = z*cube_width*cube_width + ((y+cube_width-1)%cube_width)*cube_width + x;
+//		int ind_zprev = ((z+cube_width-1)%cube_width)*cube_width*cube_width + y*cube_width + x;
+//		int ind_touched_xnext = solution->getTouchedIndex(ind_xnext);
+//		int ind_touched_ynext = solution->getTouchedIndex(ind_ynext);
+//		int ind_touched_znext = solution->getTouchedIndex(ind_znext);
+//		int ind_touched_xprev = solution->getTouchedIndex(ind_xprev);
+//		int ind_touched_yprev = solution->getTouchedIndex(ind_yprev);
+//		int ind_touched_zprev = solution->getTouchedIndex(ind_zprev);
+//
+//		if( ind_touched_xprev == -1 && (x > 0 || wrap_around_x) ) // ind was not touched; if it was, this subfunction was already recomputed
+//		{
+//			variables_copy[0] = parent->variables[ind_xprev];
+//			variables_copy[1] = parent->variables[ind];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			variables_copy[1] = solution->touched_variables[i];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//		if( ind_touched_yprev == -1 && (y > 0 || wrap_around_y) ) // ind_left was not touched; if it was, this subfunction was already recomputed
+//		{
+//			variables_copy[0] = parent->variables[ind_yprev];
+//			variables_copy[1] = parent->variables[ind];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			variables_copy[1] = solution->touched_variables[i];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//		if( ind_touched_zprev == -1 && (z > 0 || wrap_around_z) ) // ind_left was not touched; if it was, this subfunction was already recomputed
+//		{
+//			variables_copy[0] = parent->variables[ind_zprev];
+//			variables_copy[1] = parent->variables[ind];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			variables_copy[1] = solution->touched_variables[i];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//
+//		if( x+1 < cube_width || wrap_around_x )
+//		{
+//			// subtract old subfunction for xnext
+//			variables_copy[0] = parent->variables[ind];
+//			variables_copy[1] = parent->variables[ind_xnext];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			// add new subfunction for xnext
+//			variables_copy[0] = solution->touched_variables[i];
+//			if( ind_touched_xnext == -1 )
+//				variables_copy[1] = parent->variables[ind_xnext];
+//			else
+//				variables_copy[1] = solution->touched_variables[ind_touched_xnext];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//
+//		if( y+1 < cube_width || wrap_around_y )
+//		{
+//			// subtract old subfunction for ynext
+//			variables_copy[0] = parent->variables[ind];
+//			variables_copy[1] = parent->variables[ind_ynext];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			// add new subfunction for ynext
+//			variables_copy[0] = solution->touched_variables[i];
+//			if( ind_touched_ynext == -1 )
+//				variables_copy[1] = parent->variables[ind_ynext];
+//			else
+//				variables_copy[1] = solution->touched_variables[ind_touched_ynext];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//
+//		if( z+1 < cube_width || wrap_around_z )
+//		{
+//			// subtract old subfunction for znext
+//			variables_copy[0] = parent->variables[ind];
+//			variables_copy[1] = parent->variables[ind_znext];
+//			result -= subfunction( variables_copy, 2 );
+//
+//			// add new subfunction for znext
+//			variables_copy[0] = solution->touched_variables[i];
+//			if( ind_touched_znext == -1 )
+//				variables_copy[1] = parent->variables[ind_znext];
+//			else
+//				variables_copy[1] = solution->touched_variables[ind_touched_znext];
+//			result += subfunction( variables_copy, 2 );
+//			num_subfunctions_evaluated++;
+//		}
+//
+//		delete[] variables_copy;
+//	}
+//	solution->objective_value = parent->objective_value + result;
+//	solution->constraint_value = parent->constraint_value;
+//	number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;*/
+//    std::set<int> subfunction_indices;
+//    for (int i = 0; i < solution->num_touched_variables; i++) {
+//        int ind = solution->touched_indices[i];
+//        subfunction_indices.insert(ind);
+//        for (int x: getNeighborsInGrid(ind))
+//            subfunction_indices.insert(x);
+//    }
+//
+//    int num_subfunctions_evaluated;
+//    if (solution->num_touched_variables == 1) {
+//        num_subfunctions_evaluated = 1 + getNeighborsInGrid(solution->touched_indices[0]).size();
+//        assert(num_subfunctions_evaluated == subfunction_indices.size());
+//    } else
+//        num_subfunctions_evaluated = subfunction_indices.size();
+//
+//    assert(num_subfunctions_evaluated <= number_of_subfunctions);
+//    evaluatePartialSolutionBlackBox(parent, solution);
+//    number_of_evaluations--;
+//    number_of_evaluations += num_subfunctions_evaluated / (double) number_of_subfunctions;
+//}
+//
+//double sorebCubeFunction_t::subfunction(double *vars, int num_vars) {
+//    double *rotated_vars = vars;
+//    if (rotation_angle != 0.0) {
+//        if (rotation_matrices.find(num_vars) == rotation_matrices.end())
+//            rotation_matrices[num_vars] = initializeObjectiveRotationMatrix(rotation_angle, num_vars);
+//        double **rotation_matrix = rotation_matrices.find(num_vars)->second;
+//        rotated_vars = rotateVariables(vars, num_vars, rotation_matrix);
+//    }
+//    double result = 0.0;
+//    for (int i = 0; i < num_vars; i++)
+//        result += pow(10.0, conditioning_number * (((double) (i)) / ((double) (num_vars - 1)))) * rotated_vars[i] *
+//                  rotated_vars[i];
+//    if (rotation_angle != 0.0)
+//        free(rotated_vars);
+//    return (result);
+//}
+//
+//double sorebCubeFunction_t::getLowerRangeBound(int dimension) {
+//    return (-1e308);
+//}
+//
+//double sorebCubeFunction_t::getUpperRangeBound(int dimension) {
+//    return (1e308);
+//}
+//
+//sorebCubeFunction_t::~sorebCubeFunction_t() {
+//    for (auto it: rotation_matrices) {
+//        int n = it.first;
+//        double **rot_mat = it.second;
+//        for (int i = 0; i < n; i++)
+//            free(rot_mat[i]);
+//        free(rot_mat);
+//    }
+//}
 
 #ifdef CECLSGOFUNC
                                                                                                                         CECLSGOFunctions_t::CECLSGOFunctions_t( int id, int number_of_parameters, double vtr )
@@ -1834,7 +1847,6 @@ void CECLSGOFunctions_t::evaluationFunction( solution_t *solution )
 	printf("[ %10.3e ]\n",solution->objective_value);*/
 
 	solution->constraint_value = 0;
-	full_number_of_evaluations++;
 	number_of_evaluations++;
 }
 #endif
@@ -1859,32 +1871,32 @@ char *installedProblemName(int index) {
             return ((char *) "Sphere");
         case 7:
             return ((char *) "Rosenbrock");
-        case 8:
-            return ((char *) "Summation cancellation");
-        case 13:
-            return ((char *) "Sum of Rotated Ellipsoid Blocks");
+//        case 8:
+//            return ((char *) "Summation cancellation");
+//        case 13:
+//            return ((char *) "Sum of Rotated Ellipsoid Blocks");
         case 14:
             return ((char *) "Disjoint Sum of Rotated Ellipsoid Blocks");
         case 16:
             return ((char *) "Overlapping Sum of Rotated Ellipsoid Blocks");
-        case 17:
-            return ((char *) "BD2 function hypervolume");
-        case 10:
-            return ((char *) "Chain of Rotated Ellipsoid Blocks");
+//        case 17:
+//            return ((char *) "BD2 function hypervolume");
+//        case 10:
+//            return ((char *) "Chain of Rotated Ellipsoid Blocks");
         case 20:
             return ((char *) "Grid of Rotated Ellipsoid Blocks");
-        case 21:
-            return ((char *) "Band of Rotated Ellipsoid Blocks (wrap around x)");
-        case 22:
-            return ((char *) "Torus of Rotated Ellipsoid Blocks (wrap around x and y)");
-        case 30:
-            return ((char *) "Cube of Rotated Ellipsoid Blocks");
-        case 31:
-            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x)");
-        case 32:
-            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x and y)");
-        case 33:
-            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x, y and z)");
+//        case 21:
+//            return ((char *) "Band of Rotated Ellipsoid Blocks (wrap around x)");
+//        case 22:
+//            return ((char *) "Torus of Rotated Ellipsoid Blocks (wrap around x and y)");
+//        case 30:
+//            return ((char *) "Cube of Rotated Ellipsoid Blocks");
+//        case 31:
+//            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x)");
+//        case 32:
+//            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x and y)");
+//        case 33:
+//            return ((char *) "Cube of Rotated Ellipsoid Blocks (wrap around x, y and z)");
     }
 
     return (NULL);
@@ -2514,51 +2526,11 @@ double **fitness_t::initializeObjectiveRotationMatrix(double rotation_angle, int
                 for (j = 0; j < rotation_block_size; j++)
                     rotation_matrix[i][j] = product[i][j];
 
-            /*printf("R[%d][%d]\n",index0,index1);
-			for( i = 0; i < rotation_block_size; i++ )
-			{
-				for( j = 0; j < rotation_block_size; j++ )
-					printf("%10.3e ",rotation_matrix[i][j]);
-				printf("\n");
-			}*/
-
             for (i = 0; i < rotation_block_size; i++)
                 free(product[i]);
             free(product);
         }
     }
-
-    /*for( i = 0; i < rotation_block_size; i++ )
-	{
-		for( j = 0; j < rotation_block_size; j++ )
-			printf("%10.3e ",rotation_matrix[i][j]);
-		printf("\n");
-	}
-	exit(0);*/
-
-    /*printf("[%10.3e %10.3e]\n",cos_theta,-sin_theta);
-	printf("[%10.3e %10.3e]\n",sin_theta,cos_theta);*/
-    /*double *vars = new double[rotation_block_size];
-	for( i = 0; i < rotation_block_size; i++ )
-		vars[i] = 0.0;
-	vars[0] = 1.0;
-	double *rot_vars = rotateVariables( vars, rotation_block_size, rotation_matrix );
-	for( j = 0; j < rotation_block_size; j++ )
-		printf("%10.3e ",rot_vars[j]);
-	printf("\n");
-	vars[0] = 0.0;
-	vars[1] = 1.0;
-	rot_vars = rotateVariables( vars, rotation_block_size, rotation_matrix );
-	for( j = 0; j < rotation_block_size; j++ )
-		printf("%10.3e ",rot_vars[j]);
-	printf("\n");
-	vars[1] = 0.0;
-	vars[2] = 1.0;
-	rot_vars = rotateVariables( vars, rotation_block_size, rotation_matrix );
-	for( j = 0; j < rotation_block_size; j++ )
-		printf("%10.3e ",rot_vars[j]);
-	printf("\n");
-	exit(0);*/
 
     for (i = 0; i < rotation_block_size; i++)
         free(matrix[i]);
@@ -2610,7 +2582,6 @@ void BD2FunctionHypervolume_t::evaluationFunction(solution_t *solution) {
     solution->objective_value = result;
     //printf("%10.3e\n",result);
     solution->constraint_value = 0;
-    full_number_of_evaluations++;
     number_of_evaluations++;
 }
 

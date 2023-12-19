@@ -330,7 +330,7 @@ void rvg_t::printVerboseOverview(void) {
     printf("# Value to reach (vtr)    = %e\n", vtr);
     printf("# Max. no improv. stretch = %d\n", maximum_no_improvement_stretch);
     printf("# Fitness var. tolerance  = %e\n", fitness_variance_tolerance);
-    printf("# Random seed             = %ld\n", random_seed);
+    printf("# Random seed             = %lld\n", random_seed);
     printf("#\n");
     printf("###################################################\n");
 }
@@ -387,7 +387,6 @@ void rvg_t::initialize(void) {
     total_number_of_writes = 0;
     number_of_subgenerations_per_population_factor = 8;
 
-    if (fix_seed) random_seed = 14627;
     initializeRandomNumberGenerator();
 
     initializeProblem(problem_index, vtr);

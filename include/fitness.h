@@ -68,7 +68,6 @@ public:
 
     // Optimization progress
     double number_of_evaluations = 0.0; // discounted in GBO
-    int full_number_of_evaluations = 0; // not discounted in GBO
     double elitist_objective_value = 1e308;
     double elitist_constraint_value = 1e308;
 
@@ -220,23 +219,23 @@ private:
     double subfunction(double x);
 };
 
-class michalewiczFunction_t : public fitness_t {
-public:
-    michalewiczFunction_t(int number_of_parameters, double vtr);
-
-    double getLowerRangeBound(int dimension);
-
-    double getUpperRangeBound(int dimension);
-
-    void initializeVariableInteractionGraph();
-
-private:
-    void evaluationFunction(solution_t *solution);
-
-    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
-
-    double subfunction(int i, double x);
-};
+//class michalewiczFunction_t : public fitness_t {
+//public:
+//    michalewiczFunction_t(int number_of_parameters, double vtr);
+//
+//    double getLowerRangeBound(int dimension);
+//
+//    double getUpperRangeBound(int dimension);
+//
+//    void initializeVariableInteractionGraph();
+//
+//private:
+//    void evaluationFunction(solution_t *solution);
+//
+//    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
+//
+//    double subfunction(int i, double x);
+//};
 
 class rosenbrockFunction_t : public fitness_t {
 public:
@@ -258,21 +257,21 @@ private:
     double subfunction(double x, double y);
 };
 
-class summationCancellationFunction_t : public fitness_t {
-public:
-    summationCancellationFunction_t(int number_of_parameters, double vtr);
-
-    double getLowerRangeBound(int dimension);
-
-    double getUpperRangeBound(int dimension);
-
-    void initializeVariableInteractionGraph();
-
-private:
-    void evaluationFunction(solution_t *solution);
-
-    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
-};
+//class summationCancellationFunction_t : public fitness_t {
+//public:
+//    summationCancellationFunction_t(int number_of_parameters, double vtr);
+//
+//    double getLowerRangeBound(int dimension);
+//
+//    double getUpperRangeBound(int dimension);
+//
+//    void initializeVariableInteractionGraph();
+//
+//private:
+//    void evaluationFunction(solution_t *solution);
+//
+//    void partialEvaluationFunction(solution_t *parent, partial_solution_t *solution);
+//};
 
 class sorebFunction_t : public fitness_t {
 public:

@@ -16,7 +16,7 @@ plt.style.use('science')
 scienceplots.listdir(".")
 
 ranges = {
-    "lt-vs-mcond": [1e3, 1e7],
+    "lt-vs-mcond": [1e3, 1e6],
 }
 palettes = {
     "lt-vs-mcond": "inferno",
@@ -56,7 +56,7 @@ def main(directory, linkage_model_ids, linkage_model_labels):
                 if len(d) == 0:
                     result = DEFAULT_MAX_NUM_EVALUATIONS
                 else:
-                    result = np.median(d["median_num_evaluations"])
+                    result = np.median(d["corrected_num_evaluations"])
                 matrix[rot_angle - 1, cond_number - 1] = result
 
         matrix_flipped = np.flipud(matrix)
@@ -75,7 +75,7 @@ def main(directory, linkage_model_ids, linkage_model_labels):
                                f"{int(round(matrix[rot_angle - 1, cond_number - 1] / 1e3))}k",
                                ha="right", va="center", color="w", fontsize="x-small")
 
-    grid.cbar_axes[0].colorbar(cb, label="Num. evaluations")
+    grid.cbar_axes[0].colorbar(cb, label="Corrected num. evaluations")
 
     # Global labels
     fig.add_subplot(111, frameon=False)

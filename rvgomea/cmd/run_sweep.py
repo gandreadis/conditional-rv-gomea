@@ -4,9 +4,9 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-    DEFAULT_BLACK_BOX, DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_NUM_BISECTION_REPEATS
+    DEFAULT_POPULATION_SIZE, DEFAULT_MAX_NUM_EVALUATIONS, DEFAULT_NUM_BISECTION_REPEATS
 from rvgomea.run_config import RunConfig
-from rvgomea.run_rvgomea import run_rvgomea
+from rvgomea.run_algorithm import run_algorithm
 
 
 def main():
@@ -21,8 +21,6 @@ def main():
                         default=DEFAULT_LINKAGE_MODEL)
     parser.add_argument('-d', '--dimensionalities', type=str,
                         default=DEFAULT_DIMENSIONALITY)
-    parser.add_argument('-b', '--black-box', action="store_true",
-                        default=DEFAULT_BLACK_BOX)
     parser.add_argument('-r', '--num-repeats', type=int,
                         default=DEFAULT_NUM_BISECTION_REPEATS)
     parser.add_argument('-s', '--population-size', type=int,
@@ -34,7 +32,6 @@ def main():
     linkage_models = [t.strip() for t in args.linkage_models.split(",") if len(t.strip()) > 0]
     problems = [t.strip() for t in args.problems.split(",") if len(t.strip()) > 0]
     dimensionalities = [int(t) for t in args.dimensionalities.split(",") if len(t.strip()) > 0]
-    black_box = args.black_box
     num_repeats = args.num_repeats
     population_size = args.population_size
 
@@ -50,7 +47,6 @@ def main():
                     print(f"[Problem] {problem:<15}  "
                           f"[Linkage] {linkage_model:<15}  "
                           f"[Dim] {dimensionality:4}  "
-                          f"[BBO] {str(black_box):5}  "
                           f"[Repeat] {repeat:4} -> ", end="", flush=True)
                     config = RunConfig(
                         linkage_model=linkage_model,
@@ -58,20 +54,18 @@ def main():
                         random_seed=repeat,
                         problem=problem,
                         dimensionality=dimensionality,
-                        black_box=black_box,
                     )
 
-                    result = run_rvgomea(
+                    result = run_algorithm(
                         config,
                         in_dir=os.path.join(output_dir,
-                                            f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
+                                            f"{problem},{linkage_model},{dimensionality:04},{repeat:04}"),
                     )
 
                     results.append({
                         "problem": problem,
                         "linkage_model": linkage_model,
                         "dimensionality": dimensionality,
-                        "black_box": black_box,
                         "repeat": repeat,
                         "population_size": population_size,
                         "median_num_evaluations": result.statistics["evaluations"].iloc[-1],
@@ -83,7 +77,7 @@ def main():
                         failed_settings.append(results[-1])
 
     def filter_dict(d):
-        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality", "black_box")}
+        return {key: d[key] for key in ("problem", "linkage_model", "dimensionality")}
 
     for f in failed_settings:
         results = [r for r in results

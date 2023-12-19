@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 from rvgomea.defaults import DEFAULT_LINKAGE_MODEL, DEFAULT_PROBLEM, DEFAULT_DIMENSIONALITY, \
-    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_BLACK_BOX, DEFAULT_MAX_NUM_EVALUATIONS
+    DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.experiments.bisection_runner import run_bisection
 from rvgomea.run_config import RunConfig
 
@@ -21,8 +21,6 @@ def main():
                         default=DEFAULT_LINKAGE_MODEL)
     parser.add_argument('-d', '--dimensionalities', type=str,
                         default=DEFAULT_DIMENSIONALITY)
-    parser.add_argument('-b', '--black-box', action="store_true",
-                        default=DEFAULT_BLACK_BOX)
     parser.add_argument('-r', '--num-repeats', type=int,
                         default=DEFAULT_DIMENSIONALITY)
 
@@ -32,7 +30,6 @@ def main():
     linkage_models = [t.strip() for t in args.linkage_models.split(",") if len(t.strip()) > 0]
     problems = [t.strip() for t in args.problems.split(",") if len(t.strip()) > 0]
     dimensionalities = [int(t) for t in args.dimensionalities.split(",") if len(t.strip()) > 0]
-    black_box = args.black_box
     num_repeats = args.num_repeats
 
     # Prepare directory
@@ -47,7 +44,6 @@ def main():
                     print(f"[Problem] {problem:<15}  "
                           f"[Linkage] {linkage_model:<15}  "
                           f"[Dim] {dimensionality:4}  "
-                          f"[BBO] {str(black_box):5}  "
                           f"[Repeat] {repeat:4} -> ", end="", flush=True)
                     base_run_config = RunConfig(
                         linkage_model=linkage_model,
@@ -55,12 +51,11 @@ def main():
                         random_seed=-1,
                         problem=problem,
                         dimensionality=dimensionality,
-                        black_box=black_box,
                     )
 
                     result_population_size, result_median_num_evaluations, result_corrected_num_evaluations = run_bisection(
                         os.path.join(output_dir,
-                                     f"{problem},{linkage_model},{dimensionality:04},{black_box},{repeat:04}"),
+                                     f"{problem},{linkage_model},{dimensionality:04},{repeat:04}"),
                         base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
                     )
 

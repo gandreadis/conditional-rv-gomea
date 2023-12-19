@@ -270,16 +270,32 @@ void fos_t::deriveTree(double **MI_matrix) {
             }
 
         } else if (problem_index == 14) {
-            for (int i = 0; i < number_of_parameters - 2; i += 2) {
-                S_matrix[i][i] = 0.0;
-                S_matrix[i + 1][i + 1] = 0.0;
-                S_matrix[i][i + 1] = 100 * number_of_parameters;
-                S_matrix[i + 1][i] = 100 * number_of_parameters;
-                for (int j = i + 2; j < number_of_parameters; j++) {
-                    S_matrix[i][j] = 0.0;
-                    S_matrix[i + 1][j] = 0.0;
-                    S_matrix[j][i] = S_matrix[i][j];
-                    S_matrix[j][i + 1] = S_matrix[i + 1][j];
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < number_of_parameters; j++) {
+                    S_matrix[j][i] = randu<double>();
+                    S_matrix[i][j] = S_matrix[j][i];
+                }
+            }
+
+            int single_block_size = 5;
+            int dual_block_size = 2 * 5 - 1;
+            for (int i = 0; i + dual_block_size <= number_of_parameters; i += dual_block_size) {
+                for (int j = 0; j < single_block_size; j++) {
+                    for (int k = 0; k < j; k++) {
+                        S_matrix[i + j][i + k] = 1e8 + randu<double>();
+                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
+                    }
+                    S_matrix[i + j][i + j] = 0.0;
+                }
+
+                int offset = 4;
+
+                for (int j = 0; j < single_block_size; j++) {
+                    for (int k = 0; k < j; k++) {
+                        S_matrix[i + j + offset][i + k + offset] = 1e8 + randu<double>();
+                        S_matrix[i + k + offset][i + j + offset] = S_matrix[i + j + offset][i + k + offset];
+                    }
+                    S_matrix[i + j + offset][i + j + offset] = 0.0;
                 }
             }
 
@@ -305,11 +321,19 @@ void fos_t::deriveTree(double **MI_matrix) {
             }
 
         } else if (problem_index == 13 || problem_index > 10000) {
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < number_of_parameters; j++) {
+                    S_matrix[j][i] = randu<double>();
+                    S_matrix[i][j] = S_matrix[j][i];
+                }
+            }
+
             int id = problem_index;
             // Two rotation angles
             id /= 10;
             id /= 10;
-            // Conditioning number
+            // Two conditioning numbers
+            id /= 10;
             id /= 10;
             int overlap_size = id % 10;
             id /= 10;
@@ -322,10 +346,6 @@ void fos_t::deriveTree(double **MI_matrix) {
                 for (int j = 0; j < block_size; j++) {
                     for (int k = 0; k < j; k++) {
                         S_matrix[i + j][i + k] = 1e8 + randu<double>();
-                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
-                    }
-                    for (int k = j; i + k < number_of_parameters; k++) {
-                        S_matrix[i + j][i + k] = randu<double>();
                         S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
                     }
                     S_matrix[i + j][i + j] = 0.0;

@@ -30,7 +30,7 @@ do
   for r in "${ROTATIONS[@]}"
   do
     echo "///// Rotation angle  ${r}"
-    python rvgomea/cmd/run_set_of_bisections.py -o data/reb-chain-bisection-${id} -p reb-chain-condition-${c}-rotation-${r} -b -l ${models} -d 20 -r 5
+    python rvgomea/cmd/run_set_of_bisections.py -o data/reb-chain-bisection-${id} -p reb-chain-condition-${c}-rotation-${r} -l ${models} -d 20 -r 5
   done
 done
 

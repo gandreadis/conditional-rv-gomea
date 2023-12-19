@@ -72,7 +72,7 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
         handles, labels = None, None
 
         if len(problem_ids) == 1:
-            fig, ax = plt.subplots(1, 1, figsize=(3, 2))
+            fig, ax = plt.subplots(1, 1, figsize=(3, 3))
             handles, labels = make_one_plot(ax, base_directory, linkage_models, metric, None)
         else:
             fig, axs = plt.subplots(3, 4, figsize=(10, 7), sharex=True, sharey=True)

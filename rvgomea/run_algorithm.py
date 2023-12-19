@@ -30,15 +30,14 @@ for max_clique_label, max_clique_size in (("uni", "1"), ("mp", "100")):
 
 PROBLEM_CODES = {
     "sphere": 0,
-    "michalewicz": 1,  # note: not compatible with VTR
     "rosenbrock": 7,
-    "summation-cancellation": 8,
     "reb2-chain-alternating": 216191,
     "reb5-no-overlap": 506699,
     "reb5-small-overlap": 516699,
     "reb5-small-overlap-alternating": 516191,
     "reb5-large-overlap": 546699,
     "reb5-disjoint-pairs": 14,
+    "osoreb": 16,
     "reb-grid": 20,  # only square
 }
 
@@ -58,21 +57,16 @@ PROBLEM_CODES["reb2-chain-strong"] = PROBLEM_CODES["reb-chain-condition-6-rotati
 
 INIT_RANGES = {
     "sphere": [-115, -100],
-    "michalewicz": [0, math.pi],  # note: not compatible with VTR
     "rosenbrock": [-115, -100],
-    "summation-cancellation": [-3, 3],
     "reb-grid": [-115, -100],
+    "osoreb": [-115, -100],
     "reb2": [-115, -100],
     "reb5": [-115, -100],
 }
 
-CUSTOM_VTR = {
-    "summation-cancellation": 1e-6,
-}
 
-
-def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statistics=True,
-                save_fitness_dependencies=False) -> RunResult:
+def run_algorithm(config: RunConfig, in_dir=None, show_output=False, save_statistics=True,
+                  save_fitness_dependencies=False) -> RunResult:
     command = ""
 
     if in_dir is not None:
@@ -98,6 +92,9 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
 
     # Set random seed
     if config.random_seed >= 0:
+        if config.random_seed == 0:
+            config.random_seed = 1928374
+
         command += f"-S {config.random_seed} "
 
     # Set black-box
@@ -112,9 +109,6 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
         raise Exception(f"Unknown problem: {config.problem}")
     problem_code = PROBLEM_CODES[config.problem.lower()]
     command += f"{problem_code} "
-
-    if config.problem.lower() in CUSTOM_VTR.keys():
-        config.vtr = CUSTOM_VTR[config.problem.lower()]
 
     if "reb2" in config.problem.lower() or "reb-chain" in config.problem.lower():
         config.lower_init_bound, config.upper_init_bound = INIT_RANGES["reb2"]
@@ -144,9 +138,9 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
 
     output = os.popen(command).read()
 
-    lines = output.split("\n")
-    lines = [l for l in lines if len(l.strip()) > 0]
-    cholesky_fails = int(lines[-1].split(" ")[-1])
+    # lines = output.split("\n")
+    # lines = [l for l in lines if len(l.strip()) > 0]
+    # cholesky_fails = int(lines[-1].split(" ")[-1])
 
     if show_output:
         print(output)
@@ -178,4 +172,4 @@ def run_rvgomea(config: RunConfig, in_dir=None, show_output=False, save_statisti
     if show_output:
         print(f"Succeeded: {succeeded}")
 
-    return RunResult(config, statistics, cholesky_fails, succeeded)
+    return RunResult(config, statistics, -1, succeeded)

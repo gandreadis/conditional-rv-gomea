@@ -2,7 +2,7 @@ import argparse
 
 from rvgomea.defaults import *
 from rvgomea.run_config import RunConfig
-from rvgomea.run_rvgomea import run_rvgomea, LINKAGE_MODEL_CODES, PROBLEM_CODES
+from rvgomea.run_algorithm import run_algorithm, LINKAGE_MODEL_CODES, PROBLEM_CODES
 
 
 def main():
@@ -13,7 +13,6 @@ def main():
     parser.add_argument('-i', '--in-directory', type=str)
     parser.add_argument('-o', '--show-output', action="store_true")
     parser.add_argument('-z', '--save-fitness-dependencies', action="store_true")
-    # parser.add_argument('-u', '--debug', action="store_true")
 
     parser.add_argument('-l', '--linkage-model', type=str.lower,
                         default=DEFAULT_LINKAGE_MODEL, choices=LINKAGE_MODEL_CODES.keys())
@@ -80,8 +79,8 @@ def main():
         print(config)
         print()
 
-    succeeded = run_rvgomea(config, in_dir=args.in_directory, show_output=args.show_output,
-                save_fitness_dependencies=args.save_fitness_dependencies).succeeded
+    succeeded = run_algorithm(config, in_dir=args.in_directory, show_output=args.show_output,
+                              save_fitness_dependencies=args.save_fitness_dependencies).succeeded
 
     exit(0 if succeeded else 1)
 

@@ -7,11 +7,11 @@ import pandas as pd
 
 from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.run_config import RunConfig
-from rvgomea.run_rvgomea import run_rvgomea
+from rvgomea.run_algorithm import run_algorithm
 
 
 def bisection_worker(run_config: RunConfig):
-    result = run_rvgomea(run_config, run_config.base_dir, save_statistics=False)
+    result = run_algorithm(run_config, run_config.base_dir, save_statistics=False)
     os.system(f"rm -rf {run_config.base_dir}")
     return result
 

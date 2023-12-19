@@ -55,7 +55,7 @@ short perform_eda_gom, perform_factorized_gom;
 
 short write_fitness_dependencies = 0;
 
-short fitness_based_ordering = 1;
+short fitness_based_ordering = 0;
 char similarity_measure = 'M';
 
 bool use_set_cover = false;
@@ -981,9 +981,6 @@ void printTimer(void) {
  */
 void initializeRandomNumberGenerator(void) {
     struct timeval tv;
-
-    // Catch case in which random seed is set to 0
-    random_seed++;
 
     while (random_seed == 0) {
         gettimeofday(&tv, NULL);

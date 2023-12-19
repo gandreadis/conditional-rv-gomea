@@ -537,7 +537,6 @@ void population_t::insertImprovement(solution_t *solution, partial_solution_t *p
         int ind = part->touched_indices[j];
         solution->variables[ind] = part->touched_variables[j];
     }
-    //solution->buffer += part->buffer;
     solution->objective_value = part->objective_value;
     solution->constraint_value = part->constraint_value;
 }
@@ -607,7 +606,6 @@ void population_t::applyForcedImprovements(int individual_index, int donor_index
             if (improvement) {
                 for (int j = 0; j < num_touched_indices; j++)
                     individuals[individual_index]->variables[touched_indices[j]] = FI_solution->touched_variables[j];
-                //individuals[individual_index]->buffer += FI_solution->buffer;
                 individuals[individual_index]->objective_value = FI_solution->objective_value;
                 individuals[individual_index]->constraint_value = FI_solution->constraint_value;
             }
@@ -695,7 +693,7 @@ void population_t::initializeFOS() {
     random_linkage_tree = 0;
     prune_linkage_tree = 0;
     FOS_element_ub = number_of_parameters;
-    fitness_based_ordering = 1;
+    fitness_based_ordering = 0;
 
     assert(FOS_element_size != 0);
 
@@ -818,8 +816,8 @@ void population_t::initializeFOS() {
         if (is_fitness_based) {
             similarity_measure = 'F';
 
-            if (is_fitness_based == 2) {
-                fitness_based_ordering = 0;
+            if (is_fitness_based == 1) {
+                fitness_based_ordering = 1;
             }
 
             if (linkage_model == NULL) {
@@ -827,9 +825,6 @@ void population_t::initializeFOS() {
                 updateFitnessDependencyMatrix();
             }
             fitness->variable_interaction_graph = buildVariableInteractionGraphBasedOnFitnessDependencies();
-
-            // Only in BBO mode
-            assert(fitness->black_box_optimization);
         }
 
         include_full_fos_element = (id % 10) == 1;
@@ -1078,12 +1073,17 @@ void population_t::updateFitnessDependencyMatrix() {
         fitness->evaluate(first_individual_for_fitness_comparison);
 
         for (int k = 0; k < number_of_parameters; k++) {
-            individual_to_compare->variables[k] = second_individual_for_fitness_comparison->variables[k];
+            vec_t<double> touched_variables;
+            touched_variables.push_back(second_individual_for_fitness_comparison->variables[k]);
+            vec_t<int> touched_indices;
+            touched_indices.push_back(k);
 
-            fitness->evaluate(individual_to_compare);
+            partial_solution_t *partial_solution = new partial_solution_t(touched_variables, touched_indices);
 
-            fitnesses_of_first_individual_variants[k] = individual_to_compare->objective_value;
-            individual_to_compare->variables[k] = first_individual_for_fitness_comparison->variables[k];
+            fitness->evaluatePartialSolution(first_individual_for_fitness_comparison, partial_solution);
+            fitnesses_of_first_individual_variants[k] = partial_solution->objective_value;
+
+            delete partial_solution;
         }
 
         // Shuffle the order of fitness dependency pairs
@@ -1178,14 +1178,19 @@ int population_t::computeFitnessDependency(int k, solution_t *individual_to_comp
     double change_i = fitnesses_of_first_individual_variants[i];
     double change_j = fitnesses_of_first_individual_variants[j];
 
-    individual_to_compare->variables[i] = second_individual_for_fitness_comparison->variables[i];
-    individual_to_compare->variables[j] = second_individual_for_fitness_comparison->variables[j];
+    vec_t<double> touched_variables;
+    touched_variables.push_back(second_individual_for_fitness_comparison->variables[i]);
+    touched_variables.push_back(second_individual_for_fitness_comparison->variables[j]);
+    vec_t<int> touched_indices;
+    touched_indices.push_back(i);
+    touched_indices.push_back(j);
 
-    fitness->evaluate(individual_to_compare);
-    double change_i_j = individual_to_compare->objective_value;
+    partial_solution_t *partial_solution = new partial_solution_t(touched_variables, touched_indices);
 
-    individual_to_compare->variables[i] = first_individual_for_fitness_comparison->variables[i];
-    individual_to_compare->variables[j] = first_individual_for_fitness_comparison->variables[j];
+    fitness->evaluatePartialSolution(first_individual_for_fitness_comparison, partial_solution);
+    double change_i_j = partial_solution->objective_value;
+
+    delete partial_solution;
 
     double original_objective = first_individual_for_fitness_comparison->objective_value;
     change_i = change_i / original_objective;
@@ -1199,8 +1204,6 @@ int population_t::computeFitnessDependency(int k, solution_t *individual_to_comp
 
     double dependency = 0.0;
     double inverted_difference;
-
-//    bool is_positive_dependency = delta_ij > delta_i;
 
     if (delta_ij == 0.0) {
         double temp = delta_i;
@@ -1225,10 +1228,6 @@ int population_t::computeFitnessDependency(int k, solution_t *individual_to_comp
     } else {
         dependency = 0.0;
     }
-
-//    if (!is_positive_dependency) {
-//        dependency = -dependency;
-//    }
 
     fitness_dependency_matrix[i][j] = dependency;
     fitness_dependency_matrix[j][i] = dependency;
