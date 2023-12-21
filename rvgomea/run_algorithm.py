@@ -1,5 +1,6 @@
-import math
 import os
+
+import pandas as pd
 
 from rvgomea.convert_statistics import convert_statistics
 from rvgomea.run_config import RunConfig
@@ -8,6 +9,7 @@ from rvgomea.run_result import RunResult
 LINKAGE_MODEL_CODES = {
     "univariate": 1,
     "full": -1,
+    "vkd-cma": -100,
     "lt-static-gbo": -4,
     "lt-fb-online-unpruned": -5,
     "lt-fb-online-pruned": -6,
@@ -72,8 +74,44 @@ def run_algorithm(config: RunConfig, in_dir=None, show_output=False, save_statis
     if in_dir is not None:
         command += f"mkdir -p {in_dir} && cd {in_dir} && "
 
+    processed_base_dir = os.getcwd()
+    if in_dir is not None:
+        processed_base_dir = in_dir
+
     # Clear previous output files
     command += "rm -f *.dat && rm -f *.csv && rm -f *.json && "
+
+    # Intercept VkD-CMA runs
+    if config.linkage_model == "vkd-cma":
+        command += f"cd {os.getcwd()} && "
+        command += f"python rvgomea/experiments/vkdcma.py "
+
+        command += f"-i {processed_base_dir} "
+        command += f"-p {config.problem} "
+        command += f"-d {config.dimensionality} "
+        command += f"-s {config.population_size} "
+        if show_output:
+            command += f"-o "
+        command += f"-r {config.random_seed} "
+
+        output = os.popen(command).read()
+
+        if show_output:
+            print(output)
+
+        statistics = pd.read_csv(os.path.join(processed_base_dir, "statistics.csv"))
+
+        succeeded = (statistics["best_objective"].iloc[-1] <= config.vtr and
+                     statistics["evaluations"].iloc[-1] < config.max_num_evaluations and
+                     statistics["seconds"].iloc[-1] < config.max_num_seconds)
+
+        if not save_statistics:
+            os.system(f"rm {os.path.join(processed_base_dir, 'statistics.csv')}")
+
+        if show_output:
+            print(f"Succeeded: {succeeded}")
+
+        return RunResult(config, statistics, -1, succeeded)
 
     exe_path = os.path.join(os.path.dirname(__file__), "..", "RV-GOMEA")
     command += f"{exe_path} "
@@ -144,10 +182,6 @@ def run_algorithm(config: RunConfig, in_dir=None, show_output=False, save_statis
 
     if show_output:
         print(output)
-
-    processed_base_dir = os.getcwd()
-    if in_dir is not None:
-        processed_base_dir = in_dir
 
     config.base_dir = processed_base_dir
 
