@@ -16,6 +16,6 @@ export PYTHONPATH="$PYTHONPATH:."
 problem=$1
 dimensionalities=$2
 
-python rvgomea/cmd/run_set_of_bisections.py -o data/scalability-bisection-${problem} -p ${problem} -l vkd-cma -d ${dimensionalities} -r 1
+python rvgomea/cmd/run_set_of_bisections.py -o data/scalability-bisection-${problem} -p ${problem} -l vkd-cma -d ${dimensionalities} -r 5
 
 echo "Done."

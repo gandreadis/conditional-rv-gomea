@@ -11,7 +11,7 @@ plt.style.use('science')
 # Prevent scienceplots from being purged as import
 scienceplots.listdir(".")
 
-cmap = matplotlib.colormaps['tab10']
+cmap = matplotlib.colormaps['tab20']
 
 LABELS = {
     "univariate": "Univariate",
@@ -19,11 +19,11 @@ LABELS = {
     "mp-hg-gbo-without_clique_seeding-conditional": "Static-MCond-HG",
     "mp-hg-gbo-with_clique_seeding-conditional": "Static-MCond-HG-CS",
     "lt-fb-online-pruned": "FB-LT",
-    "uni-hg-fb_no_order-without_clique_seeding-conditional": "FB-UCond-HG",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "FB-MCond-HG",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "FB-MCond-HG-CS",
     "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": "Static-EdgeCover",
     "mp-hg-gbo-without_clique_seeding-conditional-set_cover": "Static-EdgeCover-MCond-HG",
+    "vkd-cma": "VkD-CMA",
 }
 
 MARKERS = {
@@ -31,12 +31,12 @@ MARKERS = {
     "full": "*",
     "mp-hg-gbo-without_clique_seeding-conditional": ">",
     "mp-hg-gbo-with_clique_seeding-conditional": "<",
-    "lt-fb-online-pruned": "o",
-    "uni-hg-fb_no_order-without_clique_seeding-conditional": "s",
+    "lt-fb-online-pruned": "s",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "x",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "X",
     "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": "2",
     "mp-hg-gbo-without_clique_seeding-conditional-set_cover": "d",
+    "vkd-cma": "o",
 }
 
 COLOR_ORDER = {
@@ -44,12 +44,12 @@ COLOR_ORDER = {
     "full": 6,
     "mp-hg-gbo-without_clique_seeding-conditional": 5,
     "mp-hg-gbo-with_clique_seeding-conditional": 4,
-    "lt-fb-online-pruned": 3,
-    "uni-hg-fb_no_order-without_clique_seeding-conditional": 2,
+    "lt-fb-online-pruned": 2,
     "mp-hg-fb_no_order-without_clique_seeding-conditional": 1,
     "mp-hg-fb_no_order-with_clique_seeding-conditional": 0,
     "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": 8,
     "mp-hg-gbo-without_clique_seeding-conditional-set_cover": 9,
+    "vkd-cma": 3,
 }
 
 COLORS = {}

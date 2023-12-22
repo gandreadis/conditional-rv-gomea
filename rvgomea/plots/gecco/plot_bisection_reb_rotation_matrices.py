@@ -54,7 +54,7 @@ def main(directory, linkage_model_ids, linkage_model_labels):
             for cond_number in range(1, 7):
                 d = df[df["problem"] == f"reb-chain-condition-{cond_number}-rotation-{actual_angle}"]
                 if len(d) == 0:
-                    result = DEFAULT_MAX_NUM_EVALUATIONS
+                    result = -1 #DEFAULT_MAX_NUM_EVALUATIONS
                 else:
                     result = np.median(d["corrected_num_evaluations"])
                 matrix[rot_angle - 1, cond_number - 1] = result

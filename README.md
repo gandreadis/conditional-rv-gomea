@@ -37,4 +37,7 @@ sbatch deploy/lt-vs-mcond.slurm
 
 And:
 sbatch deploy/set-cover-scalability.slurm
+
+VkD-CMA:
+bash deploy/scalability-vkd-cma.slurm reb-grid 16,36,64,81 && bash deploy/scalability-vkd-cma.slurm reb2-chain-weak 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm reb2-chain-strong 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm reb2-chain-alternating 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm reb5-no-overlap 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm reb5-small-overlap 9,21,41,81 && bash deploy/scalability-vkd-cma.slurm reb5-small-overlap-alternating 9,21,41,81 && bash deploy/scalability-vkd-cma.slurm reb5-large-overlap 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm reb5-disjoint-pairs 9,18,36,72 && bash deploy/scalability-vkd-cma.slurm sphere 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm rosenbrock 10,20,40,80 && bash deploy/scalability-vkd-cma.slurm osoreb  10,20,40,80
 ```

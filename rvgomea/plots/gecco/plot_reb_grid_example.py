@@ -45,11 +45,13 @@ grid = ImageGrid(fig, 111,
                  )
 
 ax = grid[0]
-cmap = "BuPu"
+cmap = matplotlib.colormaps["coolwarm"]
+cmap.set_under('white')
 
 dsm = get_matrix(num_generations)
-cb = ax.imshow(dsm, cmap=cmap, vmin=0, vmax=1)
-grid.cbar_axes[0].colorbar(cb, label="Dependency strength")
+cb = ax.imshow(dsm, cmap=cmap, vmin=1e-6, vmax=1)
+cbar = grid.cbar_axes[0].colorbar(cb, label="Dependency strength", extend='min', ticks=[1e-6, 0.2, 0.4, 0.6, 0.8, 1.0])
+cbar.ax.set_yticklabels(['$<10^{-6}$', '0.2', '0.4', '0.6', '0.8', '1.0'])
 
 ax.tick_params(axis=u'both', which=u'both', length=0)
 ax.set_xlabel("Variable")

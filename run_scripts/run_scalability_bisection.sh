@@ -15,7 +15,7 @@ export PYTHONPATH="$PYTHONPATH:."
 
 problem=$1
 dimensionalities=$2
-models="mp-hg-gbo-without_clique_seeding-conditional,mp-hg-gbo-with_clique_seeding-conditional,uni-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-with_clique_seeding-conditional,univariate,lt-fb-online-pruned,full"
+models="mp-hg-gbo-without_clique_seeding-conditional,mp-hg-gbo-with_clique_seeding-conditional,mp-hg-fb_no_order-without_clique_seeding-conditional,mp-hg-fb_no_order-with_clique_seeding-conditional,univariate,lt-fb-online-pruned,full"
 
 python rvgomea/cmd/run_set_of_bisections.py -o data/scalability-bisection-${problem} -p ${problem} -l ${models} -d ${dimensionalities} -r 5
 

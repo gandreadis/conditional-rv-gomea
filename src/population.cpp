@@ -1149,7 +1149,8 @@ void population_t::updateFitnessDependencyMatrix() {
     bool all_dependency_pairs_checked = (number_of_checked_fitness_dependency_pairs >=
                                          number_of_fitness_dependency_pairs);
 
-    if (low_dependency_check_performance || all_dependency_pairs_checked) {
+//    if (low_dependency_check_performance || all_dependency_pairs_checked) {
+    if (all_dependency_pairs_checked) {
         current_fitness_dependency_waiting_position = number_of_fitness_dependency_waiting_cycles;
         number_of_checked_fitness_dependency_pairs = 0;
         number_of_fitness_dependency_waiting_cycles *= 2;
