@@ -7,7 +7,7 @@ sbatch <<EOT
 #SBATCH --cpus-per-task=15
 #SBATCH --mem=64GB
 #SBATCH --time=21-00:00:00
-#SBATCH -o "logs/lt-vs-mcond-%j.out"
+#SBATCH -o "logs/scalability-${1}-%j.out"
 
 module purge
 module load library/blas/0.3.13/gcc-8.3.1
