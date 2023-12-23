@@ -1,6 +1,4 @@
 #!/bin/bash
-sbatch <<EOT
-#!/bin/bash
 #
 #SBATCH --partition=all
 #SBATCH --ntasks=1
@@ -20,8 +18,4 @@ pip install --user numpy pandas
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/exports/rt-ai-research-hpc/gandreadis/arma/lib64
 
 make
-run_scripts/run_scalability_bisection.sh "${1}" "${2}"
-
-EOT
-
-# bash deploy/scalability.slurm 1 2
+run_scripts/run_set_cover_scalability_bisection.sh
