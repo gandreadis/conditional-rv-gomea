@@ -13,6 +13,8 @@ module load Python/3.11.3-GCCcore-12.3.0
 module load Armadillo/12.6.2-foss-2023a
 module load FlexiBLAS/3.3.1-GCC-12.3.0
 
+export python3.8="python"
+
 run_scripts/run_parallel_scalability_bisection.sh ${SLURM_ARRAY_TASK_ID}
 
 # Important: pass --array=1-1920%20

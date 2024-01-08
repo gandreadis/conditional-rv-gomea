@@ -100,6 +100,33 @@ sbatch deploy/set-cover-scalability.slurm
 
 
 
+```
+o = nothing
+- = started
+x = finished
+
+-   sbatch --array=1-100%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=101-200%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=201-300%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=301-400%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=401-500%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=501-600%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=601-700%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=701-800%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=801-900%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=901-1000%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1001-1100%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1101-1200%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1201-1300%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1301-1400%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1401-1500%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1501-1600%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1601-1700%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1701-1800%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1801-1900%40 deploy_shark/parallel_scalability.slurm
+o   sbatch --array=1901-1920%40 deploy_shark/parallel_scalability.slurm
+```
+
 
 ```
 Jobs in array:
