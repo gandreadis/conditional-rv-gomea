@@ -17,7 +17,7 @@ module load system/python/3.8.1
 
 pip install --user numpy pandas
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/exports/rt-ai-research-hpc/gandreadis/arma/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gandreadis/arma/lib64
 
 make
 run_scripts/run_scalability_bisection.sh "${1}" "${2}"
