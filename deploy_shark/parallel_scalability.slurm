@@ -1,12 +1,11 @@
 #!/bin/bash
 #
 #SBATCH --partition=all,RTAIgpu
-#SBATCH --array=1-1920%20
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=48GB
 #SBATCH --time=21-00:00:00
-#SBATCH -o "logs/scalability-array-%j.out"
+#SBATCH -o "logs/scalability-array-%A_%a.out"
 
 module purge
 module load library/blas/0.3.13/gcc-8.3.1
@@ -17,3 +16,5 @@ module load system/python/3.8.1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gandreadis/arma/lib64
 
 run_scripts/run_parallel_scalability_bisection.sh ${SLURM_ARRAY_TASK_ID}
+
+# Important: pass --array=1-1920%20
