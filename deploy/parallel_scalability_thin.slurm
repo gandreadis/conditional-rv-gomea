@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-#SBATCH --partition=thin
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
 #SBATCH --time=120:00:00
