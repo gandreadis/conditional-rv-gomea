@@ -18,6 +18,6 @@ module load system/python/3.8.1
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gandreadis/arma/lib64
 
-run_scripts/run_parallel_scalability_bisection_with_offset.sh ${TASK_INDEX} "${1}"
+run_scripts/run_parallel_scalability_bisection_with_offset.sh ${SLURM_ARRAY_TASK_ID} "${1}"
 
 EOT
