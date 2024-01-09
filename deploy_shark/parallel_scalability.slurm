@@ -3,7 +3,7 @@ sbatch <<EOT
 #!/bin/bash
 #
 #SBATCH --partition=all,RTAIgpu
-#SBATCH --array=1-100%40
+#SBATCH --array=${2}%40
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=48GB
