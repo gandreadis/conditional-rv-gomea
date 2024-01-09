@@ -103,16 +103,15 @@ sbatch deploy/set-cover-scalability.slurm
 ```
 o = nothing
 - = started
-| = almost finished
 x = finished
 
-|   sbatch --array=1-100%40 deploy_shark/parallel_scalability.slurm
+-   sbatch --array=1-100%40 deploy_shark/parallel_scalability.slurm
 x   sbatch --array=101-120%40 deploy_shark/parallel_scalability.slurm
 
 -   bash deploy_shark/parallel_scalability.slurm 120 1-80
-o   bash deploy_shark/parallel_scalability.slurm 200 1-100
-o   bash deploy_shark/parallel_scalability.slurm 300 1-100
-o   bash deploy_shark/parallel_scalability.slurm 400 1-100
+-   bash deploy_shark/parallel_scalability.slurm 200 1-100
+-   bash deploy_shark/parallel_scalability.slurm 300 1-100
+-   bash deploy_shark/parallel_scalability.slurm 400 1-100
 
 # Other Snellius
 o   sbatch --array=501-1000%40 deploy/parallel_scalability_thin.slurm

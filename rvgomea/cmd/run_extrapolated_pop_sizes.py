@@ -69,7 +69,7 @@ def main():
                     log_dim_diff = np.log10(next_dim) - np.log10(dimensions[-1])
                     log_projection = np.log10(pop_size_last) + log_slope * log_dim_diff
                     next_pop_size = np.power(10, log_projection)
-                    next_pop_size = min(next_pop_size, 10000)
+                    next_pop_size = min(int(round(next_pop_size)), 10000)
                     next_pop_sizes.append(next_pop_size)
 
             for d, p in zip(DIMENSIONALITY_EXTENSIONS[problem], next_pop_sizes):
@@ -109,7 +109,7 @@ def main():
                     corrected_num_evaluations = (succeeded_run_evals_sum / float(
                         len(succeeded_run_evals))) / success_rate
 
-                print(f"Dimensionality: {d:4}   Pop. size: {p:4}   Corr. num. evals: {corrected_num_evaluations:12.0f}")
+                print(f"Dimensionality: {d:3} | Pop. size: {p:4} | Corr. num. evals: {corrected_num_evaluations:12.0f}")
                 rows.append({
                     "problem": problem,
                     "linkage_model": linkage_model,
