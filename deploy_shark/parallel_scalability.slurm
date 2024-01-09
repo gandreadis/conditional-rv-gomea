@@ -18,8 +18,10 @@ module load system/python/3.8.1
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gandreadis/arma/lib64
 
-OFFSET=$1
+OFFSET=${1}
 TASK_INDEX=$((SLURM_ARRAY_TASK_ID+OFFSET))
+echo ${OFFSET}
+echo ${TASK_INDEX}
 
 run_scripts/run_parallel_scalability_bisection.sh ${TASK_INDEX}
 
