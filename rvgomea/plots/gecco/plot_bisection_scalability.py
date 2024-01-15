@@ -6,6 +6,8 @@ import pandas as pd
 import scienceplots
 from matplotlib import pyplot as plt
 
+from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
+
 plt.style.use('science')
 
 # Prevent scienceplots from being purged as import
@@ -57,8 +59,11 @@ for lm, color_index in COLOR_ORDER.items():
     COLORS[lm] = cmap(color_index / (len(COLOR_ORDER) - 1))
 
 
-def main(base_directory, problem_ids, problem_labels, linkage_models):
+def main(base_directory, extrapolated_csv, problem_ids, problem_labels, linkage_models):
     assert len(problem_ids) == len(problem_labels)
+
+    extrapolated_df = pd.read_csv(extrapolated_csv)
+    extrapolated_df = extrapolated_df[extrapolated_df["corrected_num_evaluations"]]
 
     if len(problem_ids) == 1:
         plot_directory = base_directory
@@ -73,14 +78,14 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
 
         if len(problem_ids) == 1:
             fig, ax = plt.subplots(1, 1, figsize=(3, 3))
-            handles, labels = make_one_plot(ax, base_directory, linkage_models, metric, None)
+            handles, labels = make_one_plot(ax, base_directory, extrapolated_df, linkage_models, metric, None)
         else:
             fig, axs = plt.subplots(3, 4, figsize=(10, 7), sharex=True, sharey=True)
 
             for i, (problem_id, problem_label) in enumerate(zip(problem_ids, problem_labels)):
                 ax = axs[i // 4, i % 4]
 
-                handles, labels = make_one_plot(ax, base_directory + problem_id, linkage_models, metric, problem_label)
+                handles, labels = make_one_plot(ax, base_directory + problem_id, extrapolated_df, linkage_models, metric, problem_label)
 
         fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=len(linkage_models) // 2)
 
@@ -89,7 +94,6 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
         plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
         plt.xlabel('Dimensionality')
         plt.ylabel(metric_label)
-
 
         if len(problem_ids) == 1:
             prefix = "set_cover_scalability"
@@ -103,12 +107,38 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
         plt.close(fig)
 
 
-def make_one_plot(ax, directory, linkage_models, metric, problem_label):
+def make_one_plot(ax, directory, extrapolated_df, linkage_models, metric, problem_label):
     df = pd.read_csv(os.path.join(directory, "aggregated_results.csv"))
 
     for lm in linkage_models:
         d = df[df["linkage_model"] == lm].groupby(["dimensionality"]).median(numeric_only=True).reset_index()
         ax.plot(d["dimensionality"], d[metric], linestyle='-', color=COLORS[lm], marker=MARKERS[lm],
+                label=LABELS[lm])
+
+        # One or more dimensions were too difficult
+        if len(d["dimensionality"]) < 4:
+            continue
+
+        last_dim = d["dimensionality"].tolist()[-1]
+        last_value = d[metric].tolist()[-1]
+
+        extra_dimensions = [last_dim]
+        extra_values = [last_value]
+
+        e = extrapolated_df[extrapolated_df["problem"] == d["problem"].tolist()[0]]
+        e = e[e["linkage_model"] == lm].sort_values(by=["dimensionality"])
+
+        for extra_dim, extra_value, corr_eval in zip(e["dimensionality"].tolist(),
+                                                     e[metric].tolist(),
+                                                     e["corrected_num_evaluations"].tolist()):
+            if corr_eval >= DEFAULT_MAX_NUM_EVALUATIONS:
+                break
+
+            extra_dimensions.append(extra_dim)
+            extra_values.append(extra_value)
+
+        line_style = "--" if metric == "population_size" else "-"
+        ax.plot(extra_dimensions, extra_values, linestyle=line_style, color=COLORS[lm], marker=MARKERS[lm],
                 label=LABELS[lm])
 
     handles, labels = ax.get_legend_handles_labels()
@@ -121,4 +151,4 @@ def make_one_plot(ax, directory, linkage_models, metric, problem_label):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2].split(","), sys.argv[3].split(","), sys.argv[4].split(","))
+    main(sys.argv[1], sys.argv[2], sys.argv[3].split(","), sys.argv[4].split(","), sys.argv[5].split(","))

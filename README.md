@@ -98,6 +98,9 @@ sbatch deploy/set-cover-scalability.slurm
 
 ```
 
+Done:
+1-300
+
 
 
 ```
@@ -105,41 +108,43 @@ o = nothing
 - = started
 x = finished
 
--   sbatch --array=1-100%40 deploy_shark/parallel_scalability.slurm
+# On Shark
+--> 1-500
+x   sbatch --array=1-100%40 deploy_shark/parallel_scalability.slurm
 x   sbatch --array=101-120%40 deploy_shark/parallel_scalability.slurm
-
--   bash deploy_shark/parallel_scalability.slurm 120 1-80
--   bash deploy_shark/parallel_scalability.slurm 200 1-100
+x   bash deploy_shark/parallel_scalability.slurm 120 1-80
+x   bash deploy_shark/parallel_scalability.slurm 200 1-100
 -   bash deploy_shark/parallel_scalability.slurm 300 1-100
--   bash deploy_shark/parallel_scalability.slurm 400 1-100
+17301264
+x   bash deploy_shark/parallel_scalability.slurm 400 1-100
+17301265
+
+-   bash deploy_shark/parallel_scalability.slurm 920 1-80
+17326340
+
+--> 1241-1600:
+-   bash deploy_shark/parallel_scalability.slurm 1240 1-60
+17315645
+-   bash deploy_shark/parallel_scalability.slurm 1300 1-100
+17315646
+-   bash deploy_shark/parallel_scalability.slurm 1400 1-100
+17315661
+-   bash deploy_shark/parallel_scalability.slurm 1500 1-100
+17315663
 
 # Other Snellius
-o   sbatch --array=501-1000%40 deploy/parallel_scalability_thin.slurm
+--> 501-920
+-   sbatch --array=501-920%40 deploy/parallel_scalability_thin.slurm
+4808651
 
-o   sbatch --array=241-300%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=301-400%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=401-500%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=501-600%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=601-700%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=701-800%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=801-900%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=901-1000%40 deploy_shark/parallel_scalability.slurm
+--> 1601-1920
+-   sbatch --array=1601-1920%50 deploy/parallel_scalability_thin.slurm
+4828843
 
-Op Snellius:
--   sbatch --array=1001-1920%20 deploy/parallel_scalability.slurm
+# My Snellius:
+--> 1001-1240
+-   sbatch --array=1001-1240%20 deploy/parallel_scalability.slurm
 
-
-
-o   sbatch --array=1001-1100%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1101-1200%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1201-1300%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1301-1400%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1401-1500%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1501-1600%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1601-1700%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1701-1800%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1801-1900%40 deploy_shark/parallel_scalability.slurm
-o   sbatch --array=1901-1920%40 deploy_shark/parallel_scalability.slurm
 ```
 
 

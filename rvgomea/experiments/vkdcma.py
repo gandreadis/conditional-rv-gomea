@@ -226,11 +226,13 @@ class VkdCma(object):
             idxeig = np.argsort(DD)[::-1]
             gamma = 0 if rankU <= k else DD[idxeig[k:]].sum() / (self.N - k)
             beta = alpha * alpha + gamma
+            beta = max(beta, 1e-12)
 
             self.k_active = ka = min(np.sum(DD >= 0), k)
             self.S[:ka] = (DD[idxeig[:ka]] - gamma) / beta
-            self.V[:ka] = (np.dot(self.U[:, :rankU], R[:, idxeig[:ka]]) /
-                           np.sqrt(DD[idxeig[:ka]])).T
+            interm = np.sqrt(DD[idxeig[:ka]])
+            interm = np.maximum(interm, 1e-12)
+            self.V[:ka] = (np.dot(self.U[:, :rankU], R[:, idxeig[:ka]]) / interm).T
         else:
             # O(N^3 + N^2(k+mu+1))
             # If this is the case, the standard CMA is preferred
@@ -238,6 +240,7 @@ class VkdCma(object):
             idxeig = np.argsort(DD)[::-1]
             gamma = 0 if rankU <= k else DD[idxeig[k:]].sum() / (self.N - k)
             beta = alpha * alpha + gamma
+            beta = max(beta, 1e-12)
 
             self.k_active = ka = min(np.sum(DD >= 0), k)
             self.S[:ka] = (DD[idxeig[:ka]] - gamma) / beta

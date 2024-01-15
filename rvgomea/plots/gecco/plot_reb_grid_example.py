@@ -56,8 +56,8 @@ cbar.ax.set_yticklabels(['$<10^{-6}$', '0.2', '0.4', '0.6', '0.8', '1.0'])
 ax.tick_params(axis=u'both', which=u'both', length=0)
 ax.set_xlabel("Variable")
 ax.set_ylabel("Variable")
-ax.set_xticks(list(range(0, 16, 2)))
-ax.set_yticks(list(range(0, 16, 2)))
+ax.set_xticks(list(range(0, 9, 3)))
+ax.set_yticks(list(range(0, 9, 3)))
 # ax.set_xlim(-0.5, 19.5)
 # ax.set_ylim(19.5, -0.5)
 
@@ -70,52 +70,52 @@ plt.close(fig)
 
 # VIG drawing
 
-fig, ax = plt.subplots(1, 1, figsize=(3, 3))
-
-# m = np.zeros((16, 16))
+# fig, ax = plt.subplots(1, 1, figsize=(3, 3))
 #
-# for x in range(4):
-#     for y in range(4):
-#         i = x * 4 + y
-#         if x > 0:
-#             j = (x - 1) * 4 + y
-#             m[i, j] = 1
-#             m[j, i] = 1
-#         if x < 3:
-#             j = (x + 1) * 4 + y
-#             m[i, j] = 1
-#             m[j, i] = 1
-#         if y > 0:
-#             j = x * 4 + y - 1
-#             m[i, j] = 1
-#             m[j, i] = 1
-#         if y < 3:
-#             j = x * 4 + y + 1
-#             m[i, j] = 1
-#             m[j, i] = 1
-
-G = nx.from_numpy_array(dsm)
-pos = {}
-
-for x in range(4):
-    for y in range(4):
-        pos[x * 4 + y] = (y, 3 - x)
-
-nx.draw_networkx_nodes(G, pos=pos, ax=ax, edgecolors='black', node_color='white', )
-nx.draw_networkx_edges(G, pos=pos, ax=ax)
-
-# Fix label alignment
-for k, v in pos.items():
-    pos[k] = (v[0] + 0.01, v[1] - 0.01)
-nx.draw_networkx_labels(G, pos=pos, ax=ax)
-
-ax.set_xticks([])
-ax.set_yticks([])
-
-plt.tight_layout()
-
-plt.savefig(os.path.join(sys.argv[1], f"vig.png"), bbox_inches="tight")
-plt.savefig(os.path.join(sys.argv[1], f"vig.pdf"), bbox_inches="tight")
+# # m = np.zeros((16, 16))
+# #
+# # for x in range(4):
+# #     for y in range(4):
+# #         i = x * 4 + y
+# #         if x > 0:
+# #             j = (x - 1) * 4 + y
+# #             m[i, j] = 1
+# #             m[j, i] = 1
+# #         if x < 3:
+# #             j = (x + 1) * 4 + y
+# #             m[i, j] = 1
+# #             m[j, i] = 1
+# #         if y > 0:
+# #             j = x * 4 + y - 1
+# #             m[i, j] = 1
+# #             m[j, i] = 1
+# #         if y < 3:
+# #             j = x * 4 + y + 1
+# #             m[i, j] = 1
+# #             m[j, i] = 1
+#
+# G = nx.from_numpy_array(dsm)
+# pos = {}
+#
+# for x in range(3):
+#     for y in range(3):
+#         pos[x * 3 + y] = (y, 2 - x)
+#
+# nx.draw_networkx_nodes(G, pos=pos, ax=ax, edgecolors='black', node_color='none',)
+# nx.draw_networkx_edges(G, pos=pos, ax=ax)
+#
+# # Fix label alignment
+# for k, v in pos.items():
+#     pos[k] = (v[0] + 0.01, v[1] - 0.01)
+# nx.draw_networkx_labels(G, pos=pos, ax=ax)
+#
+# ax.set_xticks([])
+# ax.set_yticks([])
+#
+# plt.tight_layout()
+#
+# plt.savefig(os.path.join(sys.argv[1], f"vig.png"), bbox_inches="tight")
+# plt.savefig(os.path.join(sys.argv[1], f"vig.pdf"), bbox_inches="tight")
 
 # FOS drawing
 
@@ -133,7 +133,11 @@ for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
 
 
     fig, ax = plt.subplots(1, 1, figsize=(3, 3))
-    cmap = plt.colormaps.get_cmap('viridis')
+    if mode == "mp":
+        cmap = plt.colormaps.get_cmap('bwr')
+    else:
+        cmap = plt.colormaps.get_cmap('viridis')
+
     fosses = get_fos(num_generations)
 
     max_val = 0
@@ -152,7 +156,7 @@ for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
     ax.set_yticks([])
     ax.set_xlabel("Variable")
     ax.set_ylabel("FOS set")
-    ax.set_xticks(list(range(0, 16, 2)))
+    ax.set_xticks(list(range(0, 9, 3)))
     ax.tick_params(axis='both', which='both', length=0)
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     plt.grid(which="both")

@@ -37,11 +37,15 @@ def main():
     aggregated_base_dir_stub = sys.argv[1]
     extended_base_dir = sys.argv[2]
 
+    os.system(f"mkdir -p {extended_base_dir}")
+
     rows = []
 
     for problem, dimensions in PROBLEM_DIMENSIONS:
         print(f"Problem: {problem}")
         df = pd.read_csv(os.path.join(aggregated_base_dir_stub + problem, "aggregated_results.csv"))
+
+        problem_rows = []
 
         for linkage_model in LINKAGE_MODELS:
             print(f"Linkage model: {linkage_model}")
@@ -110,7 +114,7 @@ def main():
                         len(succeeded_run_evals))) / success_rate
 
                 print(f"Dimensionality: {d:3} | Pop. size: {p:4} | Corr. num. evals: {corrected_num_evaluations:12.0f}")
-                rows.append({
+                problem_rows.append({
                     "problem": problem,
                     "linkage_model": linkage_model,
                     "dimensionality": d,
@@ -119,11 +123,18 @@ def main():
                     "corrected_num_evaluations": corrected_num_evaluations,
                 })
 
+                if corrected_num_evaluations >= DEFAULT_MAX_NUM_EVALUATIONS:
+                    print("Skipping second dimension as first failed")
+                    break
+
             print()
 
         print("-----------")
 
-    pd.DataFrame(rows).to_csv(os.path.join(extended_base_dir, "extended_results.csv"))
+        pd.DataFrame(problem_rows).to_csv(os.path.join(aggregated_base_dir_stub + problem, "extrapolated_results.csv"))
+        rows.extend(problem_rows)
+
+    pd.DataFrame(rows).to_csv(os.path.join(extended_base_dir, "extrapolated_results.csv"))
 
 
 if __name__ == '__main__':

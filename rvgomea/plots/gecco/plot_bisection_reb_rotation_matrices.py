@@ -33,7 +33,8 @@ def main(directory, linkage_model_ids, linkage_model_labels):
     plot_directory = os.path.join(directory, "plots")
     os.system(f"mkdir -p {plot_directory}")
 
-    fig = plt.figure(figsize=(10, 3))
+    # fig = plt.figure(figsize=(10, 3))
+    fig = plt.figure(figsize=(5, 2.25))
 
     grid = ImageGrid(fig, 111,
                      nrows_ncols=(1, num_models),
@@ -46,10 +47,10 @@ def main(directory, linkage_model_ids, linkage_model_labels):
 
     cb = None
     for i, ax in enumerate(grid):
-        matrix = np.zeros((9, 6))
+        matrix = np.zeros((10, 6))
 
         df = df_full[df_full["linkage_model"] == linkage_model_ids[i]]
-        for rot_angle in range(1, 10):
+        for rot_angle in range(10):
             actual_angle = rot_angle * 5
             for cond_number in range(1, 7):
                 d = df[df["problem"] == f"reb-chain-condition-{cond_number}-rotation-{actual_angle}"]
@@ -57,25 +58,27 @@ def main(directory, linkage_model_ids, linkage_model_labels):
                     result = -1 #DEFAULT_MAX_NUM_EVALUATIONS
                 else:
                     result = np.median(d["corrected_num_evaluations"])
-                matrix[rot_angle - 1, cond_number - 1] = result
+                matrix[rot_angle, cond_number - 1] = result
 
         matrix_flipped = np.flipud(matrix)
 
         ax.set_title(linkage_model_labels[i].strip())
 
         cb = ax.imshow(matrix_flipped, cmap=palettes[run_id],
-                       norm=LogNorm(vmin=ranges[run_id][0], vmax=ranges[run_id][1]), extent=[0.5, 6.5, 2.5, 47.5],
+                       norm=LogNorm(vmin=ranges[run_id][0], vmax=ranges[run_id][1]), extent=[0.5, 6.5, -2.5, 47.5],
                        aspect="auto")
         ax.tick_params(axis=u'both', which=u'both', length=0)
+        ax.set_xticks([2, 4, 6])
+        ax.set_yticks([0, 15, 30, 45])
 
-        for rot_angle in range(10):
-            actual_angle = rot_angle * 5
-            for cond_number in range(1, 7):
-                text = ax.text(cond_number + 0.33, actual_angle,
-                               f"{int(round(matrix[rot_angle - 1, cond_number - 1] / 1e3))}k",
-                               ha="right", va="center", color="w", fontsize="x-small")
+        # for rot_angle in range(10):
+        #     actual_angle = rot_angle * 5
+        #     for cond_number in range(1, 7):
+        #         text = ax.text(cond_number + 0.33, actual_angle,
+        #                        f"{int(round(matrix[rot_angle, cond_number - 1] / 1e3))}k",
+        #                        ha="right", va="center", color="w", fontsize="x-small")
 
-    grid.cbar_axes[0].colorbar(cb, label="Corrected num. evaluations")
+    grid.cbar_axes[0].colorbar(cb, label="Corr. num. evaluations")
 
     # Global labels
     fig.add_subplot(111, frameon=False)

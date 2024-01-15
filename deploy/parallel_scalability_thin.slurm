@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=15
+#SBATCH --cpus-per-task=30
 #SBATCH --time=120:00:00
 #SBATCH -o "logs/scalability-array-%A_%a.out"
 
