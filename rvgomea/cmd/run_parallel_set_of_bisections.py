@@ -55,13 +55,13 @@ for repeat in range(1, REPEATS + 1):
                 "repeat": repeat,
                 "problem": problem,
                 "dimension": dimension,
-                "linkage_model": "mp-hg-gbo-without_clique_seeding-conditional",
+                "linkage_model": "uni-hg-gbo-without_clique_seeding-conditional",
             })
             SETTINGS.append({
                 "repeat": repeat,
                 "problem": problem,
                 "dimension": dimension,
-                "linkage_model": "mp-hg-fb_no_order-without_clique_seeding-conditional",
+                "linkage_model": "uni-hg-fb_no_order-without_clique_seeding-conditional",
             })
 
 
