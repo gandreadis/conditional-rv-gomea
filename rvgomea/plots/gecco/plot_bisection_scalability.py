@@ -2,9 +2,11 @@ import os
 import sys
 
 import matplotlib
+import numpy as np
 import pandas as pd
 import scienceplots
 from matplotlib import pyplot as plt
+from scipy.stats import mannwhitneyu
 
 from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
 
@@ -59,11 +61,8 @@ for lm, color_index in COLOR_ORDER.items():
     COLORS[lm] = cmap(color_index / (len(COLOR_ORDER) - 1))
 
 
-def main(base_directory, extrapolated_csv, problem_ids, problem_labels, linkage_models):
+def main(base_directory, problem_ids, problem_labels, linkage_models):
     assert len(problem_ids) == len(problem_labels)
-
-    extrapolated_df = pd.read_csv(extrapolated_csv)
-    extrapolated_df = extrapolated_df[extrapolated_df["corrected_num_evaluations"]]
 
     if len(problem_ids) == 1:
         plot_directory = base_directory
@@ -78,16 +77,17 @@ def main(base_directory, extrapolated_csv, problem_ids, problem_labels, linkage_
 
         if len(problem_ids) == 1:
             fig, ax = plt.subplots(1, 1, figsize=(3, 3))
-            handles, labels = make_one_plot(ax, base_directory, extrapolated_df, linkage_models, metric, None)
+            handles, labels = make_one_plot(ax, base_directory, problem_ids[0], linkage_models, metric, None)
         else:
-            fig, axs = plt.subplots(3, 4, figsize=(10, 7), sharex=True, sharey=True)
+            fig, axs = plt.subplots(3, 4, figsize=(10, 6), sharex=True, sharey=True)
 
             for i, (problem_id, problem_label) in enumerate(zip(problem_ids, problem_labels)):
                 ax = axs[i // 4, i % 4]
 
-                handles, labels = make_one_plot(ax, base_directory + problem_id, extrapolated_df, linkage_models, metric, problem_label)
+                handles, labels = make_one_plot(ax, base_directory + problem_id, problem_id, linkage_models, metric, problem_label)
 
-        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=len(linkage_models) // 2)
+        if metric == "population_size":
+            fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=len(linkage_models) // 2)
 
         # Global labels
         fig.add_subplot(111, frameon=False)
@@ -107,16 +107,24 @@ def main(base_directory, extrapolated_csv, problem_ids, problem_labels, linkage_
         plt.close(fig)
 
 
-def make_one_plot(ax, directory, extrapolated_df, linkage_models, metric, problem_label):
+def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_label):
     df = pd.read_csv(os.path.join(directory, "aggregated_results.csv"))
+
+    extrapolated_results_name = os.path.join(directory, "extrapolated_results.csv")
+    if os.path.exists(extrapolated_results_name):
+        extrapolated_df = pd.read_csv(extrapolated_results_name)
+        extrapolated_df = extrapolated_df[extrapolated_df["corrected_num_evaluations"] < DEFAULT_MAX_NUM_EVALUATIONS]
+    else:
+        extrapolated_df = None
 
     for lm in linkage_models:
         d = df[df["linkage_model"] == lm].groupby(["dimensionality"]).median(numeric_only=True).reset_index()
+
         ax.plot(d["dimensionality"], d[metric], linestyle='-', color=COLORS[lm], marker=MARKERS[lm],
                 label=LABELS[lm])
 
         # One or more dimensions were too difficult
-        if len(d["dimensionality"]) < 4:
+        if len(d["dimensionality"]) < 4 or extrapolated_df is None:
             continue
 
         last_dim = d["dimensionality"].tolist()[-1]
@@ -125,7 +133,7 @@ def make_one_plot(ax, directory, extrapolated_df, linkage_models, metric, proble
         extra_dimensions = [last_dim]
         extra_values = [last_value]
 
-        e = extrapolated_df[extrapolated_df["problem"] == d["problem"].tolist()[0]]
+        e = extrapolated_df[extrapolated_df["problem"] == problem_id]
         e = e[e["linkage_model"] == lm].sort_values(by=["dimensionality"])
 
         for extra_dim, extra_value, corr_eval in zip(e["dimensionality"].tolist(),
@@ -147,8 +155,50 @@ def make_one_plot(ax, directory, extrapolated_df, linkage_models, metric, proble
 
     plt.xscale('log')
     plt.yscale('log')
+
+    if metric == "corrected_num_evaluations":
+        largest_dim = sorted(list(df[df["linkage_model"] == "vkd-cma"]["dimensionality"]))[-1]
+
+        eval_sets = []
+        median_evals = []
+
+        for lm in linkage_models:
+            d = df[df["linkage_model"] == lm]
+            filtered = d[d["dimensionality"] == largest_dim]
+            if len(filtered) == 0:
+                eval_set = [1e7] * 5
+            else:
+                eval_set = list(filtered["corrected_num_evaluations"])
+
+            eval_sets.append(eval_set)
+            evals = np.median(eval_set)
+            median_evals.append(evals)
+
+        best_index = np.argmin(median_evals)
+        best_lm = linkage_models[best_index]
+
+        p_values = []
+        for i, lm in enumerate(linkage_models):
+            if i == best_index:
+                continue
+            _, p = mannwhitneyu(eval_sets[i], eval_sets[best_index])
+            if p > 0.99999:
+                continue
+            p_values.append(p)
+
+        max_p = np.max(p_values)
+
+        if max_p < 0.001:
+            p_string = "\\textbf{$<0.001$}"
+        elif max_p < 0.05/7:
+            p_string = "\\textbf{" + f"{max_p:0.3f}" "}"
+        else:
+            p_string = f"{max_p:0.3f}"
+
+        print(f"{problem_id} & {LABELS[best_lm]} & {p_string} \\\\")
+
     return handles, labels
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.argv[3].split(","), sys.argv[4].split(","), sys.argv[5].split(","))
+    main(sys.argv[1], sys.argv[2].split(","), sys.argv[3].split(","), sys.argv[4].split(","))

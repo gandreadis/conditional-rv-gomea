@@ -1,4 +1,4 @@
-import os
+import multiprocessing
 import os
 import sys
 from multiprocessing import Pool
@@ -36,12 +36,16 @@ def sweep_worker(run_config: RunConfig):
 def main():
     aggregated_base_dir_stub = sys.argv[1]
     extended_base_dir = sys.argv[2]
+    filter_problem_index = None
+    if len(sys.argv) > 3:
+        filter_problem_index = int(sys.argv[3])
 
     os.system(f"mkdir -p {extended_base_dir}")
 
-    rows = []
+    for problem_index, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
+        if filter_problem_index is not None and problem_index != filter_problem_index:
+            continue
 
-    for problem, dimensions in PROBLEM_DIMENSIONS:
         print(f"Problem: {problem}")
         df = pd.read_csv(os.path.join(aggregated_base_dir_stub + problem, "aggregated_results.csv"))
 
@@ -60,7 +64,7 @@ def main():
             pop_size_last = np.median(rows_last_dim["population_size"])
 
             if pop_size_last <= pop_size_first:
-                next_pop_sizes = [pop_size_first, pop_size_first]
+                next_pop_sizes = [pop_size_last, pop_size_last]
             else:
                 log_pop_size_diff = np.log10(pop_size_last) - np.log10(pop_size_first)
                 log_dist_diff = np.log10(dimensions[-1]) - np.log10(dimensions[0])
@@ -91,7 +95,7 @@ def main():
                     )
                     configs.append(derived_config)
 
-                with Pool(5) as pool:
+                with Pool(multiprocessing.cpu_count()) as pool:
                     results = list(pool.imap_unordered(sweep_worker, configs))
 
                 median_num_evaluations = np.median([
@@ -132,9 +136,6 @@ def main():
         print("-----------")
 
         pd.DataFrame(problem_rows).to_csv(os.path.join(aggregated_base_dir_stub + problem, "extrapolated_results.csv"))
-        rows.extend(problem_rows)
-
-    pd.DataFrame(rows).to_csv(os.path.join(extended_base_dir, "extrapolated_results.csv"))
 
 
 if __name__ == '__main__':

@@ -58,8 +58,6 @@ ax.set_xlabel("Variable")
 ax.set_ylabel("Variable")
 ax.set_xticks(list(range(0, 9, 3)))
 ax.set_yticks(list(range(0, 9, 3)))
-# ax.set_xlim(-0.5, 19.5)
-# ax.set_ylim(19.5, -0.5)
 
 plt.tight_layout()
 
@@ -123,7 +121,6 @@ for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
     df = pd.read_csv(os.path.join(directory, "fitness_dependency_monitoring_per_generation.dat"))
     num_generations = int(np.max(df["generation"]))
 
-
     def get_fos(generation: int):
         string = df[df["generation"] == generation].to_records()[0]["fos"]
         fos_sets = [eval(s.replace("^", ",")) for s in string.split("|")]
@@ -132,7 +129,7 @@ for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
         return fos_sets
 
 
-    fig, ax = plt.subplots(1, 1, figsize=(3, 3))
+    fig, ax = plt.subplots(1, 1, figsize=(2.5, 2.5))
     if mode == "mp":
         cmap = plt.colormaps.get_cmap('bwr')
     else:

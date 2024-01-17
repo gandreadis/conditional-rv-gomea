@@ -48,6 +48,22 @@ for repeat in range(1, REPEATS + 1):
                     "linkage_model": linkage_model,
                 })
 
+for repeat in range(1, REPEATS + 1):
+    for i, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
+        for dimension in dimensions:
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "mp-hg-gbo-without_clique_seeding-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "mp-hg-fb_no_order-without_clique_seeding-conditional",
+            })
+
 
 def main():
     if len(sys.argv) < 2:
