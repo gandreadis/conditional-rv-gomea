@@ -23,7 +23,7 @@ LINKAGE_MODEL_CODES = {
 for max_clique_label, max_clique_size in (("uni", "1"), ("mp", "100")):
     for factorization_label, factorization in (("gg", "01"), ("fg", "10"), ("hg", "11")):
         for fitness_based_label, fitness_based in (("gbo", "0"), ("fb", "1"), ("fb_no_order", "2")):
-            for seed_cliques_label, seed_cliques in (("without_clique_seeding", "0"), ("with_clique_seeding", "1")):
+            for seed_cliques_label, seed_cliques in (("without_clique_seeding", "0"), ("with_clique_seeding", "1"), ("with_clique_seeding_and_uni", "2")):
                 for conditional_label, conditional in (("non_conditional", "0"), ("conditional", "1")):
                     for set_cover_label, set_cover in (("", "0"), ("-set_cover", "1")):
                         LINKAGE_MODEL_CODES[

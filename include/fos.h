@@ -138,7 +138,7 @@ public:
 extern int max_clique_size;
 extern bool include_cliques_as_fos_elements;
 extern bool include_full_fos_element;
-extern bool seed_cliques_per_variable;
+extern int seed_cliques_per_variable;
 extern bool use_conditional_sampling;
 extern int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
 prune_linkage_tree,

@@ -800,7 +800,7 @@ void population_t::initializeFOS() {
         use_conditional_sampling = (id % 10) > 0;
         id /= 10;
 
-        seed_cliques_per_variable = (id % 10) > 0;
+        seed_cliques_per_variable = id % 10;
         id /= 10;
 
         // Make sure that, if at all, either set cover or clique seeding is used as strategy, not both

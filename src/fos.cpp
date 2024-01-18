@@ -44,7 +44,7 @@
 int max_clique_size;
 bool include_cliques_as_fos_elements;
 bool include_full_fos_element;
-bool seed_cliques_per_variable;
+int seed_cliques_per_variable;
 bool use_conditional_sampling = false;
 int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
 prune_linkage_tree,
@@ -801,6 +801,11 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         visited[i] = UNVISITED;
     }
 
+    int conventional_max_clique_size = max_clique_size;
+    if (seed_cliques_per_variable == 2) {
+        conventional_max_clique_size = 1;
+    }
+
     std::vector<int> fitness_based_permutation(number_of_parameters);
 
     if (similarity_measure == 'F' && fitness_based_ordering) {
@@ -860,7 +865,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
                 if (visited[x] != IS_VISITED) {
                     bool add_to_clique = true;
                     std::set<int> neighbors = variable_interaction_graph.at(x);
-                    if (clique.size() >= max_clique_size) {
+                    if (clique.size() >= conventional_max_clique_size) {
                         add_to_clique = false;
                     }
                     if (add_to_clique) {
@@ -898,6 +903,25 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
                 }
             }
 
+            // Hybridize CS with UCond FOS elements
+            if (seed_cliques_per_variable == 2) {
+                assert(use_conditional_sampling);
+                bool insert = true;
+                for (distribution_t *d : distributions) {
+                    conditional_distribution_t *c = (conditional_distribution_t *) d;
+
+                    if (c->variable_groups[0].size() > 1) {
+                        continue;
+                    }
+                    if (c->variable_groups[0][0] == clique[0]) {
+                        insert = false;
+                    }
+                }
+                if (insert) {
+                    addConditionedGroup(clique, cond);
+                }
+            }
+
             if (!seed_cliques_per_variable && !use_set_cover && include_cliques_as_fos_elements) {
                 if (use_conditional_sampling) {
                     addConditionedGroup(clique, cond);
@@ -921,6 +945,25 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
             delete full_cond;
         }
     }
+
+//    if (write_fitness_dependencies) {
+//        for (distribution_t *d : distributions) {
+//            conditional_distribution_t *c = (conditional_distribution_t *) d;
+//            for (int g = 0; g < c->variable_groups.size(); g++) {
+//                printf("{");
+//                for (int var : c->variable_groups[g]) {
+//                    printf("%d,", var+1);
+//                }
+//                printf("}|(");
+//                for (int var : c->variables_conditioned_on[g]) {
+//                    printf("%d,", var+1);
+//                }
+//                printf(") ");
+//            }
+//            printf("|| ");
+//        }
+//        printf("\n");
+//    }
 
     // Write set cover results
     if (use_set_cover && write_fitness_dependencies) {
