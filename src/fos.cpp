@@ -44,6 +44,7 @@
 int max_clique_size;
 bool include_cliques_as_fos_elements;
 bool include_full_fos_element;
+bool learn_conditional_linkage_tree;
 int seed_cliques_per_variable;
 bool use_conditional_sampling = false;
 int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
@@ -195,20 +196,42 @@ void fos_t::deriveTree(double **MI_matrix) {
     /* Initialize MPM to the univariate factorization */
     int **mpm = (int **) Malloc(number_of_parameters * sizeof(int *));
     int *mpm_num_ind = (int *) Malloc(number_of_parameters * sizeof(int));
-    int mpm_length = number_of_parameters;
     int **mpm_new = NULL;
-    for (int i = 0; i < number_of_parameters; i++) {
-        int *indices = (int *) Malloc(1 * sizeof(int));
-        indices[0] = i;
-        mpm[i] = indices;
-        mpm_num_ind[i] = 1;
-    }
+    int mpm_length = 0;
 
     std::vector<bool> keep_FOS_element;
+    int num_original_conditional_distributions;
 
     /* Initialize LT to the initial MPM */
-    if (problem_index != 14) {
-        for (int i = 0; i < mpm_length; i++) {
+    if (learn_conditional_linkage_tree) {
+        // If conditional, load in all Uni or MP sets to seed the tree
+        mpm_length = distributions.size();
+        num_original_conditional_distributions = mpm_length;
+
+        for (distribution_t *d : distributions) {
+            conditional_distribution_t *c = (conditional_distribution_t *) d;
+
+            int group_size = c->variable_groups[0].size();
+            int *indices = (int *) Malloc(group_size * sizeof(int));
+            std::vector<int> vec;
+
+            for (int i = 0; i < c->variable_groups[0].size(); i++) {
+                indices[i] = c->variable_groups[0][i];
+                vec.push_back(c->variable_groups[0][i]);
+            }
+
+            mpm[keep_FOS_element.size()] = indices;
+            mpm_num_ind[keep_FOS_element.size()] = group_size;
+            keep_FOS_element.push_back(true);
+        }
+    } else {
+        mpm_length = number_of_parameters;
+        for (int i = 0; i < number_of_parameters; i++) {
+            int *indices = (int *) Malloc(1 * sizeof(int));
+            indices[0] = i;
+            mpm[i] = indices;
+            mpm_num_ind[i] = 1;
+
             std::vector<int> vec;
             vec.push_back(mpm[i][0]);
             addGroup(vec);
@@ -245,7 +268,7 @@ void fos_t::deriveTree(double **MI_matrix) {
             random_linkage_tree = 1;
             S_vector = (double *) Malloc(number_of_parameters * sizeof(double));
             for (int i = 0; i < number_of_parameters; i++)
-                S_vector[i] = randu<double>();
+                S_vector[i] = 0;
 
         } else if (problem_index == 7) {
             S_matrix[0][0] = 0.0;
@@ -254,7 +277,7 @@ void fos_t::deriveTree(double **MI_matrix) {
                 S_matrix[i - 1][i] = 1e8 + randu<double>();
                 S_matrix[i][i - 1] = S_matrix[i - 1][i];
                 for (int j = i + 1; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = randu<double>();
+                    S_matrix[j][i] = 0;
                     S_matrix[i][j] = S_matrix[j][i];
                 }
             }
@@ -272,7 +295,7 @@ void fos_t::deriveTree(double **MI_matrix) {
         } else if (problem_index == 14) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = randu<double>();
+                    S_matrix[j][i] = 0;
                     S_matrix[i][j] = S_matrix[j][i];
                 }
             }
@@ -299,7 +322,45 @@ void fos_t::deriveTree(double **MI_matrix) {
                 }
             }
 
+        } else if (problem_index == 16) {
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < number_of_parameters; j++) {
+                    S_matrix[j][i] = 0;
+                    S_matrix[i][j] = S_matrix[j][i];
+                }
+            }
+
+            int single_block_size = 5;
+            for (int i = 0; i < number_of_parameters; i += single_block_size) {
+                for (int j = 0; j < single_block_size; j++) {
+                    for (int k = 0; k < j; k++) {
+                        S_matrix[i + j][i + k] = 1e8 + randu<double>();
+                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
+                    }
+                    S_matrix[i + j][i + j] = 0.0;
+                }
+
+                if (i > 0) {
+                    int offset = -1;
+                    int small_block_size = 2;
+                    for (int j = 0; j < small_block_size; j++) {
+                        for (int k = 0; k < j; k++) {
+                            S_matrix[i + j - 1][i + k - 1] = 1e8 + randu<double>();
+                            S_matrix[i + k - 1][i + j - 1] = S_matrix[i + j - 1][i + k - 1];
+                        }
+                        S_matrix[i + j + offset][i + j + offset] = 0.0;
+                    }
+                }
+            }
+
         } else if (problem_index == 20) {
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < number_of_parameters; j++) {
+                    S_matrix[j][i] = 0;
+                    S_matrix[i][j] = S_matrix[j][i];
+                }
+            }
+
             int grid_width = round(sqrt(number_of_parameters));
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
@@ -311,10 +372,13 @@ void fos_t::deriveTree(double **MI_matrix) {
                         int x2 = j % grid_width;
                         int y2 = j / grid_width;
 
-                        if (abs(x1 - x2) + abs(y1 - y2) == 1) {
+                        if (abs(x1 - x2) == 1 || abs(y1 - y2) == 1 ||
+                            (abs(x1 - x2) == 0 && abs(y1 - y2) == 2) || (abs(x1 - x2) == 2 && abs(y1 - y2) == 0)) {
                             S_matrix[i][j] = 1e8 + randu<double>();
+                            S_matrix[j][i] = S_matrix[i][j];
                         } else {
                             S_matrix[i][j] = randu<double>();
+                            S_matrix[j][i] = S_matrix[i][j];
                         }
                     }
                 }
@@ -323,7 +387,7 @@ void fos_t::deriveTree(double **MI_matrix) {
         } else if (problem_index == 13 || problem_index > 10000) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = randu<double>();
+                    S_matrix[j][i] = 0;
                     S_matrix[i][j] = S_matrix[j][i];
                 }
             }
@@ -358,7 +422,7 @@ void fos_t::deriveTree(double **MI_matrix) {
         }
     }
 
-    int *NN_chain = (int *) Malloc((number_of_parameters + 2) * sizeof(int));
+    int *NN_chain = (int *) Malloc((mpm_length + 2) * sizeof(int));
     int NN_chain_length = 0;
     short done = 0;
     while (!done) {
@@ -481,7 +545,45 @@ void fos_t::deriveTree(double **MI_matrix) {
             int *sorted = mergeSortInt(indices, mpm_num_ind[r0] + mpm_num_ind[r1]);
             for (int j = 0; j < mpm_num_ind[r0] + mpm_num_ind[r1]; j++)
                 vec.push_back(indices[sorted[j]]);
-            addGroup(vec);
+
+            if (learn_conditional_linkage_tree) {
+                conditional_distribution_t *cond = new conditional_distribution_t();
+
+                // Determine which sets this merges
+                std::set<int> dists_to_merge;
+                for (int var : vec) {
+                    for (int j = 0; j < num_original_conditional_distributions; j++) {
+                        for (int other_var : sets[j]) {
+                            if (other_var == var) {
+                                dists_to_merge.insert(j);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                std::vector<int> dist_list(dists_to_merge.size());
+                std::copy(dists_to_merge.begin(), dists_to_merge.end(), dist_list.begin());
+
+                for (int j = 0; j < dist_list.size(); j++) {
+                    int dist = dist_list[j];
+                    std::vector<int> variable_group = ((conditional_distribution_t *) distributions[dist])->variable_groups[0];
+                    std::vector<int> cond_group = ((conditional_distribution_t *) distributions[dist])->variables_conditioned_on[0];
+
+                    std::vector<int> copied_variable_group(variable_group.size());
+                    std::copy(variable_group.begin(), variable_group.end(), copied_variable_group.begin());
+
+                    std::vector<int> copied_cond(cond_group.size());
+                    std::copy(cond_group.begin(), cond_group.end(), copied_cond.begin());
+
+                    cond->addGroupOfVariables(copied_variable_group, copied_cond);
+                }
+
+                addGroup(cond);
+            } else {
+                addGroup(vec);
+            }
+
             keep_FOS_element.push_back(true);
 
             free(sorted);
@@ -936,7 +1038,26 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         }
     }
 
-    if (include_full_fos_element && use_conditional_sampling) {
+    if (learn_conditional_linkage_tree) {
+        delete full_cond;
+
+        if (similarity_measure == 'F') {
+            double **array_version = (double **) Malloc(number_of_parameters * sizeof(double *));
+            for (int i = 0; i < number_of_parameters; i++) {
+                array_version[i] = (double *) Malloc(number_of_parameters * sizeof(double));
+                for (int j = 0; j < number_of_parameters; j++) {
+                    array_version[i][j] = (*fitness_dependency_matrix)[i][j] > 0 ? 1e8 + randomRealUniform01() : 0;
+                }
+            }
+
+            deriveTree(array_version);
+        } else {
+            static_linkage_tree = true;
+            deriveTree(NULL);
+        }
+    }
+
+    if (include_full_fos_element && use_conditional_sampling && !learn_conditional_linkage_tree) {
         if (getLength() != 1) {
             // if length == 1, only 1 clique was found, which must have been the full model;
             // in that case, do not add it again
@@ -960,9 +1081,9 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
 //                }
 //                printf(") ");
 //            }
-//            printf("|| ");
+//            printf("|| \n");
 //        }
-//        printf("\n");
+//        printf("\n\n");
 //    }
 
     // Write set cover results

@@ -74,6 +74,46 @@ for repeat in range(1, REPEATS + 1):
                 "linkage_model": "mp-hg-fb_no_order-with_clique_seeding_and_uni-conditional",
             })
 
+for repeat in range(1, REPEATS + 1):
+    for i, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
+        for dimension in dimensions:
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "uni-lt-gbo-without_clique_seeding-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "uni-lt-fb_no_order-without_clique_seeding-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "mp-lt-gbo-without_clique_seeding-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "mp-lt-fb_no_order-without_clique_seeding-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "uni-lt-fb_no_order-pruned-conditional",
+            })
+            SETTINGS.append({
+                "repeat": repeat,
+                "problem": problem,
+                "dimension": dimension,
+                "linkage_model": "mp-lt-fb_no_order-pruned-conditional",
+            })
+
 
 def main():
     if len(sys.argv) < 2:

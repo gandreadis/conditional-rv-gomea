@@ -341,8 +341,6 @@ void population_t::generateAndEvaluateNewSolutions() {
     double alpha_AMS = 0.5 * tau * (((double) population_size) / ((double) (population_size - 1)));
     int number_of_AMS_solutions = (int) (alpha_AMS * (population_size - 1));
 
-    int first_to_adapt = 0;
-
     if (perform_factorized_gom) {
         linkage_model->randomizeOrder();
         for (int g = 0; g < linkage_model->getLength(); g++) {
@@ -803,9 +801,6 @@ void population_t::initializeFOS() {
         seed_cliques_per_variable = id % 10;
         id /= 10;
 
-        // Make sure that, if at all, either set cover or clique seeding is used as strategy, not both
-        assert(!(use_set_cover && seed_cliques_per_variable));
-
         int is_fitness_based = (id % 10) > 0;
         id /= 10;
 
@@ -835,9 +830,28 @@ void population_t::initializeFOS() {
 
         max_clique_size = id;
 
+        if (!include_full_fos_element && !include_cliques_as_fos_elements) {
+            // LT-conditional FOS detected
+            include_full_fos_element = 1;
+            include_cliques_as_fos_elements = 1;
+
+            learn_conditional_linkage_tree = true;
+            if (is_fitness_based) {
+                learn_linkage_tree = true;
+            }
+
+            if (seed_cliques_per_variable == 3) {
+                prune_linkage_tree = 1;
+                seed_cliques_per_variable = 0;
+            }
+        }
+
         if (max_clique_size == 1) {
             seed_cliques_per_variable = false;
         }
+
+        // Make sure that, if at all, either set cover or clique seeding is used as strategy, not both
+        assert(!(use_set_cover && seed_cliques_per_variable));
 
         if (!use_conditional_sampling) {
             // In non-conditional setting, generational, factorized and hybrid GOM have a different connotation

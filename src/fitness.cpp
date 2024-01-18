@@ -1045,14 +1045,41 @@ void osorebFunction_t::evaluationFunction(solution_t *solution) {
 }
 
 void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+    vec_t<int> sorted_touched_indices;
+    vec sorted_touched_variables;
+
+    bool is_sorted = true;
+    for (int i = 1; i < solution->num_touched_variables; i++) {
+        if (solution->touched_indices[i] <= solution->touched_indices[i - 1]) {
+            is_sorted = false;
+        }
+    }
+    if (is_sorted) {
+        sorted_touched_indices = solution->touched_indices;
+        sorted_touched_variables = solution->touched_variables;
+    } else {
+        std::vector<int> idx(solution->num_touched_variables);
+        std::iota(idx.begin(), idx.end(), 0);
+        std::stable_sort(idx.begin(), idx.end(),
+                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+
+        sorted_touched_indices.resize(solution->num_touched_variables);
+        sorted_touched_variables.resize(solution->num_touched_variables);
+
+        for (int j = 0; j < solution->num_touched_variables; j++) {
+            sorted_touched_indices[j] = solution->touched_indices[idx[j]];
+            sorted_touched_variables[j] = solution->touched_variables[idx[j]];
+        }
+    }
+
     std::set<int> variables_used;
     double result = 0.0;
     for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
+        int ind = sorted_touched_indices[i];
         int block_ind = ind / rotation_block_size;
         if (i > 0) {
-            assert(ind > solution->touched_indices[i - 1]); // assume indices are sorted
-            int prev_block_ind = solution->touched_indices[i - 1] / rotation_block_size;
+            assert(ind > sorted_touched_indices[i - 1]); // assume indices are sorted
+            int prev_block_ind = sorted_touched_indices[i - 1] / rotation_block_size;
             if (block_ind == prev_block_ind)
                 continue;
         }
@@ -1067,9 +1094,9 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
 
         int j = 0;
         while (i + j < solution->num_touched_variables &&
-               block_ind == solution->touched_indices[i + j] / rotation_block_size) {
-            int cur_ind = solution->touched_indices[i + j];
-            variables_copy[cur_ind % rotation_block_size] = solution->touched_variables[i + j];
+               block_ind == sorted_touched_indices[i + j] / rotation_block_size) {
+            int cur_ind = sorted_touched_indices[i + j];
+            variables_copy[cur_ind % rotation_block_size] = sorted_touched_variables[i + j];
             j++;
         }
         result += subfunction(variables_copy, rotation_block_size);
@@ -1078,7 +1105,7 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
     }
 
     for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
+        int ind = sorted_touched_indices[i];
 
         if (ind < 4) {
             continue;
@@ -1088,8 +1115,8 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         int block_start = block_ind * rotation_block_size;
 
         if (i > 0) {
-            assert(ind > solution->touched_indices[i - 1]); // assume indices are sorted
-            int prev_block_ind = (solution->touched_indices[i - 1] + 1) / rotation_block_size;
+            assert(ind > sorted_touched_indices[i - 1]); // assume indices are sorted
+            int prev_block_ind = (sorted_touched_indices[i - 1] + 1) / rotation_block_size;
             if (block_ind == prev_block_ind)
                 continue;
         }
@@ -1101,12 +1128,12 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         }
         result -= subfunction(variables_copy_smallblock, 2);
 
-        if (i > 0 && solution->touched_indices[i - 1] == ind - 1) {
-            variables_copy_smallblock[0] = solution->touched_variables[i - 1];
-            variables_copy_smallblock[1] = solution->touched_variables[i];
-        } else if (i < solution->num_touched_variables - 1 && solution->touched_indices[i + 1] == ind + 1) {
-            variables_copy_smallblock[0] = solution->touched_variables[i];
-            variables_copy_smallblock[1] = solution->touched_variables[i + 1];
+        if (i > 0 && sorted_touched_indices[i - 1] == ind - 1) {
+            variables_copy_smallblock[0] = sorted_touched_variables[i - 1];
+            variables_copy_smallblock[1] = sorted_touched_variables[i];
+        } else if (i < solution->num_touched_variables - 1 && sorted_touched_indices[i + 1] == ind + 1) {
+            variables_copy_smallblock[0] = sorted_touched_variables[i];
+            variables_copy_smallblock[1] = sorted_touched_variables[i + 1];
         }
         result += subfunction(variables_copy_smallblock, 2);
     }
