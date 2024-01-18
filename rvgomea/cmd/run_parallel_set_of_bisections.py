@@ -105,13 +105,13 @@ for repeat in range(1, REPEATS + 1):
                 "repeat": repeat,
                 "problem": problem,
                 "dimension": dimension,
-                "linkage_model": "uni-lt-fb_no_order-pruned-conditional",
+                "linkage_model": "uni-lt-gbo-pruned-conditional",
             })
             SETTINGS.append({
                 "repeat": repeat,
                 "problem": problem,
                 "dimension": dimension,
-                "linkage_model": "mp-lt-fb_no_order-pruned-conditional",
+                "linkage_model": "mp-lt-gbo-pruned-conditional",
             })
 
 
