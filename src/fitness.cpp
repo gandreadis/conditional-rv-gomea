@@ -76,7 +76,11 @@ fitness_t *fitness_t::getFitnessClass(int problem_index, int number_of_parameter
         case 14:
             return (new sorebDisjointBlocksFunction_t(number_of_parameters, vtr, 6, 1, 45, 5, 5, 1));
         case 16:
-            return (new osorebFunction_t(number_of_parameters, vtr));
+            return (new osorebFunction_t(number_of_parameters, vtr, 0));
+        case 17:
+            return (new osorebFunction_t(number_of_parameters, vtr, 1));
+        case 18:
+            return (new osorebFunction_t(number_of_parameters, vtr, 2));
 //        case 17:
 //            return (new BD2FunctionHypervolume_t(number_of_parameters, vtr));
 //        case 10:
@@ -751,16 +755,43 @@ void sorebFunction_t::evaluationFunction(solution_t *solution) {
 }
 
 void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+    vec_t<int> sorted_touched_indices;
+    vec sorted_touched_variables;
+
+    bool is_sorted = true;
+    for (int i = 1; i < solution->num_touched_variables; i++) {
+        if (solution->touched_indices[i] <= solution->touched_indices[i - 1]) {
+            is_sorted = false;
+        }
+    }
+    if (is_sorted) {
+        sorted_touched_indices = solution->touched_indices;
+        sorted_touched_variables = solution->touched_variables;
+    } else {
+        std::vector<int> idx(solution->num_touched_variables);
+        std::iota(idx.begin(), idx.end(), 0);
+        std::stable_sort(idx.begin(), idx.end(),
+                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+
+        sorted_touched_indices.resize(solution->num_touched_variables);
+        sorted_touched_variables.resize(solution->num_touched_variables);
+
+        for (int j = 0; j < solution->num_touched_variables; j++) {
+            sorted_touched_indices[j] = solution->touched_indices[idx[j]];
+            sorted_touched_variables[j] = solution->touched_variables[idx[j]];
+        }
+    }
+
     double result = 0.0;
     int last_evaluated_block = -1;
     double variables_copy[rotation_block_size];
     std::set<int> variables_used;
 
     for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
+        int ind = sorted_touched_indices[i];
         int block_ind = getIndexOfFirstBlock(ind);
         if (i > 0)
-            assert(ind > solution->touched_indices[i - 1]); // this partial evaluation requires indices to be sorted
+            assert(ind > sorted_touched_indices[i - 1]); // this partial evaluation requires indices to be sorted
 
         while (block_ind < number_of_subfunctions && getStartingIndexOfBlock(block_ind) <=
                                                      ind) // while the touched variable is within the block to be evaluated
@@ -774,11 +805,11 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
                 result -= subfunction(block_start, variables_copy, rotation_block_size);
 
                 int j = 0;
-                while (i + j < solution->num_touched_variables && solution->touched_indices[i + j] - block_start <
+                while (i + j < solution->num_touched_variables && sorted_touched_indices[i + j] - block_start <
                                                                   rotation_block_size) // find other touched variables in this block and put them in local array
                 {
-                    int cur_ind = solution->touched_indices[i + j];
-                    variables_copy[cur_ind - block_start] = solution->touched_variables[i + j];
+                    int cur_ind = sorted_touched_indices[i + j];
+                    variables_copy[cur_ind - block_start] = sorted_touched_variables[i + j];
                     j++;
                 }
                 result += subfunction(block_start, variables_copy, rotation_block_size);
@@ -913,16 +944,43 @@ void sorebDisjointBlocksFunction_t::evaluationFunction(solution_t *solution) {
 }
 
 void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent, partial_solution_t *solution) {
+    vec_t<int> sorted_touched_indices;
+    vec sorted_touched_variables;
+
+    bool is_sorted = true;
+    for (int i = 1; i < solution->num_touched_variables; i++) {
+        if (solution->touched_indices[i] <= solution->touched_indices[i - 1]) {
+            is_sorted = false;
+        }
+    }
+    if (is_sorted) {
+        sorted_touched_indices = solution->touched_indices;
+        sorted_touched_variables = solution->touched_variables;
+    } else {
+        std::vector<int> idx(solution->num_touched_variables);
+        std::iota(idx.begin(), idx.end(), 0);
+        std::stable_sort(idx.begin(), idx.end(),
+                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+
+        sorted_touched_indices.resize(solution->num_touched_variables);
+        sorted_touched_variables.resize(solution->num_touched_variables);
+
+        for (int j = 0; j < solution->num_touched_variables; j++) {
+            sorted_touched_indices[j] = solution->touched_indices[idx[j]];
+            sorted_touched_variables[j] = solution->touched_variables[idx[j]];
+        }
+    }
+
     double result = 0.0;
     int last_evaluated_block = -1;
     double variables_copy[rotation_block_size];
     std::set<int> variables_used;
 
     for (int i = 0; i < solution->num_touched_variables; i++) {
-        int ind = solution->touched_indices[i];
+        int ind = sorted_touched_indices[i];
         int block_ind = getIndexOfFirstBlock(ind);
         if (i > 0)
-            assert(ind > solution->touched_indices[i - 1]); // this partial evaluation requires indices to be sorted
+            assert(ind > sorted_touched_indices[i - 1]); // this partial evaluation requires indices to be sorted
 
         while (block_ind < number_of_subfunctions && getStartingIndexOfBlock(block_ind) <=
                                                      ind) // while the touched variable is within the block to be evaluated
@@ -936,11 +994,11 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
                 result -= subfunction(block_start, variables_copy, rotation_block_size);
 
                 int j = 0;
-                while (i + j < solution->num_touched_variables && solution->touched_indices[i + j] - block_start <
+                while (i + j < solution->num_touched_variables && sorted_touched_indices[i + j] - block_start <
                                                                   rotation_block_size) // find other touched variables in this block and put them in local array
                 {
-                    int cur_ind = solution->touched_indices[i + j];
-                    variables_copy[cur_ind - block_start] = solution->touched_variables[i + j];
+                    int cur_ind = sorted_touched_indices[i + j];
+                    variables_copy[cur_ind - block_start] = sorted_touched_variables[i + j];
                     j++;
                 }
                 result += subfunction(block_start, variables_copy, rotation_block_size);
@@ -1014,7 +1072,7 @@ sorebDisjointBlocksFunction_t::~sorebDisjointBlocksFunction_t() {
     ezilaitiniObjectiveRotationMatrix(rotation_matrix_2, rotation_angle_2, rotation_block_size);
 }
 
-osorebFunction_t::osorebFunction_t(int number_of_parameters, double vtr) {
+osorebFunction_t::osorebFunction_t(int number_of_parameters, double vtr, int strength_mode) {
     this->name = "Overlapping Sum of Rotated Ellipsoid Blocks function";
     this->number_of_parameters = number_of_parameters;
     this->vtr = vtr;
@@ -1024,8 +1082,31 @@ osorebFunction_t::osorebFunction_t(int number_of_parameters, double vtr) {
     this->number_of_small_rotated_blocks = number_of_large_rotated_blocks - 1;
     this->number_of_subfunctions = number_of_large_rotated_blocks + number_of_small_rotated_blocks;
     initializeFitnessFunction();
-    rotation_matrix_big = initializeObjectiveRotationMatrix(rotation_angle, rotation_block_size);
-    rotation_matrix_small = initializeObjectiveRotationMatrix(rotation_angle, 2);
+
+    double big_rotation_angle;
+    double small_rotation_angle;
+
+    if (strength_mode == 0) {
+        big_rotation_angle = 45;
+        this->big_condition = 6;
+        small_rotation_angle = 45;
+        this->small_condition = 6;
+    } else if (strength_mode == 1) {
+        big_rotation_angle = 45;
+        this->big_condition = 6;
+        small_rotation_angle = 5;
+        this->small_condition = 1;
+    } else if (strength_mode == 2) {
+        big_rotation_angle = 5;
+        this->big_condition = 1;
+        small_rotation_angle = 45;
+        this->small_condition = 6;
+    } else {
+        exit(1);
+    }
+
+    rotation_matrix_big = initializeObjectiveRotationMatrix(big_rotation_angle, rotation_block_size);
+    rotation_matrix_small = initializeObjectiveRotationMatrix(small_rotation_angle, 2);
 
     initializeVariableInteractionGraph();
 }
@@ -1107,7 +1188,11 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
     for (int i = 0; i < solution->num_touched_variables; i++) {
         int ind = sorted_touched_indices[i];
 
-        if (ind < 4) {
+        if (ind < 4 || ind == number_of_parameters - 1) {
+            continue;
+        }
+
+        if (!(ind % rotation_block_size == 0 || ind % rotation_block_size == rotation_block_size - 1)) {
             continue;
         }
 
@@ -1128,13 +1213,14 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         }
         result -= subfunction(variables_copy_smallblock, 2);
 
-        if (i > 0 && sorted_touched_indices[i - 1] == ind - 1) {
-            variables_copy_smallblock[0] = sorted_touched_variables[i - 1];
-            variables_copy_smallblock[1] = sorted_touched_variables[i];
-        } else if (i < solution->num_touched_variables - 1 && sorted_touched_indices[i + 1] == ind + 1) {
-            variables_copy_smallblock[0] = sorted_touched_variables[i];
-            variables_copy_smallblock[1] = sorted_touched_variables[i + 1];
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < solution->num_touched_variables; k++) {
+                if (solution->touched_indices[k] == block_start + j - 1) {
+                    variables_copy_smallblock[j] = solution->touched_variables[k];
+                }
+            }
         }
+
         result += subfunction(variables_copy_smallblock, 2);
     }
 
@@ -1154,8 +1240,19 @@ double osorebFunction_t::subfunction(double *vars, int num_vars) {
         exit(0);
     }
     double result = 0.0;
-    for (int i = 0; i < num_vars; i++)
-        result += pow(10.0, 6.0 * (((double) (i)) / ((double) (num_vars - 1)))) * rotated_vars[i] * rotated_vars[i];
+    if (num_vars == rotation_block_size) {
+        for (int i = 0; i < num_vars; i++)
+            result += pow(10.0, big_condition * (((double) (i)) / ((double) (num_vars - 1)))) * rotated_vars[i] *
+                      rotated_vars[i];
+    } else if (num_vars == 2) {
+        for (int i = 0; i < num_vars; i++)
+            result += pow(10.0, small_condition * (((double) (i)) / ((double) (num_vars - 1)))) * rotated_vars[i] *
+                      rotated_vars[i];
+    } else {
+        printf("Undefined operation\n");
+        exit(0);
+    }
+
     free(rotated_vars);
     return (result);
 }
@@ -1926,6 +2023,10 @@ char *installedProblemName(int index) {
             return ((char *) "Disjoint Sum of Rotated Ellipsoid Blocks");
         case 16:
             return ((char *) "Overlapping Sum of Rotated Ellipsoid Blocks");
+        case 17:
+            return ((char *) "Overlapping Sum of Rotated Ellipsoid Blocks, big strong");
+        case 18:
+            return ((char *) "Overlapping Sum of Rotated Ellipsoid Blocks, small strong");
 //        case 17:
 //            return ((char *) "BD2 function hypervolume");
 //        case 10:

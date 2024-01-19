@@ -339,8 +339,10 @@ public:
     double **rotation_matrix_big, **rotation_matrix_small;
     int number_of_large_rotated_blocks;
     int number_of_small_rotated_blocks;
+    double big_condition;
+    double small_condition;
 
-    osorebFunction_t(int number_of_parameters, double vtr);
+    osorebFunction_t(int number_of_parameters, double vtr, int strength_mode);
 
     ~osorebFunction_t();
 

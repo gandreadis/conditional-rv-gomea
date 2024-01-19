@@ -23,8 +23,9 @@ if sys.argv[2] == "single":
     fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
     cmap = LinearSegmentedColormap.from_list('', ['white', 'darkblue'])
+    cmap.set_under('darkred')
 
-    ax.imshow(get_matrix(num_generations), cmap=cmap)
+    ax.imshow(get_matrix(num_generations), cmap=cmap, vmin=1e-10, vmax=1)
     ax.set_xticks([])
     ax.set_yticks([])
 

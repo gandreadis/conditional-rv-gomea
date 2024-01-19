@@ -27,8 +27,6 @@ def get_matrix(generation: int, df):
 
 
 def main(base_directory, problem_ids, problem_labels):
-    num_problems = len(problem_ids)
-    assert num_problems == 12
     assert len(problem_ids) == len(problem_labels)
 
     if AGGREGATE:

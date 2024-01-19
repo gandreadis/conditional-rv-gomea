@@ -48,71 +48,45 @@ for repeat in range(1, REPEATS + 1):
                     "linkage_model": linkage_model,
                 })
 
-for repeat in range(1, REPEATS + 1):
-    for i, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
-        for dimension in dimensions:
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "uni-hg-gbo-without_clique_seeding-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "uni-hg-fb_no_order-without_clique_seeding-conditional",
-            })
+
+PROBLEM_DIMENSIONS = [
+    ("sphere", [10, 20, 40, 80]),
+    ("rosenbrock", [10, 20, 40, 80]),
+    ("reb2-chain-weak", [10, 20, 40, 80]),
+    ("reb2-chain-strong", [10, 20, 40, 80]),
+    ("reb2-chain-alternating", [10, 20, 40, 80]),
+    ("reb5-no-overlap", [10, 20, 40, 80]),
+    ("reb5-small-overlap", [9, 21, 41, 81]),
+    ("reb5-small-overlap-alternating", [9, 21, 41, 81]),
+    ("osoreb", [10, 20, 40, 80]),
+    ("osoreb-big-strong", [10, 20, 40, 80]),
+    ("osoreb-small-strong", [10, 20, 40, 80]),
+    ("reb5-large-overlap", [10, 20, 40, 80]),
+    ("reb5-disjoint-pairs", [9, 18, 36, 72]),
+    ("reb-grid", [16, 36, 64, 81]),
+]
+
+
+LINKAGE_MODELS = [
+    "uni-hg-gbo-without_clique_seeding-conditional",
+    "mp-hg-gbo-without_clique_seeding-conditional",
+    "mp-hg-gbo-with_clique_seeding-conditional",
+    "uni-hg-fb_no_order-without_clique_seeding-conditional",
+    "mp-hg-fb_no_order-without_clique_seeding-conditional",
+    "mp-hg-fb_no_order-with_clique_seeding-conditional",
+    "lt-fb-online-pruned",
+]
 
 for repeat in range(1, REPEATS + 1):
-    for i, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
+    for problem, dimensions in PROBLEM_DIMENSIONS:
         for dimension in dimensions:
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "mp-hg-fb_no_order-with_clique_seeding_and_uni-conditional",
-            })
-
-for repeat in range(1, REPEATS + 1):
-    for i, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
-        for dimension in dimensions:
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "uni-lt-gbo-without_clique_seeding-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "uni-lt-fb_no_order-without_clique_seeding-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "mp-lt-gbo-without_clique_seeding-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "mp-lt-fb_no_order-without_clique_seeding-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "uni-lt-gbo-pruned-conditional",
-            })
-            SETTINGS.append({
-                "repeat": repeat,
-                "problem": problem,
-                "dimension": dimension,
-                "linkage_model": "mp-lt-gbo-pruned-conditional",
-            })
+            for linkage_model in LINKAGE_MODELS:
+                SETTINGS.append({
+                    "repeat": repeat,
+                    "problem": problem,
+                    "dimension": dimension,
+                    "linkage_model": linkage_model,
+                })
 
 
 def main():

@@ -81,7 +81,7 @@ def run_bisection(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
 
         if log_progress:
             print(
-                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:10}  [CORR-NUM-EVALS] {corrected_num_evaluations:12}")
+                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:10.4}  [CORR-NUM-EVALS] {corrected_num_evaluations:12.4}")
 
         history.append({
             "iteration": history_counter[0],

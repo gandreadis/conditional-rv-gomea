@@ -45,6 +45,8 @@ PROBLEM_CODES = {
     "reb5-large-overlap": 546699,
     "reb5-disjoint-pairs": 14,
     "osoreb": 16,
+    "osoreb-big-strong": 17,
+    "osoreb-small-strong": 18,
     "reb-grid": 20,  # only square
 }
 
@@ -67,6 +69,8 @@ INIT_RANGES = {
     "rosenbrock": [-115, -100],
     "reb-grid": [-115, -100],
     "osoreb": [-115, -100],
+    "osoreb-big-strong": [-115, -100],
+    "osoreb-small-strong": [-115, -100],
     "reb2": [-115, -100],
     "reb5": [-115, -100],
 }

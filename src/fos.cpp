@@ -247,56 +247,52 @@ void fos_t::deriveTree(double **MI_matrix) {
             S_matrix[i] = (double *) Malloc(number_of_parameters * sizeof(double));
     }
 
-    if (learn_linkage_tree) {
-        for (int i = 0; i < mpm_length; i++)
-            for (int j = 0; j < mpm_length; j++)
-                S_matrix[i][j] = MI_matrix[mpm[i][0]][mpm[j][0]];
-        for (int i = 0; i < mpm_length; i++)
-            S_matrix[i][i] = 0;
-
-        for (int i = 0; i < number_of_parameters; i++)
-            free(MI_matrix[i]);
-        free(MI_matrix);
-
-    } else if (random_linkage_tree) {
+    if (random_linkage_tree) {
         S_vector = (double *) Malloc(number_of_parameters * sizeof(double));
         for (int i = 0; i < number_of_parameters; i++)
             S_vector[i] = randu<double>();
 
     } else if (static_linkage_tree) {
+        MI_matrix = (double **) Malloc(number_of_parameters * sizeof(double *));
+        for (int j = 0; j < number_of_parameters; j++)
+            MI_matrix[j] = (double *) Malloc(number_of_parameters * sizeof(double));
+
         if (problem_index == 0) {
-            random_linkage_tree = 1;
-            S_vector = (double *) Malloc(number_of_parameters * sizeof(double));
-            for (int i = 0; i < number_of_parameters; i++)
-                S_vector[i] = 0;
+            for (int i = 0; i < number_of_parameters; i++) {
+                for (int j = 0; j < i; j++) {
+                    MI_matrix[i][j] = randu<double>();
+                    MI_matrix[j][i] = MI_matrix[j][i];
+                }
+                MI_matrix[i][i] = 0.0;
+            }
 
         } else if (problem_index == 7) {
-            S_matrix[0][0] = 0.0;
+            MI_matrix[0][0] = 0.0;
             for (int i = 1; i < number_of_parameters; i++) {
-                S_matrix[i][i] = 0.0;
-                S_matrix[i - 1][i] = 1e8 + randu<double>();
-                S_matrix[i][i - 1] = S_matrix[i - 1][i];
+                MI_matrix[i][i] = 0.0;
+                MI_matrix[i - 1][i] = 1e8 + randu<double>();
+                MI_matrix[i][i - 1] = MI_matrix[i - 1][i];
                 for (int j = i + 1; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = 0;
-                    S_matrix[i][j] = S_matrix[j][i];
+                    MI_matrix[j][i] = 0;
+                    MI_matrix[i][j] = MI_matrix[j][i];
                 }
             }
 
         } else if (problem_index == 8) {
-            S_matrix[0][0] = 0.0;
+            MI_matrix[0][0] = 0.0;
             for (int i = 1; i < number_of_parameters; i++) {
-                S_matrix[i][i] = 0.0;
+                MI_matrix[i][i] = 0.0;
                 for (int j = 0; j < i; j++) {
-                    S_matrix[i][j] = 1e2 * i + randu<double>();
-                    S_matrix[j][i] = S_matrix[i][j];
+                    MI_matrix[i][j] = 1e2 * i + randu<double>();
+                    MI_matrix[j][i] = MI_matrix[i][j];
                 }
             }
 
         } else if (problem_index == 14) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = 0;
-                    S_matrix[i][j] = S_matrix[j][i];
+                    MI_matrix[j][i] = 0;
+                    MI_matrix[i][j] = MI_matrix[j][i];
                 }
             }
 
@@ -305,28 +301,28 @@ void fos_t::deriveTree(double **MI_matrix) {
             for (int i = 0; i + dual_block_size <= number_of_parameters; i += dual_block_size) {
                 for (int j = 0; j < single_block_size; j++) {
                     for (int k = 0; k < j; k++) {
-                        S_matrix[i + j][i + k] = 1e8 + randu<double>();
-                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
+                        MI_matrix[i + j][i + k] = 1e8 + randu<double>();
+                        MI_matrix[i + k][i + j] = MI_matrix[i + j][i + k];
                     }
-                    S_matrix[i + j][i + j] = 0.0;
+                    MI_matrix[i + j][i + j] = 0.0;
                 }
 
                 int offset = 4;
 
                 for (int j = 0; j < single_block_size; j++) {
                     for (int k = 0; k < j; k++) {
-                        S_matrix[i + j + offset][i + k + offset] = 1e8 + randu<double>();
-                        S_matrix[i + k + offset][i + j + offset] = S_matrix[i + j + offset][i + k + offset];
+                        MI_matrix[i + j + offset][i + k + offset] = 1e8 + randu<double>();
+                        MI_matrix[i + k + offset][i + j + offset] = MI_matrix[i + j + offset][i + k + offset];
                     }
-                    S_matrix[i + j + offset][i + j + offset] = 0.0;
+                    MI_matrix[i + j + offset][i + j + offset] = 0.0;
                 }
             }
 
-        } else if (problem_index == 16) {
+        } else if ((problem_index == 16) || (problem_index == 17) || (problem_index == 18)) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = 0;
-                    S_matrix[i][j] = S_matrix[j][i];
+                    MI_matrix[j][i] = 0;
+                    MI_matrix[i][j] = MI_matrix[j][i];
                 }
             }
 
@@ -334,10 +330,14 @@ void fos_t::deriveTree(double **MI_matrix) {
             for (int i = 0; i < number_of_parameters; i += single_block_size) {
                 for (int j = 0; j < single_block_size; j++) {
                     for (int k = 0; k < j; k++) {
-                        S_matrix[i + j][i + k] = 1e8 + randu<double>();
-                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
+                        if ((problem_index == 16) || (problem_index == 17)) {
+                            MI_matrix[i + j][i + k] = 1e8 + randu<double>();
+                        } else {
+                            MI_matrix[i + j][i + k] = 1.0 + randu<double>();
+                        }
+                        MI_matrix[i + k][i + j] = MI_matrix[i + j][i + k];
                     }
-                    S_matrix[i + j][i + j] = 0.0;
+                    MI_matrix[i + j][i + j] = 0.0;
                 }
 
                 if (i > 0) {
@@ -345,10 +345,14 @@ void fos_t::deriveTree(double **MI_matrix) {
                     int small_block_size = 2;
                     for (int j = 0; j < small_block_size; j++) {
                         for (int k = 0; k < j; k++) {
-                            S_matrix[i + j - 1][i + k - 1] = 1e8 + randu<double>();
-                            S_matrix[i + k - 1][i + j - 1] = S_matrix[i + j - 1][i + k - 1];
+                            if ((problem_index == 16) || (problem_index == 18)) {
+                                MI_matrix[i + j - 1][i + k - 1] = 1e8 + randu<double>();
+                            } else {
+                                MI_matrix[i + j - 1][i + k - 1] = 1.0 + randu<double>();
+                            }
+                            MI_matrix[i + k - 1][i + j - 1] = MI_matrix[i + j - 1][i + k - 1];
                         }
-                        S_matrix[i + j + offset][i + j + offset] = 0.0;
+                        MI_matrix[i + j + offset][i + j + offset] = 0.0;
                     }
                 }
             }
@@ -356,8 +360,8 @@ void fos_t::deriveTree(double **MI_matrix) {
         } else if (problem_index == 20) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = 0;
-                    S_matrix[i][j] = S_matrix[j][i];
+                    MI_matrix[j][i] = 0;
+                    MI_matrix[i][j] = MI_matrix[j][i];
                 }
             }
 
@@ -365,7 +369,7 @@ void fos_t::deriveTree(double **MI_matrix) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
                     if (i == j) {
-                        S_matrix[i][j] = 0.0;
+                        MI_matrix[i][j] = 0.0;
                     } else {
                         int x1 = i % grid_width;
                         int y1 = i / grid_width;
@@ -374,11 +378,11 @@ void fos_t::deriveTree(double **MI_matrix) {
 
                         if (abs(x1 - x2) == 1 || abs(y1 - y2) == 1 ||
                             (abs(x1 - x2) == 0 && abs(y1 - y2) == 2) || (abs(x1 - x2) == 2 && abs(y1 - y2) == 0)) {
-                            S_matrix[i][j] = 1e8 + randu<double>();
-                            S_matrix[j][i] = S_matrix[i][j];
+                            MI_matrix[i][j] = 1e8 + randu<double>();
+                            MI_matrix[j][i] = MI_matrix[i][j];
                         } else {
-                            S_matrix[i][j] = randu<double>();
-                            S_matrix[j][i] = S_matrix[i][j];
+                            MI_matrix[i][j] = randu<double>();
+                            MI_matrix[j][i] = MI_matrix[i][j];
                         }
                     }
                 }
@@ -387,8 +391,8 @@ void fos_t::deriveTree(double **MI_matrix) {
         } else if (problem_index == 13 || problem_index > 10000) {
             for (int i = 0; i < number_of_parameters; i++) {
                 for (int j = 0; j < number_of_parameters; j++) {
-                    S_matrix[j][i] = 0;
-                    S_matrix[i][j] = S_matrix[j][i];
+                    MI_matrix[j][i] = 0;
+                    MI_matrix[i][j] = MI_matrix[j][i];
                 }
             }
 
@@ -409,10 +413,10 @@ void fos_t::deriveTree(double **MI_matrix) {
             for (int i = 0; i + block_size <= number_of_parameters; i += (block_size - overlap_size)) {
                 for (int j = 0; j < block_size; j++) {
                     for (int k = 0; k < j; k++) {
-                        S_matrix[i + j][i + k] = 1e8 + randu<double>();
-                        S_matrix[i + k][i + j] = S_matrix[i + j][i + k];
+                        MI_matrix[i + j][i + k] = 1e8 + randu<double>();
+                        MI_matrix[i + k][i + j] = MI_matrix[i + j][i + k];
                     }
-                    S_matrix[i + j][i + j] = 0.0;
+                    MI_matrix[i + j][i + j] = 0.0;
                 }
             }
 
@@ -420,6 +424,27 @@ void fos_t::deriveTree(double **MI_matrix) {
             printf("Implement this.\n");
             exit(0);
         }
+    }
+
+    for (int i = 0; i < mpm_length; i++) {
+        for (int j = 0; j < i; j++) {
+            double similarity_between_seeded_elements = 0;
+
+            for (size_t k = 0; k < mpm_num_ind[i]; k++) {
+                for (size_t l = 0; l < mpm_num_ind[j]; l++) {
+                    if (MI_matrix[mpm[i][k]][mpm[j][l]] > 0.0) {
+                        similarity_between_seeded_elements += 1.0;
+                    }
+                }
+            }
+
+            similarity_between_seeded_elements /= (double) mpm_num_ind[i] * (double) mpm_num_ind[j];
+            S_matrix[i][j] = similarity_between_seeded_elements + randomRealUniform01() * 0.00001;
+            S_matrix[j][i] = S_matrix[i][j];
+        }
+    }
+    for (int i = 0; i < mpm_length; i++) {
+        S_matrix[i][i] = 0;
     }
 
     int *NN_chain = (int *) Malloc((mpm_length + 2) * sizeof(int));
@@ -494,7 +519,7 @@ void fos_t::deriveTree(double **MI_matrix) {
                 bool completely_dependent = true;
                 for (size_t i = 0; i < mpm_num_ind[r0]; i++) {
                     for (size_t j = 0; j < mpm_num_ind[r1]; j++) {
-                        if (S_matrix[mpm[r0][i]][mpm[r1][j]] <= 0.0) {
+                        if (MI_matrix[mpm[r0][i]][mpm[r1][j]] <= 0.0) {
                             completely_dependent = false;
                             break;
                         }
@@ -506,12 +531,22 @@ void fos_t::deriveTree(double **MI_matrix) {
                 // Remove subsets that build this set
                 if (completely_dependent) {
                     // Remove r0
-                    int set_length = mpm_num_ind[r0];
+                    int set_length_0 = mpm_num_ind[r0];
+                    int set_length_1 = mpm_num_ind[r1];
                     for (size_t i = 0; i < current_fos_length; i++) {
-                        if (sets[i].size() == set_length) {
+                        if (!keep_FOS_element[i]) {
+                            continue;
+                        }
+
+                        if (sets[i].size() == set_length_0) {
+                            std::set<int> fos_element;
+                            for (int set_ind = 0; set_ind < sets[i].size(); set_ind++) {
+                                fos_element.insert(sets[i][set_ind]);
+                            }
+
                             bool is_equal_set = true;
-                            for (size_t x = 0; x < set_length; x++) {
-                                if (mpm[r0][x] != sets[i][x]) {
+                            for (size_t x = 0; x < set_length_0; x++) {
+                                if (fos_element.find(mpm[r0][x]) == fos_element.end()) {
                                     is_equal_set = false;
                                     break;
                                 }
@@ -520,15 +555,16 @@ void fos_t::deriveTree(double **MI_matrix) {
                                 keep_FOS_element[i] = false;
                             }
                         }
-                    }
 
-                    // Remove r1
-                    set_length = mpm_num_ind[r1];
-                    for (size_t i = 0; i < current_fos_length; i++) {
-                        if (sets[i].size() == set_length) {
+                        if (sets[i].size() == set_length_1) {
+                            std::set<int> fos_element;
+                            for (int set_ind = 0; set_ind < sets[i].size(); set_ind++) {
+                                fos_element.insert(sets[i][set_ind]);
+                            }
+
                             bool is_equal_set = true;
-                            for (size_t x = 0; x < set_length; x++) {
-                                if (mpm[r1][x] != sets[i][x]) {
+                            for (size_t x = 0; x < set_length_1; x++) {
+                                if (fos_element.find(mpm[r1][x]) == fos_element.end()) {
                                     is_equal_set = false;
                                     break;
                                 }
@@ -675,6 +711,10 @@ void fos_t::deriveTree(double **MI_matrix) {
     }
 
     order = randomPermutation(getLength());
+
+    for (int i = 0; i < number_of_parameters; i++)
+        free(MI_matrix[i]);
+    free(MI_matrix);
 }
 
 fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
@@ -1045,8 +1085,9 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
             double **array_version = (double **) Malloc(number_of_parameters * sizeof(double *));
             for (int i = 0; i < number_of_parameters; i++) {
                 array_version[i] = (double *) Malloc(number_of_parameters * sizeof(double));
-                for (int j = 0; j < number_of_parameters; j++) {
+                for (int j = 0; j < i; j++) {
                     array_version[i][j] = (*fitness_dependency_matrix)[i][j] > 0 ? 1e8 + randomRealUniform01() : 0;
+                    array_version[j][i] = array_version[i][j];
                 }
             }
 
@@ -1220,7 +1261,30 @@ int fos_t::determineNearestNeighbour(int index, int *mpm_num_ind, int mpm_length
 }
 
 void fos_t::randomizeOrder() {
+    int index_of_full_element = -1;
+    for (int i = 0; i < getLength(); i++) {
+        if (sets[i].size() == number_of_parameters) {
+            index_of_full_element = i;
+            break;
+        }
+    }
+
     order = randomPermutation(getLength());
+
+    if (index_of_full_element != -1) {
+        int loc = -1;
+        for (int i = 0; i < getLength(); i++) {
+            if (order[i] == index_of_full_element) {
+                loc = i;
+                break;
+            }
+        }
+
+        if (loc != getLength() - 1) {
+            order[loc] = order[0];
+            order[0] = index_of_full_element;
+        }
+    }
 }
 
 void fos_t::randomizeOrder(const std::map<int, std::set<int>> &variable_interaction_graph) {
