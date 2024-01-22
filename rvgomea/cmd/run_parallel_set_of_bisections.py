@@ -89,6 +89,31 @@ for repeat in range(1, REPEATS + 1):
                 })
 
 
+PROBLEM_DIMENSIONS = [
+    ("osoreb", [10, 20, 40, 80]),
+    ("osoreb-big-strong", [10, 20, 40, 80]),
+    ("osoreb-small-strong", [10, 20, 40, 80]),
+]
+
+
+LINKAGE_MODELS = [
+    "univariate",
+    "vkd-cma",
+    "full",
+]
+
+for repeat in range(1, REPEATS + 1):
+    for problem, dimensions in PROBLEM_DIMENSIONS:
+        for dimension in dimensions:
+            for linkage_model in LINKAGE_MODELS:
+                SETTINGS.append({
+                    "repeat": repeat,
+                    "problem": problem,
+                    "dimension": dimension,
+                    "linkage_model": linkage_model,
+                })
+
+
 def main():
     if len(sys.argv) < 2:
         print("Jobs in array:")

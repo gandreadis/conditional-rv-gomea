@@ -5,8 +5,8 @@ sbatch <<EOT
 #SBATCH --partition=all,RTAIgpu
 #SBATCH --array=${2}%40
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem=48GB
+#SBATCH --cpus-per-task=30
+#SBATCH --mem=80GB
 #SBATCH --time=21-00:00:00
 #SBATCH -o "logs/scalability-array-%A_${1}_"%a".out"
 
