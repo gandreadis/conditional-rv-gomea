@@ -2,7 +2,7 @@
 sbatch <<EOT
 #!/bin/bash
 #
-#SBATCH --partition=all
+#SBATCH --partition=all,RTAIgpu
 #SBATCH --array=${2}%40
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
