@@ -6,7 +6,6 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 
-from rvgomea.cmd.run_parallel_set_of_bisections import PROBLEM_DIMENSIONS, LINKAGE_MODELS
 from rvgomea.defaults import DEFAULT_MAX_NUM_EVALUATIONS
 from rvgomea.run_algorithm import run_algorithm
 from rvgomea.run_config import RunConfig
@@ -21,10 +20,44 @@ DIMENSIONALITY_EXTENSIONS = {
     "reb5-small-overlap": [161, 321],
     "reb5-small-overlap-alternating": [161, 321],
     "osoreb": [160, 320],
+    "osoreb-big-strong": [160, 320],
+    "osoreb-small-strong": [160, 320],
     "reb5-large-overlap": [160, 320],
     "reb5-disjoint-pairs": [162, 324],
     "reb-grid": [169, 324],
 }
+
+
+PROBLEM_DIMENSIONS = [
+    ("sphere", [10, 20, 40, 80]),
+    ("rosenbrock", [10, 20, 40, 80]),
+    ("reb2-chain-weak", [10, 20, 40, 80]),
+    ("reb2-chain-strong", [10, 20, 40, 80]),
+    ("reb2-chain-alternating", [10, 20, 40, 80]),
+    ("reb5-no-overlap", [10, 20, 40, 80]),
+    ("reb5-small-overlap", [9, 21, 41, 81]),
+    ("reb5-small-overlap-alternating", [9, 21, 41, 81]),
+    ("osoreb", [10, 20, 40, 80]),
+    ("osoreb-big-strong", [10, 20, 40, 80]),
+    ("osoreb-small-strong", [10, 20, 40, 80]),
+    ("reb5-large-overlap", [10, 20, 40, 80]),
+    ("reb5-disjoint-pairs", [9, 18, 36, 72]),
+    ("reb-grid", [16, 36, 64, 81]),
+]
+
+
+LINKAGE_MODELS = [
+    "uni-hg-gbo-without_clique_seeding-conditional",
+    "mp-hg-gbo-without_clique_seeding-conditional",
+    "mp-hg-gbo-with_clique_seeding-conditional",
+    "uni-hg-fb_no_order-without_clique_seeding-conditional",
+    "mp-hg-fb_no_order-without_clique_seeding-conditional",
+    "mp-hg-fb_no_order-with_clique_seeding-conditional",
+    "lt-fb-online-pruned",
+    "univariate",
+    "vkd-cma",
+    "full",
+]
 
 
 def sweep_worker(run_config: RunConfig):
