@@ -585,6 +585,30 @@ def run_vkd_cma(problem_name: str, dimensionality: int, population_size: int, sh
 
         return res
 
+    def osorebBig(x):
+        res = 0.0
+
+        # Large blocks
+        res += soreb(x, 5, 0, 6, 45)
+
+        # Small blocks
+        for large_block in range(1, dimensionality // 5):
+            res += soreb(x[large_block * 5 - 1:large_block * 5 + 1], 2, 0, 1, 5)
+
+        return res
+
+    def osorebSmall(x):
+        res = 0.0
+
+        # Large blocks
+        res += soreb(x, 5, 0, 1, 5)
+
+        # Small blocks
+        for large_block in range(1, dimensionality // 5):
+            res += soreb(x[large_block * 5 - 1:large_block * 5 + 1], 2, 0, 6, 45)
+
+        return res
+
     def soreb_disjoint(x):
         res = 0.0
 
@@ -631,6 +655,14 @@ def run_vkd_cma(problem_name: str, dimensionality: int, population_size: int, sh
         assert dimensionality >= 10
         assert dimensionality % 5 == 0
         fobj = osoreb
+    elif problem_name == "osoreb-big-strong":
+        assert dimensionality >= 10
+        assert dimensionality % 5 == 0
+        fobj = osorebBig
+    elif problem_name == "osoreb-small-strong":
+        assert dimensionality >= 10
+        assert dimensionality % 5 == 0
+        fobj = osorebSmall
     elif problem_name == "reb-grid":
         assert abs((sqrt(dimensionality) ** 2) - dimensionality) < 1e-6
         fobj = ellipsoid_grid
