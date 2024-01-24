@@ -2,9 +2,8 @@
 #
 #SBATCH --partition=all,RTAIgpu
 #SBATCH --ntasks=1
-#SBATCH --priority=1
-#SBATCH --cpus-per-task=15
-#SBATCH --mem=48GB
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=32GB
 #SBATCH --time=10-00:00:00
 #SBATCH -o "extrapolation-logs/extrapolation-array-%A_%a.out"
 
