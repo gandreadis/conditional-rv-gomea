@@ -124,7 +124,7 @@ def main():
                         random_seed=repeat + 1,
                         problem=problem,
                         dimensionality=d,
-                        base_dir=os.path.join(extended_base_dir, str(repeat)),
+                        base_dir=os.path.join(extended_base_dir, problem, str(repeat)),
                     )
                     configs.append(derived_config)
 
