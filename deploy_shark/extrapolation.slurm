@@ -3,10 +3,11 @@
 #SBATCH --partition=all,RTAIgpu
 #SBATCH --array=0-13
 #SBATCH --ntasks=1
+#SBATCH --priority=1
 #SBATCH --cpus-per-task=15
 #SBATCH --mem=48GB
-#SBATCH --time=21-00:00:00
-#SBATCH -o "logs/extrapolation-array-%A_%a.out"
+#SBATCH --time=10-00:00:00
+#SBATCH -o "extrapolation-logs/extrapolation-array-%A_%a.out"
 
 module purge
 module load library/blas/0.3.13/gcc-8.3.1
