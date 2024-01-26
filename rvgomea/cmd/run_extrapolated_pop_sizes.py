@@ -69,17 +69,17 @@ def sweep_worker(run_config: RunConfig):
 def main():
     aggregated_base_dir_stub = sys.argv[1]
     extended_base_dir = sys.argv[2]
-    filter_problem_index = None
-    if len(sys.argv) > 3:
-        filter_problem_index = int(sys.argv[3])
+    filter_problem_index = int(sys.argv[3])
+    global_repeat = filter_problem_index // len(DIMENSIONALITY_EXTENSIONS.items())
+    filter_problem_index = filter_problem_index % len(DIMENSIONALITY_EXTENSIONS.items())
 
     os.system(f"mkdir -p {extended_base_dir}")
 
     for problem_index, (problem, dimensions) in enumerate(PROBLEM_DIMENSIONS):
-        if filter_problem_index is not None and problem_index != filter_problem_index:
+        if problem_index != filter_problem_index:
             continue
 
-        print(f"Problem: {problem}")
+        print(f"Problem: {problem}    - Repeat: {global_repeat}")
         df = pd.read_csv(os.path.join(aggregated_base_dir_stub + problem, "aggregated_results.csv"))
 
         problem_rows = []
@@ -121,10 +121,10 @@ def main():
                     derived_config = RunConfig(
                         linkage_model=linkage_model,
                         population_size=p,
-                        random_seed=repeat + 1,
+                        random_seed=global_repeat * 5000 + repeat + 1,
                         problem=problem,
                         dimensionality=d,
-                        base_dir=os.path.join(extended_base_dir, problem, str(repeat)),
+                        base_dir=os.path.join(extended_base_dir, problem, str(global_repeat), str(repeat)),
                     )
                     configs.append(derived_config)
 
@@ -153,6 +153,7 @@ def main():
                 print(f"Dimensionality: {d:3} | Pop. size: {p:4} | Corr. num. evals: {corrected_num_evaluations:12.0f}")
                 problem_rows.append({
                     "problem": problem,
+                    "repeat": global_repeat,
                     "linkage_model": linkage_model,
                     "dimensionality": d,
                     "population_size": p,

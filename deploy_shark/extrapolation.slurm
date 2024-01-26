@@ -16,4 +16,4 @@ module load system/python/3.8.1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gandreadis/arma/lib64
 
 run_scripts/run_extrapolated_scalability.sh ${SLURM_ARRAY_TASK_ID}
-#--array=0-13
+#--array=0-69
