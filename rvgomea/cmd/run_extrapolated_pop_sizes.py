@@ -169,7 +169,8 @@ def main():
 
         print("-----------")
 
-        pd.DataFrame(problem_rows).to_csv(os.path.join(aggregated_base_dir_stub + problem, "extrapolated_results.csv"))
+        pd.DataFrame(problem_rows).to_csv(os.path.join(aggregated_base_dir_stub + problem,
+                                                       f"extrapolated_results_{global_repeat}.csv"))
 
 
 if __name__ == '__main__':
