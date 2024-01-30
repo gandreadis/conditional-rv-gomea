@@ -118,7 +118,12 @@ def main():
     if len(sys.argv) < 2:
         print("Jobs in array:")
         for i, setting in enumerate(SETTINGS):
-            print(f"[{i+1:4}] {setting}")
+            repeat = setting["repeat"]
+            problem = setting["problem"]
+            dimension = setting["dimension"]
+            linkage_model = setting["linkage_model"]
+            print(f"[{i+1:4}] {problem},{linkage_model},{dimension:04},{repeat:04}")
+            # print(f"[{i+1:4}] {setting}")
         exit(1)
 
     job_array_index = int(sys.argv[1])

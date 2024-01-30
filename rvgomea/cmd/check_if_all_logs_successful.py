@@ -2,7 +2,7 @@ import os.path
 import sys
 from glob import glob
 
-FRAGMENTS = ("shark", "snellius1", "snellius2")
+FRAGMENTS = ("shark2",)#("shark", "snellius1", "snellius2")
 
 
 def main(all_scalability_results_directory):

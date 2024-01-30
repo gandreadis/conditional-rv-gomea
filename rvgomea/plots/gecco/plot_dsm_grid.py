@@ -51,14 +51,15 @@ def main(base_directory, problem_ids, problem_labels):
                 mean_dsm /= max_dep
             mean_dsm.tofile(os.path.join(base_directory, problem_id, "dsm.dat"))
 
-    fig = plt.figure(figsize=(10, 7))
+    fig = plt.figure(figsize=(10, 4))
 
     axs = ImageGrid(fig, 111,
-                    nrows_ncols=(3, 4),
+                    nrows_ncols=(2, 6),
                     share_all=True,
-                    axes_pad=0.4,
+                    axes_pad=(0.3,0.3),
                     cbar_mode='single',
                     cbar_location='right',
+                    cbar_size=0.1,
                     cbar_pad=0.1,
                     aspect=True)
 
@@ -69,20 +70,44 @@ def main(base_directory, problem_ids, problem_labels):
         dsm = np.fromfile(os.path.join(base_directory, problem_id, "dsm.dat"))
         dsm = np.reshape(dsm, (20, 20))
 
-        ax.set_title(problem_label)
+        ax.set_title(problem_label, fontsize=11)
         ax.tick_params(axis=u'both', which=u'both', length=0)
-        ax.set_xticks(list(range(0, 20, 4)))
-        ax.set_yticks(list(range(0, 20, 4)))
+        ax.set_xticks(list(range(0, 20, 5)))
+        ax.set_yticks(list(range(0, 20, 5)))
+        ax.set_xticklabels(list(range(0, 20, 5)), fontsize=10)
+        ax.set_yticklabels(list(range(0, 20, 5)), fontsize=10)
         cb = ax.imshow(dsm, cmap=cmap, vmin=1e-6, vmax=1)
 
-    cbar = axs.cbar_axes[0].colorbar(cb, label="Dependency strength", extend='min', ticks=[1e-6, 0.2, 0.4, 0.6, 0.8, 1.0])
-    cbar.ax.set_yticklabels(['$<10^{-6}$', '0.2', '0.4', '0.6', '0.8', '1.0'])
+    cbar = axs.cbar_axes[0].colorbar(cb, label="Dependency strength", extend='min',
+                                     ticks=[1e-6, 0.2, 0.4, 0.6, 0.8, 1.0],)
+    cbar.ax.set_yticklabels(['$<\\eta$', '0.2', '0.4', '0.6', '0.8', '1.0'], fontsize=10)
 
-    # Global labels
-    # fig.add_subplot(111, frameon=False)
-    # plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
-    # plt.xlabel('Variable')
-    # plt.ylabel('Variable')
+
+    # Version in one column:
+    #
+    # fig = plt.figure(figsize=(6, 4))
+    #
+    # axs = ImageGrid(fig, 111,
+    #                 nrows_ncols=(3, 4),
+    #                 share_all=True,
+    #                 axes_pad=(0.3,0.3),
+    #                 cbar_mode='single',
+    #                 cbar_location='right',
+    #                 cbar_size=0.1,
+    #                 cbar_pad=0.1,
+    #                 aspect=True)
+    #
+    #       ax.set_title(problem_label, fontsize=9)
+    #       ax.tick_params(axis=u'both', which=u'both', length=0)
+    #       ax.set_xticks(list(range(0, 20, 5)))
+    #       ax.set_yticks(list(range(0, 20, 5)))
+    #       ax.set_xticklabels(list(range(0, 20, 5)), fontsize=9)
+    #       ax.set_yticklabels(list(range(0, 20, 5)), fontsize=9)
+    #       cb = ax.imshow(dsm, cmap=cmap, vmin=1e-6, vmax=1)
+    #
+    # cbar = axs.cbar_axes[0].colorbar(cb, label="Dependency strength", extend='min',
+    #                                  ticks=[1e-6, 0.2, 0.4, 0.6, 0.8, 1.0],)
+    # cbar.ax.set_yticklabels(['$<\\epsilon$', '0.2', '0.4', '0.6', '0.8', '1.0'], fontsize=9)
 
     plt.tight_layout()
 

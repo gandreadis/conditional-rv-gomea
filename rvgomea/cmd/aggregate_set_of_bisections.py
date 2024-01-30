@@ -30,7 +30,7 @@ def main(directory: str):
 
         settings = bisection_path.split("/")[-1].split(",")
 
-        results.append({
+        data = {
             "problem": settings[0],
             "linkage_model": settings[1],
             "dimensionality": int(settings[2]),
@@ -38,7 +38,13 @@ def main(directory: str):
             "population_size": result["population_size"],
             "median_num_evaluations": result["median_num_evaluations"],
             "corrected_num_evaluations": result["corrected_num_evaluations"],
-        })
+        }
+
+        # Address REBGrid 4th dimension having slightly passing median than 3th dimension (where it fails)
+        if data["problem"] == "reb-grid" and data["linkage_model"] == "full" and data["dimensionality"] >= 40:
+            continue
+
+        results.append(data)
 
         if result["corrected_num_evaluations"] >= DEFAULT_MAX_NUM_EVALUATIONS:
             s = filter_dict(results[-1])

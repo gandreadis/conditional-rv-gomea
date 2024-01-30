@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 
@@ -15,44 +16,44 @@ plt.style.use('science')
 # Prevent scienceplots from being purged as import
 scienceplots.listdir(".")
 
-cmap = matplotlib.colormaps['tab20']
+cmap = matplotlib.colormaps['tab10']
 
 LABELS = {
     "univariate": "Univariate",
     "full": "Full",
+    "uni-hg-gbo-without_clique_seeding-conditional": "Static-UCond-HG",
     "mp-hg-gbo-without_clique_seeding-conditional": "Static-MCond-HG",
     "mp-hg-gbo-with_clique_seeding-conditional": "Static-MCond-HG-CS",
     "lt-fb-online-pruned": "FB-LT",
+    "uni-hg-fb_no_order-without_clique_seeding-conditional": "FB-UCond-HG",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "FB-MCond-HG",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "FB-MCond-HG-CS",
-    "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": "Static-EdgeCover",
-    "mp-hg-gbo-without_clique_seeding-conditional-set_cover": "Static-EdgeCover-MCond-HG",
     "vkd-cma": "VkD-CMA",
 }
 
 MARKERS = {
     "univariate": "+",
     "full": "*",
-    "mp-hg-gbo-without_clique_seeding-conditional": ">",
-    "mp-hg-gbo-with_clique_seeding-conditional": "<",
+    "uni-hg-gbo-without_clique_seeding-conditional": ">",
+    "mp-hg-gbo-without_clique_seeding-conditional": "<",
+    "mp-hg-gbo-with_clique_seeding-conditional": "d",
     "lt-fb-online-pruned": "s",
+    "uni-hg-fb_no_order-without_clique_seeding-conditional": "2",
     "mp-hg-fb_no_order-without_clique_seeding-conditional": "x",
     "mp-hg-fb_no_order-with_clique_seeding-conditional": "X",
-    "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": "2",
-    "mp-hg-gbo-without_clique_seeding-conditional-set_cover": "d",
     "vkd-cma": "o",
 }
 
 COLOR_ORDER = {
-    "univariate": 7,
-    "full": 6,
+    "univariate": 8,
+    "full": 7,
+    "uni-hg-gbo-without_clique_seeding-conditional": 6,
     "mp-hg-gbo-without_clique_seeding-conditional": 5,
     "mp-hg-gbo-with_clique_seeding-conditional": 4,
     "lt-fb-online-pruned": 2,
-    "mp-hg-fb_no_order-without_clique_seeding-conditional": 1,
-    "mp-hg-fb_no_order-with_clique_seeding-conditional": 0,
-    "mp-fg-gbo-without_clique_seeding-non_conditional-set_cover": 8,
-    "mp-hg-gbo-without_clique_seeding-conditional-set_cover": 9,
+    "uni-hg-fb_no_order-without_clique_seeding-conditional": 1,
+    "mp-hg-fb_no_order-without_clique_seeding-conditional": 0,
+    "mp-hg-fb_no_order-with_clique_seeding-conditional": 9,
     "vkd-cma": 3,
 }
 
@@ -86,8 +87,7 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
 
                 handles, labels = make_one_plot(ax, base_directory + problem_id, problem_id, linkage_models, metric, problem_label)
 
-        if metric == "population_size":
-            fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=len(linkage_models) // 2)
+        fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=math.ceil(len(linkage_models) / 2))
 
         # Global labels
         fig.add_subplot(111, frameon=False)
@@ -110,12 +110,13 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
 def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_label):
     df = pd.read_csv(os.path.join(directory, "aggregated_results.csv"))
 
-    extrapolated_results_name = os.path.join(directory, "extrapolated_results.csv")
-    if os.path.exists(extrapolated_results_name):
+    dfs = []
+    for i in range(5):
+        extrapolated_results_name = os.path.join(directory, f"extrapolated_results_{i}.csv")
         extrapolated_df = pd.read_csv(extrapolated_results_name)
-        extrapolated_df = extrapolated_df[extrapolated_df["corrected_num_evaluations"] < DEFAULT_MAX_NUM_EVALUATIONS]
-    else:
-        extrapolated_df = None
+        dfs.append(extrapolated_df)
+    extrapolated_df = pd.concat(dfs)
+    extrapolated_df = extrapolated_df[extrapolated_df["corrected_num_evaluations"] < DEFAULT_MAX_NUM_EVALUATIONS]
 
     for lm in linkage_models:
         d = df[df["linkage_model"] == lm].groupby(["dimensionality"]).median(numeric_only=True).reset_index()
@@ -127,14 +128,15 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
         if len(d["dimensionality"]) < 4 or extrapolated_df is None:
             continue
 
-        last_dim = d["dimensionality"].tolist()[-1]
-        last_value = d[metric].tolist()[-1]
+        last_dim = np.max(d["dimensionality"])
+        last_value = np.median(d[d["dimensionality"] == last_dim][metric].tolist())
 
         extra_dimensions = [last_dim]
         extra_values = [last_value]
 
         e = extrapolated_df[extrapolated_df["problem"] == problem_id]
-        e = e[e["linkage_model"] == lm].sort_values(by=["dimensionality"])
+        e = e[e["linkage_model"] == lm]
+        e = e.groupby(["dimensionality"]).median(numeric_only=True).reset_index().sort_values(by=["dimensionality"])
 
         for extra_dim, extra_value, corr_eval in zip(e["dimensionality"].tolist(),
                                                      e[metric].tolist(),
@@ -147,9 +149,10 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
 
         line_style = "--" if metric == "population_size" else "-"
         ax.plot(extra_dimensions, extra_values, linestyle=line_style, color=COLORS[lm], marker=MARKERS[lm],
-                label=LABELS[lm])
+                label="_" + LABELS[lm])
 
     handles, labels = ax.get_legend_handles_labels()
+
     if problem_label is not None:
         ax.set_title(problem_label)
 
@@ -157,13 +160,15 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
     plt.yscale('log')
 
     if metric == "corrected_num_evaluations":
-        largest_dim = sorted(list(df[df["linkage_model"] == "vkd-cma"]["dimensionality"]))[-1]
+        with_vig = ["uni-hg-gbo-without_clique_seeding-conditional","mp-hg-gbo-without_clique_seeding-conditional","mp-hg-gbo-with_clique_seeding-conditional",]
+        without_vig = ["univariate","lt-fb-online-pruned","uni-hg-fb_no_order-without_clique_seeding-conditional","mp-hg-fb_no_order-without_clique_seeding-conditional","mp-hg-fb_no_order-with_clique_seeding-conditional","vkd-cma"]
+        largest_dim = sorted(list(extrapolated_df[extrapolated_df["linkage_model"] == "mp-hg-fb_no_order-with_clique_seeding-conditional"]["dimensionality"]))[-1]
 
         eval_sets = []
         median_evals = []
 
         for lm in linkage_models:
-            d = df[df["linkage_model"] == lm]
+            d = extrapolated_df[extrapolated_df["linkage_model"] == lm]
             filtered = d[d["dimensionality"] == largest_dim]
             if len(filtered) == 0:
                 eval_set = [1e7] * 5
@@ -174,28 +179,63 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
             evals = np.median(eval_set)
             median_evals.append(evals)
 
-        best_index = np.argmin(median_evals)
-        best_lm = linkage_models[best_index]
+        best_lm_with = None
+        best_lm_without = None
+        p_with = None
+        p_without = None
 
-        p_values = []
-        for i, lm in enumerate(linkage_models):
-            if i == best_index:
+        for mode in ("WITH", "WITHOUT"):
+            filtered_lm_list = []
+            filtered_lm_index_list = []
+            filtered_eval_sets = []
+            filtered_median_evals = []
+            vig_list = with_vig if mode == "WITH" else without_vig
+            for i, lm in enumerate(linkage_models):
+                if lm in vig_list:
+                    filtered_lm_index_list.append(i)
+                    filtered_lm_list.append(lm)
+                    filtered_eval_sets.append(eval_sets[i])
+                    filtered_median_evals.append(median_evals[i])
+
+            if len(np.unique(filtered_median_evals)) == 1:
+                if mode == "WITH":
+                    assert problem_id == "sphere"
+                    best_lm_with = LABELS["uni-hg-gbo-without_clique_seeding-conditional"]
+                    p_with = "1.000"
+                else:
+                    raise Exception("Not expected")
+
                 continue
-            _, p = mannwhitneyu(eval_sets[i], eval_sets[best_index])
-            if p > 0.99999:
-                continue
-            p_values.append(p)
 
-        max_p = np.max(p_values)
+            best_index = np.argmin(filtered_median_evals)
+            best_lm = filtered_lm_list[best_index]
 
-        if max_p < 0.001:
-            p_string = "\\textbf{$<0.001$}"
-        elif max_p < 0.05/7:
-            p_string = "\\textbf{" + f"{max_p:0.3f}" "}"
-        else:
-            p_string = f"{max_p:0.3f}"
+            p_values = []
+            for i, lm in enumerate(filtered_lm_list):
+                if i == best_index:
+                    continue
+                _, p = mannwhitneyu(filtered_eval_sets[i], filtered_eval_sets[best_index])
+                if p > 0.99999:
+                    continue
+                p_values.append(p)
 
-        print(f"{problem_id} & {LABELS[best_lm]} & {p_string} \\\\")
+            max_p = np.max(p_values)
+
+            if max_p < 0.001:
+                p_string = "{\\bftab $<0.001$}"
+            elif max_p < 0.05/(len(filtered_eval_sets) - 1):
+                p_string = "{\\bftab " + f"{max_p:0.3f}" "}"
+            else:
+                p_string = f"{max_p:0.3f}"
+
+            if mode == "WITH":
+                best_lm_with = LABELS[best_lm]
+                p_with = p_string
+            else:
+                best_lm_without = LABELS[best_lm]
+                p_without = p_string
+
+        print(f"{problem_label[:3]} & {best_lm_with} & {p_with} & {best_lm_without} & {p_without} \\\\")
 
     return handles, labels
 
