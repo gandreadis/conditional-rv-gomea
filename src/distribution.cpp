@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic 
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -25,14 +20,6 @@
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
- * 
  */
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -484,7 +471,8 @@ normal_distribution_t::normal_distribution_t(std::vector<int> variables) {
     this->variables = variables;
 }
 
-void normal_distribution_t::estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix) {
+void normal_distribution_t::estimateDistribution(solution_t **selection, int selection_size,
+                                                 vec_t <vec_t<double>> fitness_dependency_matrix) {
     mean_vector = estimateMeanVectorML(variables, selection, selection_size);
 
     /* Change the focus of the search to the best solution */
@@ -682,7 +670,7 @@ conditional_distribution_t::addGroupOfVariables(const std::vector<int> &indices,
 
 void conditional_distribution_t::estimateConditionalGaussianML(int variable_group_index, solution_t **selection,
                                                                int selection_size,
-                                                               vec_t<vec_t<double>> fitness_dependency_matrix) {
+                                                               vec_t <vec_t<double>> fitness_dependency_matrix) {
     int i = variable_group_index;
     std::vector<int> vars = variable_groups[i];
     int n = vars.size();
@@ -719,7 +707,8 @@ void conditional_distribution_t::estimateConditionalGaussianML(int variable_grou
             mat submat = A12 * A22inv * A12.t();
             covariance_matrices[i] -= submat;
         } else {
-            printf("pseudo-inverse failed\n"); fflush(stdout);
+            printf("pseudo-inverse failed\n");
+            fflush(stdout);
         }
     }
     cholesky_decompositions[i] = choleskyDecomposition(covariance_matrices[i]);
@@ -768,7 +757,7 @@ void conditional_distribution_t::updateConditionals(const std::map<int, std::set
 }
 
 void conditional_distribution_t::estimateDistribution(solution_t **selection, int selection_size,
-                                                      vec_t<vec_t<double>> fitness_dependency_matrix) {
+                                                      vec_t <vec_t<double>> fitness_dependency_matrix) {
     initializeMemory();
     for (int i = 0; i < variable_groups.size(); i++)
         estimateConditionalGaussianML(i, selection, selection_size, fitness_dependency_matrix);

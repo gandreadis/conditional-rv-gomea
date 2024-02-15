@@ -27,7 +27,6 @@ DIMENSIONALITY_EXTENSIONS = {
     "reb-grid": [169, 324],
 }
 
-
 PROBLEM_DIMENSIONS = [
     ("sphere", [10, 20, 40, 80]),
     ("rosenbrock", [10, 20, 40, 80]),
@@ -44,7 +43,6 @@ PROBLEM_DIMENSIONS = [
     ("reb5-disjoint-pairs", [9, 18, 36, 72]),
     ("reb-grid", [16, 36, 64, 81]),
 ]
-
 
 LINKAGE_MODELS = [
     "uni-hg-gbo-without_clique_seeding-conditional",

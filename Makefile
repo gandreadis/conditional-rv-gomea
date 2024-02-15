@@ -1,9 +1,3 @@
-
-## LIBRARIES
-#CECDIR=../lsgo_2013_benchmarks/cpp
-#CECOBJ=$(wildcard $(CECDIR)/F*.o) $(CECDIR)/Benchmarks.o
-#CECDEPS=$(wildcard $(CECDIR)/*.h) $(CECDIR)/Benchmarks.h
-
 ARMADIR=../armadillo-12.6.5
 # -I$(ARMADIR)/include
 
@@ -12,7 +6,6 @@ SRC=$(wildcard src/*.cpp)
 _OBJ=$(patsubst src/%,%,$(SRC))
 DEPS=$(wildcard include/*.h)
 INC=-Iinclude/ -I/usr/local/Cellar/armadillo/12.6.5/include
-#INC=-Iinclude/ -I../eigen 
 EXE=RV-GOMEA
 EXE-dbg=RV-GOMEA-dbg
 ODIR=build

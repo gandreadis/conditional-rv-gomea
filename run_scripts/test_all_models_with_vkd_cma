@@ -5,5 +5,5 @@ PROBLEMS=("-p sphere -d 10" "-p rosenbrock -d 10" "-p reb2-chain-weak -d 10" "-p
 for problem in "${PROBLEMS[@]}"
 do
     python rvgomea/cmd/run.py ${problem} -i test_run -o -s 200 -l vkd-cma || exit 1
-      echo ""
+    echo ""
 done

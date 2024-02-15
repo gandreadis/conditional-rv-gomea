@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic 
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -25,14 +20,6 @@
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
- * 
  */
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -57,7 +44,8 @@ fitness_t *fitness_t::getFitnessClass(int problem_index, int number_of_parameter
         int overlap_size = problem_index % 10;
         problem_index /= 10;
         int block_size = problem_index;
-        fitness_t *func = new sorebFunction_t(number_of_parameters, vtr, conditioning_number_1, conditioning_number_2, rotation_angle_1, rotation_angle_2,
+        fitness_t *func = new sorebFunction_t(number_of_parameters, vtr, conditioning_number_1, conditioning_number_2,
+                                              rotation_angle_1, rotation_angle_2,
                                               block_size, overlap_size);
         return (func);
     }
@@ -157,9 +145,9 @@ double fitness_t::distance_to_box(double ref_x, double ref_y, double p_x, double
 // we compute the distance to the non-dominated area, within the reference window (r_x,r_y)
 // define the area points a(P^(i)_x, P^(i-1)_y), for i = 0...n (n =  number of points in front, i.e., obj0.size())
 // and let P^(-1)_y = r_y,   and    P^(n)_x = r_x
-double
-fitness_t::distance_to_front(double p_x, double p_y, const std::vector<double> &obj_x, const std::vector<double> &obj_y,
-                             std::vector<size_t> &sorted_obj, double r_x, double r_y) {
+double fitness_t::distance_to_front(double p_x, double p_y, const std::vector<double> &obj_x,
+                                    const std::vector<double> &obj_y, std::vector <size_t> &sorted_obj,
+                                    double r_x, double r_y) {
     // if the front is empty, use the reference point for the distance measure
     if (obj_x.size() == 0) {
         return distance_to_box(r_x, r_y, p_x, p_y);
@@ -229,7 +217,7 @@ double fitness_t::compute2DUncrowdedHypervolume(double *obj_f0, double *obj_f1, 
         }
     }
 
-    std::vector<size_t> sorted_obj;
+    std::vector <size_t> sorted_obj;
     double penalty = 0;
     for (int i = 0; i < f0_dominated_set.size(); i++)
         penalty += distance_to_front(f0_dominated_set[i], f1_dominated_set[i], f0_approx_set, f1_approx_set, sorted_obj,
@@ -243,7 +231,7 @@ double fitness_t::compute2DUncrowdedHypervolume(double *obj_f0, double *obj_f1, 
 }
 
 double fitness_t::compute2DHyperVolume(const std::vector<double> &obj_f0, const std::vector<double> &obj_f1,
-                                       std::vector<size_t> &sorted, double rx, double ry) {
+                                       std::vector <size_t> &sorted, double rx, double ry) {
     int n = obj_f0.size();
     if (n == 0) return 0.0;
     if (sorted.size() != n) {
@@ -705,7 +693,8 @@ double rosenbrockFunction_t::getUpperRangeBound(int dimension) {
 //    return (3);
 //}
 
-sorebFunction_t::sorebFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
+sorebFunction_t::sorebFunction_t(int number_of_parameters, double vtr, double conditioning_number_1,
+                                 double conditioning_number_2,
                                  double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size) {
     this->name = "Sum of Rotated Ellipsoid Blocks function";
     this->number_of_parameters = number_of_parameters;
@@ -771,7 +760,9 @@ void sorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_solu
         std::vector<int> idx(solution->num_touched_variables);
         std::iota(idx.begin(), idx.end(), 0);
         std::stable_sort(idx.begin(), idx.end(),
-                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+                         [&solution](int i1, int i2) {
+                             return solution->touched_indices[i1] < solution->touched_indices[i2];
+                         });
 
         sorted_touched_indices.resize(solution->num_touched_variables);
         sorted_touched_variables.resize(solution->num_touched_variables);
@@ -883,8 +874,10 @@ sorebFunction_t::~sorebFunction_t() {
     ezilaitiniObjectiveRotationMatrix(rotation_matrix_2, rotation_angle_2, rotation_block_size);
 }
 
-sorebDisjointBlocksFunction_t::sorebDisjointBlocksFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
-                                 double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size) {
+sorebDisjointBlocksFunction_t::sorebDisjointBlocksFunction_t(int number_of_parameters, double vtr,
+                                                             double conditioning_number_1, double conditioning_number_2,
+                                                             double rotation_angle_1, double rotation_angle_2,
+                                                             int block_size, int overlap_size) {
     this->name = "Disjoint Sum of Rotated Ellipsoid Blocks function";
     this->number_of_parameters = number_of_parameters;
     this->vtr = vtr;
@@ -916,7 +909,8 @@ int sorebDisjointBlocksFunction_t::getIndexOfFirstBlock(int var) {
     if (dual_block_index == 0) {
         block_index = dual_block_index * 2 + (var - overlap_size) / (rotation_block_size - overlap_size);
     } else {
-        block_index = dual_block_index * 2 + ((var % (dual_block_index * dual_block_size)) - overlap_size) / (rotation_block_size - overlap_size);
+        block_index = dual_block_index * 2 + ((var % (dual_block_index * dual_block_size)) - overlap_size) /
+                                             (rotation_block_size - overlap_size);
     }
 
     block_index = fmax(block_index, 0);
@@ -960,7 +954,9 @@ void sorebDisjointBlocksFunction_t::partialEvaluationFunction(solution_t *parent
         std::vector<int> idx(solution->num_touched_variables);
         std::iota(idx.begin(), idx.end(), 0);
         std::stable_sort(idx.begin(), idx.end(),
-                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+                         [&solution](int i1, int i2) {
+                             return solution->touched_indices[i1] < solution->touched_indices[i2];
+                         });
 
         sorted_touched_indices.resize(solution->num_touched_variables);
         sorted_touched_variables.resize(solution->num_touched_variables);
@@ -1142,7 +1138,9 @@ void osorebFunction_t::partialEvaluationFunction(solution_t *parent, partial_sol
         std::vector<int> idx(solution->num_touched_variables);
         std::iota(idx.begin(), idx.end(), 0);
         std::stable_sort(idx.begin(), idx.end(),
-                         [&solution](int i1, int i2) {return solution->touched_indices[i1] < solution->touched_indices[i2];});
+                         [&solution](int i1, int i2) {
+                             return solution->touched_indices[i1] < solution->touched_indices[i2];
+                         });
 
         sorted_touched_indices.resize(solution->num_touched_variables);
         sorted_touched_variables.resize(solution->num_touched_variables);
@@ -2591,8 +2589,8 @@ double ciasBRFunctionUpperRangeBound(int dimension) {
     return (1e+308);
 }
 
-void
-fitness_t::trapSphereFunctionProblemEvaluation(double *parameters, double *objective_value, double *constraint_value) {
+void fitness_t::trapSphereFunctionProblemEvaluation(double *parameters, double *objective_value,
+                                                    double *constraint_value) {
     int i, j, m, k, u;
     double result;
 
@@ -2687,8 +2685,8 @@ double **fitness_t::initializeObjectiveRotationMatrix(double rotation_angle, int
     return (rotation_matrix);
 }
 
-void
-fitness_t::ezilaitiniObjectiveRotationMatrix(double **rotation_matrix, double rotation_angle, int rotation_block_size) {
+void fitness_t::ezilaitiniObjectiveRotationMatrix(double **rotation_matrix, double rotation_angle,
+                                                  int rotation_block_size) {
     int i;
 
     if (rotation_angle == 0.0)

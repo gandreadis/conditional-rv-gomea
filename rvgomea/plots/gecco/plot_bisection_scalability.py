@@ -85,7 +85,8 @@ def main(base_directory, problem_ids, problem_labels, linkage_models):
             for i, (problem_id, problem_label) in enumerate(zip(problem_ids, problem_labels)):
                 ax = axs[i // 4, i % 4]
 
-                handles, labels = make_one_plot(ax, base_directory + problem_id, problem_id, linkage_models, metric, problem_label)
+                handles, labels = make_one_plot(ax, base_directory + problem_id, problem_id, linkage_models, metric,
+                                                problem_label)
 
         fig.legend(handles, labels, loc='center', bbox_to_anchor=(0.5, 1.01), ncol=math.ceil(len(linkage_models) / 2))
 
@@ -160,9 +161,14 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
     plt.yscale('log')
 
     if metric == "corrected_num_evaluations":
-        with_vig = ["uni-hg-gbo-without_clique_seeding-conditional","mp-hg-gbo-without_clique_seeding-conditional","mp-hg-gbo-with_clique_seeding-conditional",]
-        without_vig = ["univariate","lt-fb-online-pruned","uni-hg-fb_no_order-without_clique_seeding-conditional","mp-hg-fb_no_order-without_clique_seeding-conditional","mp-hg-fb_no_order-with_clique_seeding-conditional","vkd-cma"]
-        largest_dim = sorted(list(extrapolated_df[extrapolated_df["linkage_model"] == "mp-hg-fb_no_order-with_clique_seeding-conditional"]["dimensionality"]))[-1]
+        with_vig = ["uni-hg-gbo-without_clique_seeding-conditional", "mp-hg-gbo-without_clique_seeding-conditional",
+                    "mp-hg-gbo-with_clique_seeding-conditional", ]
+        without_vig = ["univariate", "lt-fb-online-pruned", "uni-hg-fb_no_order-without_clique_seeding-conditional",
+                       "mp-hg-fb_no_order-without_clique_seeding-conditional",
+                       "mp-hg-fb_no_order-with_clique_seeding-conditional", "vkd-cma"]
+        largest_dim = sorted(list(
+            extrapolated_df[extrapolated_df["linkage_model"] == "mp-hg-fb_no_order-with_clique_seeding-conditional"][
+                "dimensionality"]))[-1]
 
         eval_sets = []
         median_evals = []
@@ -223,7 +229,7 @@ def make_one_plot(ax, directory, problem_id, linkage_models, metric, problem_lab
 
             if max_p < 0.001:
                 p_string = "{\\bftab $<0.001$}"
-            elif max_p < 0.05/(len(filtered_eval_sets) - 1):
+            elif max_p < 0.05 / (len(filtered_eval_sets) - 1):
                 p_string = "{\\bftab " + f"{max_p:0.3f}" "}"
             else:
                 p_string = f"{max_p:0.3f}"

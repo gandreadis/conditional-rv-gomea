@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic 
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -25,14 +20,6 @@
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
- * 
  */
 
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-= Section Includes -=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -127,7 +114,7 @@ fos_t::fos_t(const fos_t &other) {
 }
 
 
-fos_t::fos_t(vec_t<vec_t<double>> fitness_dependency_matrix, bool is_marginal) {
+fos_t::fos_t(vec_t <vec_t<double>> fitness_dependency_matrix, bool is_marginal) {
     assert(learn_linkage_tree);
 
     double **array_version = (double **) Malloc(number_of_parameters * sizeof(double *));
@@ -208,7 +195,7 @@ void fos_t::deriveTree(double **MI_matrix) {
         mpm_length = distributions.size();
         num_original_conditional_distributions = mpm_length;
 
-        for (distribution_t *d : distributions) {
+        for (distribution_t *d: distributions) {
             conditional_distribution_t *c = (conditional_distribution_t *) d;
 
             int group_size = c->variable_groups[0].size();
@@ -587,9 +574,9 @@ void fos_t::deriveTree(double **MI_matrix) {
 
                 // Determine which sets this merges
                 std::set<int> dists_to_merge;
-                for (int var : vec) {
+                for (int var: vec) {
                     for (int j = 0; j < num_original_conditional_distributions; j++) {
-                        for (int other_var : sets[j]) {
+                        for (int other_var: sets[j]) {
                             if (other_var == var) {
                                 dists_to_merge.insert(j);
                                 break;
@@ -718,7 +705,7 @@ void fos_t::deriveTree(double **MI_matrix) {
 }
 
 fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
-             vec_t<vec_t<double>> *fitness_dependency_matrix) {
+             vec_t <vec_t<double>> *fitness_dependency_matrix) {
     assert(include_cliques_as_fos_elements || include_full_fos_element);
 
     uvec var_order = randomPermutation(number_of_parameters);
@@ -741,7 +728,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
     }
 
     if (use_set_cover) {
-        std::vector<std::pair<int, int>> candidate_sets;
+        std::vector <std::pair<int, int>> candidate_sets;
 
         std::vector<bool> covered_variables;
 
@@ -831,8 +818,8 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
     if (seed_cliques_per_variable) {
         // Approach that seeds clique searches at each variable
 
-        std::vector<std::vector<int>> clique_candidate_list;
-        std::vector<std::set<int>> cond_candidate_list;
+        std::vector <std::vector<int>> clique_candidate_list;
+        std::vector <std::set<int>> cond_candidate_list;
         for (int i = 0; i < number_of_parameters; i++) {
             std::vector<int> clique;
             std::set<int> cond_candidates;
@@ -1049,7 +1036,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
             if (seed_cliques_per_variable == 2) {
                 assert(use_conditional_sampling);
                 bool insert = true;
-                for (distribution_t *d : distributions) {
+                for (distribution_t *d: distributions) {
                     conditional_distribution_t *c = (conditional_distribution_t *) d;
 
                     if (c->variable_groups[0].size() > 1) {
@@ -1108,6 +1095,7 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         }
     }
 
+    // Uncomment to print conditional distributions
 //    if (write_fitness_dependencies) {
 //        for (distribution_t *d : distributions) {
 //            conditional_distribution_t *c = (conditional_distribution_t *) d;
@@ -1126,6 +1114,17 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
 //        }
 //        printf("\n\n");
 //    }
+
+    // Uncomment to print VIG
+//    for (int i = 0; i < number_of_parameters; i++) {
+//        printf("[%d] ", i);
+//
+//        for (int j: variable_interaction_graph.at(i)) {
+//            printf("%d, ", j);
+//        }
+//        printf("\n");
+//    }
+//    printf("\n");
 
     // Write set cover results
     if (use_set_cover && write_fitness_dependencies) {
@@ -1151,32 +1150,6 @@ fos_t::fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
         fclose(f);
     }
 }
-
-
-/*fos_t::fos_t( const std::map<int,std::set<int>> &variable_interaction_graph, int max_clique_size, bool include_cliques_as_fos_elements, bool include_full_fos_element, int VIG_order )
-{
-	this->include_cliques_as_fos_elements = include_cliques_as_fos_elements;
-	this->include_full_fos_element = include_full_fos_element;
-	assert( include_cliques_as_fos_elements || include_full_fos_element );
-	if( include_cliques_as_fos_elements )
-	{
-		for(int i = 0; i < number_of_parameters; i++ )
-		{
-			std::vector<int> vars;
-			vars.push_back(i);
-			addConditionedGroup( vars );
-		}
-	}
-	if( include_full_fos_element )
-	{
-		std::vector<int> vars;
-		for(int i = 0; i < number_of_parameters; i++ )
-			vars.push_back(i);
-		addConditionedGroup( vars );
-	}
-
-	randomizeOrder( variable_interaction_graph );
-}*/
 
 fos_t::~fos_t() {
     for (auto d: distributions)
@@ -1315,15 +1288,7 @@ void fos_t::randomizeOrder(const std::map<int, std::set<int>> &variable_interact
         order[FOS_length] = number_of_parameters;
         distributions[FOS_length]->setOrder(VIG_order);
         distributions[FOS_length]->updateConditionals(variable_interaction_graph, visited);
-        //distributions[FOS_length]->print();
     }
-    /*if( getLength() > 1 )
-    {
-        printf("ORDER: ");
-        for(int i = 0; i < getLength(); i++ )
-            printf("%d ",order[i]);
-        printf("\n");
-    }*/
 }
 
 std::vector<int> fos_t::getVIGOrderBreadthFirst(const std::map<int, std::set<int>> &variable_interaction_graph) {
@@ -1362,29 +1327,12 @@ std::vector<int> fos_t::getVIGOrderBreadthFirst(const std::map<int, std::set<int
                 if (visited[x] == UNVISITED) {
                     q.push(x);
                     visited[x] = IN_QUEUE;
-                    //printf("Q[ %d ]\n",x);
                 }
             }
         }
     }
     return (VIG_order);
 }
-
-/*{
-	order = randomPermutation( getLength() );
-	
-	int visited[number_of_parameters]{};
-
-	for( int i = 0; i < getLength(); i++ )
-	{
-		int group_index = order[i];
-		std::vector<int> clique = getSet(group_index);
-		if( getSetLength(group_index) == variable_interaction_graph.size() )
-			continue;
-	
-		distributions[group_index]->updateConditionals( variable_interaction_graph, visited );
-	}
-}*/
 
 double **fos_t::computeMIMatrix(double **covariance_matrix, int n) {
     double **MI_matrix = (double **) Malloc(n * sizeof(double *));
@@ -1423,14 +1371,14 @@ partial_solution_t *fos_t::generatePartialSolution(int FOS_index, solution_t *so
 }
 
 void fos_t::estimateDistributions(solution_t **selection, int selection_size,
-                                  vec_t<vec_t<double>> fitness_dependency_matrix) {
+                                  vec_t <vec_t<double>> fitness_dependency_matrix) {
     for (int i = 0; i < getLength(); i++)
         estimateDistribution(i, selection, selection_size, fitness_dependency_matrix);
     order = randomPermutation(getLength());
 }
 
 void fos_t::estimateDistribution(int FOS_index, solution_t **selection, int selection_size,
-                                 vec_t<vec_t<double>> fitness_dependency_matrix) {
+                                 vec_t <vec_t<double>> fitness_dependency_matrix) {
     distributions[FOS_index]->estimateDistribution(selection, selection_size, fitness_dependency_matrix);
 }
 

@@ -36,7 +36,7 @@ elif sys.argv[2] == "animation":
     os.system(f"rm -rf {frame_dir} && mkdir -p {frame_dir}")
 
     images = []
-    for n in range(num_generations+1):
+    for n in range(num_generations + 1):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
         cmap = LinearSegmentedColormap.from_list('', ['white', 'darkblue'])

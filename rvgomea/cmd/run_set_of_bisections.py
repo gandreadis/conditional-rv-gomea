@@ -59,7 +59,11 @@ def main():
                         base_run_config, DEFAULT_NUM_REPEATS_PER_BISECTION_TEST, bisection_repeat=repeat
                     )
 
-                    print(f"[Pop] {result_population_size:4}  [Evals] {int(result_median_num_evaluations):8}  [Corr-Evals] {int(result_corrected_num_evaluations):8}")
+                    print(
+                        f"[Pop] {result_population_size:4}  "
+                        f"[Evals] {int(result_median_num_evaluations):8}  "
+                        f"[Corr-Evals] {int(result_corrected_num_evaluations):8}"
+                    )
 
                     if result_corrected_num_evaluations >= DEFAULT_MAX_NUM_EVALUATIONS:
                         num_failed_repeats += 1

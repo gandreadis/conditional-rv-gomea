@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -24,14 +19,6 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
  *
  */
 
@@ -100,7 +87,8 @@ public:
 
     virtual void setOrder(const std::vector<int> &order);
 
-    virtual void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix) = 0;
+    virtual void estimateDistribution(solution_t **selection, int selection_size,
+                                      vec_t<vec_t<double>> fitness_dependency_matrix) = 0;
 
     virtual partial_solution_t *generatePartialSolution(solution_t *parent) = 0;
 
@@ -115,7 +103,8 @@ public:
     mat covariance_matrix;
     mat cholesky_decomposition;
 
-    void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+    void estimateDistribution(solution_t **selection, int selection_size,
+                              vec_t<vec_t<double>> fitness_dependency_matrix);
 
     partial_solution_t *generatePartialSolution(solution_t *parent = NULL);
 
@@ -133,21 +122,22 @@ public:
     conditional_distribution_t(const std::vector<int> &variables, const std::set<int> &conditioned_variables);
 
     std::vector<int> order;
-    std::vector<std::vector<int>> variable_groups;
-    std::vector<std::vector<int>> variables_conditioned_on;
-    std::vector<std::vector<int>> index_in_var_array; // variables[index_in_var_array[a][b]] == variable_groups[a][b]
+    std::vector <std::vector<int>> variable_groups;
+    std::vector <std::vector<int>> variables_conditioned_on;
+    std::vector <std::vector<int>> index_in_var_array;
 
-    std::vector<vec> mean_vectors;
-    std::vector<vec> mean_vectors_conditioned_on;
-    std::vector<mat> covariance_matrices;
-    std::vector<mat> rho_matrices;
-    std::vector<mat> cholesky_decompositions;
+    std::vector <vec> mean_vectors;
+    std::vector <vec> mean_vectors_conditioned_on;
+    std::vector <mat> covariance_matrices;
+    std::vector <mat> rho_matrices;
+    std::vector <mat> cholesky_decompositions;
 
     void addGroupOfVariables(const std::vector<int> &indices, const std::set<int> &indices_cond);
 
     void addGroupOfVariables(std::vector<int> indices, std::vector<int> indices_cond);
 
-    void estimateDistribution(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+    void estimateDistribution(solution_t **selection, int selection_size,
+                              vec_t<vec_t<double>> fitness_dependency_matrix);
 
     void setOrder(const std::vector<int> &order);
 

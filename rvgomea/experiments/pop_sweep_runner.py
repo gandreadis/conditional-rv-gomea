@@ -65,7 +65,11 @@ def run_pop_sweep(base_dir: str, base_run_config: RunConfig, num_repeats_per_con
 
         if log_progress:
             print(
-                f"[POP-SIZE] {population_size:5}  [NUM-EVALS] {median_num_evaluations:8}  [CORR-NUM-EVALS] {corrected_num_evaluations:8} [CHOL] {cholesky_fails:6}")
+                f"[POP-SIZE] {population_size:5}  "
+                f"[NUM-EVALS] {median_num_evaluations:8}  "
+                f"[CORR-NUM-EVALS] {corrected_num_evaluations:8} "
+                f"[CHOL] {cholesky_fails:6}"
+            )
 
         history.append({
             "iteration": history_counter[0],

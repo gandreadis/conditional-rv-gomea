@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -25,14 +20,6 @@
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
  *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
- *
  */
 
 #pragma once
@@ -42,7 +29,7 @@
 #include "tools.h"
 #include "solution.h"
 #include "partial_solution.h"
-//#include "CECHeader.h"
+
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 class fitness_t {
@@ -96,7 +83,7 @@ public:
     double *rotateVariablesInBlocks(double *variables, int len, int from, int to, double **rotation_matrix);
 
     double compute2DHyperVolume(const std::vector<double> &obj_f0, const std::vector<double> &obj_f1,
-                                std::vector<size_t> &sorted, double rx, double ry);
+                                std::vector <size_t> &sorted, double rx, double ry);
 
     double compute2DHyperVolume(double *obj_f0, double *obj_f1, int population_size);
 
@@ -107,7 +94,7 @@ public:
     double distance_to_box(double ref_x, double ref_y, double p_x, double p_y);
 
     double distance_to_front(double p_x, double p_y, const std::vector<double> &obj_x, const std::vector<double> &obj_y,
-                             std::vector<size_t> &sorted_obj, double r_x, double r_y);
+                             std::vector <size_t> &sorted_obj, double r_x, double r_y);
 
     void ezilaitiniObjectiveRotationMatrix(double **rotation_matrix, double rotation_angle, int rotation_block_size);
 
@@ -311,8 +298,9 @@ public:
     int overlap_size;
     int dual_block_size;
 
-    sorebDisjointBlocksFunction_t(int number_of_parameters, double vtr, double conditioning_number_1, double conditioning_number_2,
-                    double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size);
+    sorebDisjointBlocksFunction_t(int number_of_parameters, double vtr, double conditioning_number_1,
+                                  double conditioning_number_2,
+                                  double rotation_angle_1, double rotation_angle_2, int block_size, int overlap_size);
 
     ~sorebDisjointBlocksFunction_t();
 
@@ -448,22 +436,6 @@ private:
     double subfunction(double *vars, int num_vars);
 };
 
-#ifdef CECLSGOFUNC
-class CECLSGOFunctions_t: public fitness_t 
-{
-    public:
-        CECLSGOFunctions_t( int id, int number_of_parameters, double vtr );
-        Benchmarks *function;
-
-        double getLowerRangeBound( int dimension );
-        double getUpperRangeBound( int dimension );
-
-    private:
-        void evaluationFunction( solution_t *solution );
-        //void partialEvaluationFunction( solution_t *parent, partial_solution_t *solution );
-};
-#endif
-
 class BD2FunctionHypervolume_t : public fitness_t {
 public:
     BD2FunctionHypervolume_t(int number_of_parameters, double vtr);
@@ -477,7 +449,6 @@ public:
 private:
     void evaluationFunction(solution_t *solution);
 
-    //void partialEvaluationFunction( solution_t *parent, partial_solution_t *solution );
     double subfunction_f0(double *x);
 
     double subfunction_f1(double *x);
@@ -557,9 +528,4 @@ double ciasBRFunctionUpperRangeBound(int dimension);
 double trapSphereFunctionLowerRangeBound(int dimension);
 
 double trapSphereFunctionUpperRangeBound(int dimension);
-/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
-/*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
-//extern double elitist_objective_value,
-//       elitist_constraint_value;
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/

@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -24,14 +19,6 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
  *
  */
 
@@ -59,7 +46,8 @@ public:
 
     fos_t(FILE *file);
 
-    fos_t(const std::map<int, std::set<int>> &variable_interaction_graph, vec_t<vec_t<double>> *fitness_dependency_matrix);
+    fos_t(const std::map<int, std::set<int>> &variable_interaction_graph,
+          vec_t<vec_t<double>> *fitness_dependency_matrix);
 
     fos_t(const fos_t &f);
 
@@ -67,7 +55,7 @@ public:
 
     int getLength();
 
-    void deriveTree(double** MI_matrix);
+    void deriveTree(double **MI_matrix);
 
     std::vector<int> getSet(int element_index);
 
@@ -108,9 +96,11 @@ public:
 
     partial_solution_t *generatePartialSolution(int FOS_index, solution_t *solution_conditioned_on);
 
-    void estimateDistributions(solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+    void estimateDistributions(solution_t **selection, int selection_size,
+                               vec_t<vec_t<double>> fitness_dependency_matrix);
 
-    void estimateDistribution(int FOS_index, solution_t **selection, int selection_size, vec_t<vec_t<double>> fitness_dependency_matrix);
+    void estimateDistribution(int FOS_index, solution_t **selection, int selection_size,
+                              vec_t<vec_t<double>> fitness_dependency_matrix);
 
     void adaptDistributionMultiplier(int FOS_index, partial_solution_t **solutions, int num_solutions);
 
@@ -119,8 +109,8 @@ public:
     int maximum_no_improvement_stretch = 100;
 
     double p_accept = 0.0;
-    std::vector<std::vector<int>> sets;
-    std::vector<uvec> variables_conditioned_on;
+    std::vector <std::vector<int>> sets;
+    std::vector <uvec> variables_conditioned_on;
 
     void print();
 
@@ -131,9 +121,6 @@ public:
     double *S_vector;                             /* Avoids quadratic memory requirements when a linkage tree is learned based on a random distance measure. */
 };
 
-/*-=-=-=-=-=-=-=-=-=-=-=-= Section Header Functions -=-=-=-=-=-=-=-=-=-=-=-=*/
-/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
-
 /*-=-=-=-=-=-=-=-=-=-=-=- Section Global Variables -=-=-=-=-=-=-=-=-=-=-=-=-*/
 extern int max_clique_size;
 extern bool include_cliques_as_fos_elements;
@@ -143,7 +130,7 @@ extern int seed_cliques_per_variable;
 extern bool use_conditional_sampling;
 extern int FOS_element_ub,                       /* Cut-off value for bounded fixed linkage tree (BFLT). */
 prune_linkage_tree,
-learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
+        learn_linkage_tree,                   /* Whether the FOS is learned at the start of each generation. */
 static_linkage_tree,                  /* Whether the FOS is fixed throughout optimization. */
 random_linkage_tree,                  /* Whether the fixed linkage tree is learned based on a random distance measure. */
 FOS_element_size;                     /* If positive, the size of blocks of consecutive variables in the FOS. If negative, determines specific kind of linkage tree FOS. */

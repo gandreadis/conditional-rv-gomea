@@ -48,7 +48,6 @@ for repeat in range(1, REPEATS + 1):
                     "linkage_model": linkage_model,
                 })
 
-
 PROBLEM_DIMENSIONS = [
     ("sphere", [10, 20, 40, 80]),
     ("rosenbrock", [10, 20, 40, 80]),
@@ -65,7 +64,6 @@ PROBLEM_DIMENSIONS = [
     ("reb5-disjoint-pairs", [9, 18, 36, 72]),
     ("reb-grid", [16, 36, 64, 81]),
 ]
-
 
 LINKAGE_MODELS = [
     "uni-hg-gbo-without_clique_seeding-conditional",
@@ -88,13 +86,11 @@ for repeat in range(1, REPEATS + 1):
                     "linkage_model": linkage_model,
                 })
 
-
 PROBLEM_DIMENSIONS = [
     ("osoreb", [10, 20, 40, 80]),
     ("osoreb-big-strong", [10, 20, 40, 80]),
     ("osoreb-small-strong", [10, 20, 40, 80]),
 ]
-
 
 LINKAGE_MODELS = [
     "univariate",
@@ -122,7 +118,7 @@ def main():
             problem = setting["problem"]
             dimension = setting["dimension"]
             linkage_model = setting["linkage_model"]
-            print(f"[{i+1:4}] {problem},{linkage_model},{dimension:04},{repeat:04}")
+            print(f"[{i + 1:4}] {problem},{linkage_model},{dimension:04},{repeat:04}")
             # print(f"[{i+1:4}] {setting}")
         exit(1)
 

@@ -40,7 +40,7 @@ def main(directory: str):
             "corrected_num_evaluations": result["corrected_num_evaluations"],
         }
 
-        # Address REBGrid 4th dimension having slightly passing median than 3th dimension (where it fails)
+        # Address REBGrid 4th dimension having slightly passing median than 3th dimension (where it already fails)
         if data["problem"] == "reb-grid" and data["linkage_model"] == "full" and data["dimensionality"] >= 40:
             continue
 

@@ -1,7 +1,7 @@
 export PYTHONPATH="$PYTHONPATH:."
 
-#PROBLEMS=("sphere" "rosenbrock" "reb2-chain-weak" "reb2-chain-strong" "reb2-chain-alternating" "reb5-no-overlap" "reb5-small-overlap" "reb5-small-overlap-alternating" "osoreb" "reb5-large-overlap" "reb5-disjoint-pairs" "reb-grid")
-PROBLEMS=("sphere" "rosenbrock" "reb2-chain-weak" "reb2-chain-strong" "reb2-chain-alternating" "reb5-no-overlap" "reb5-small-overlap" "reb5-small-overlap-alternating" "osoreb" "osoreb-big-strong" "osoreb-small-strong" "reb5-large-overlap" "reb5-disjoint-pairs" "reb-grid")
+PROBLEMS=("sphere" "rosenbrock" "reb2-chain-weak" "reb2-chain-strong" "reb2-chain-alternating" "reb5-no-overlap" "reb5-small-overlap" "reb5-small-overlap-alternating" "osoreb" "reb5-large-overlap" "reb5-disjoint-pairs" "reb-grid")
+#PROBLEMS=("sphere" "rosenbrock" "reb2-chain-weak" "reb2-chain-strong" "reb2-chain-alternating" "reb5-no-overlap" "reb5-small-overlap" "reb5-small-overlap-alternating" "osoreb" "osoreb-big-strong" "osoreb-small-strong" "reb5-large-overlap" "reb5-disjoint-pairs" "reb-grid")
 #FRAGMENTS=("snellius3") #"shark" "snellius1" "snellius2")
 #FRAGMENTS=("snellius3" "shark2" "shark3")
 FRAGMENTS=("shark3")

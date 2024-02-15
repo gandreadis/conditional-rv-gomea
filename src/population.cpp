@@ -1,18 +1,13 @@
 /**
  *
- * RV-GOMEA
+ * Fitness-based Conditional Real-Valued Gene-pool Optimal Mixing Evolutionary Algorithm
  *
- * If you use this software for any purpose, please cite the most recent publication:
- * A. Bouter, C. Witteveen, T. Alderliesten, P.A.N. Bosman. 2017.
- * Exploiting Linkage Information in Real-Valued Optimization with the Real-Valued
- * Gene-pool Optimal Mixing Evolutionary Algorithm. In Proceedings of the Genetic
- * and Evolutionary Computation Conference (GECCO 2017).
- * DOI: 10.1145/3071178.3071272
+ * Copyright (c) 2024 by Georgios Andreadis, Tanja Alderliesten, Peter A.N. Bosman, Anton Bouter, and Chantal Olieman
+ * This code is licensed under CC BY-NC-ND 4.0. A copy of the license is included in the LICENSE file.
  *
- * Copyright (c) 1998-2017 Peter A.N. Bosman
- *
- * The software in this file is the proprietary information of
- * Peter A.N. Bosman.
+ * If you use this software for any purpose, please cite the most recent pre-print titled:
+ * "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization
+ *  with RV-GOMEA", by Georgios Andreadis, Tanja Alderliesten, and Peter A.N. Bosman. 2024.
  *
  * IN NO EVENT WILL THE AUTHOR OF THIS SOFTWARE BE LIABLE TO YOU FOR ANY
  * DAMAGES, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST SAVINGS, OR OTHER
@@ -24,14 +19,6 @@
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE
  * AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY ANYONE AS A RESULT OF
  * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
- *
- * The software in this file is the result of (ongoing) scientific research.
- * The following people have been actively involved in this research over
- * the years:
- * - Peter A.N. Bosman
- * - Dirk Thierens
- * - Jörn Grahl
- * - Anton Bouter
  *
  */
 
@@ -408,7 +395,7 @@ void population_t::generateAndEvaluateNewSolutions() {
     }
 
     if (perform_eda_gom) {
-        solution_t **full_solutions = (solution_t **) Malloc(population_size * sizeof(solution_t *));
+        solution_t **full_solutions = (solution_t **) Malloc(population_size * sizeof(solution_t * ));
         for (int k = num_elitists_to_copy; k < population_size; k++) {
             full_solutions[k] = new solution_t(fitness->number_of_parameters);
 
@@ -659,13 +646,13 @@ void population_t::initializeDefaultParameters() {
 }
 
 void population_t::initializeNewPopulationMemory() {
-    individuals = (solution_t **) Malloc(population_size * sizeof(solution_t *));
+    individuals = (solution_t **) Malloc(population_size * sizeof(solution_t * ));
     for (int j = 0; j < population_size; j++)
         individuals[j] = new solution_t(fitness->number_of_parameters);
 
     ranks = (double *) Malloc(population_size * sizeof(double));
 
-    selection = (solution_t **) Malloc(selection_size * sizeof(solution_t *));
+    selection = (solution_t **) Malloc(selection_size * sizeof(solution_t * ));
 
     mean_shift_vector = (double *) Malloc(fitness->number_of_parameters * sizeof(double));
     prev_mean_vector = (double *) Malloc(fitness->number_of_parameters * sizeof(double));
@@ -862,7 +849,8 @@ void population_t::initializeFOS() {
             include_full_fos_element = false;
         }
 
-        new_FOS = new fos_t(fitness->variable_interaction_graph, ((is_fitness_based && fitness_based_ordering) ? &fitness_dependency_matrix : NULL));
+        new_FOS = new fos_t(fitness->variable_interaction_graph,
+                            ((is_fitness_based && fitness_based_ordering) ? &fitness_dependency_matrix : NULL));
     }
 
     if (linkage_model != NULL) {
@@ -919,9 +907,9 @@ void population_t::initializeFOS() {
 
     linkage_model = new_FOS;
 
-    sampled_solutions = (partial_solution_t ***) Malloc(linkage_model->getLength() * sizeof(partial_solution_t **));
+    sampled_solutions = (partial_solution_t ***) Malloc(linkage_model->getLength() * sizeof(partial_solution_t * *));
     for (int j = 0; j < linkage_model->getLength(); j++)
-        sampled_solutions[j] = (partial_solution_t **) Malloc(population_size * sizeof(partial_solution_t *));
+        sampled_solutions[j] = (partial_solution_t **) Malloc(population_size * sizeof(partial_solution_t * ));
 }
 
 std::map<int, std::set<int>> population_t::buildVariableInteractionGraphBasedOnFitnessDependencies() {

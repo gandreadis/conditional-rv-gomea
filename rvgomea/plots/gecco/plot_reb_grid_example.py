@@ -8,6 +8,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import scienceplots
+from matplotlib import colors
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import MultipleLocator
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -45,7 +46,17 @@ grid = ImageGrid(fig, 111,
                  )
 
 ax = grid[0]
-cmap = matplotlib.colormaps["coolwarm"]
+
+
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
+
+
+cmap = truncate_colormap(matplotlib.colormaps["plasma"], 0.25,
+                         1.0)
 cmap.set_under('white')
 
 dsm = get_matrix(num_generations)
@@ -66,60 +77,13 @@ plt.savefig(os.path.join(sys.argv[1], "dsm.pdf"), bbox_inches="tight")
 plt.clf()
 plt.close(fig)
 
-# VIG drawing
 
-# fig, ax = plt.subplots(1, 1, figsize=(3, 3))
-#
-# # m = np.zeros((16, 16))
-# #
-# # for x in range(4):
-# #     for y in range(4):
-# #         i = x * 4 + y
-# #         if x > 0:
-# #             j = (x - 1) * 4 + y
-# #             m[i, j] = 1
-# #             m[j, i] = 1
-# #         if x < 3:
-# #             j = (x + 1) * 4 + y
-# #             m[i, j] = 1
-# #             m[j, i] = 1
-# #         if y > 0:
-# #             j = x * 4 + y - 1
-# #             m[i, j] = 1
-# #             m[j, i] = 1
-# #         if y < 3:
-# #             j = x * 4 + y + 1
-# #             m[i, j] = 1
-# #             m[j, i] = 1
-#
-# G = nx.from_numpy_array(dsm)
-# pos = {}
-#
-# for x in range(3):
-#     for y in range(3):
-#         pos[x * 3 + y] = (y, 2 - x)
-#
-# nx.draw_networkx_nodes(G, pos=pos, ax=ax, edgecolors='black', node_color='none',)
-# nx.draw_networkx_edges(G, pos=pos, ax=ax)
-#
-# # Fix label alignment
-# for k, v in pos.items():
-#     pos[k] = (v[0] + 0.01, v[1] - 0.01)
-# nx.draw_networkx_labels(G, pos=pos, ax=ax)
-#
-# ax.set_xticks([])
-# ax.set_yticks([])
-#
-# plt.tight_layout()
-#
-# plt.savefig(os.path.join(sys.argv[1], f"vig.png"), bbox_inches="tight")
-# plt.savefig(os.path.join(sys.argv[1], f"vig.pdf"), bbox_inches="tight")
-
-# FOS drawing
+# FOS block rendering
 
 for mode, directory in (("mp", mp_dir), ("omp", omp_dir), ("lt", lt_dir)):
     df = pd.read_csv(os.path.join(directory, "fitness_dependency_monitoring_per_generation.dat"))
     num_generations = int(np.max(df["generation"]))
+
 
     def get_fos(generation: int):
         string = df[df["generation"] == generation].to_records()[0]["fos"]

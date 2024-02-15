@@ -13,10 +13,9 @@ num_generations = int(np.max(df["generation"]))
 
 def get_fos(generation: int):
     string = df[df["generation"] == generation].to_records()[0]["fos"]
-    fos_sets = [eval(s.replace("^", ",")) for s in string.split("|")]
-
-    fos_sets = sorted(fos_sets, key=lambda x: (len(x), x))
-    return fos_sets
+    fos = [eval(s.replace("^", ",")) for s in string.split("|")]
+    fos = sorted(fos, key=lambda x: (len(x), x))
+    return fos
 
 
 if sys.argv[2] == "single":
@@ -46,7 +45,7 @@ elif sys.argv[2] == "animation":
     os.system(f"rm -rf {frame_dir} && mkdir -p {frame_dir}")
 
     images = []
-    for n in range(num_generations+1):
+    for n in range(num_generations + 1):
         fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 
         cmap = plt.colormaps.get_cmap('viridis')
@@ -78,8 +77,3 @@ elif sys.argv[2] == "animation":
     clip = ImageSequenceClip(images, fps=5)
 
     clip.write_gif(os.path.join(sys.argv[1], "fos_progression.gif"), fps=5)
-
-
-
-
-
