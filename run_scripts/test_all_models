@@ -1,0 +1,17 @@
+export PYTHONPATH="$PYTHONPATH:."
+
+OPTIONS=("univariate" "full" "lt-fb-online-pruned" "mp-fb-online-gg" "mp-fb-online-fg" "mp-fb-online-hg" "mp-hg-gbo-without_clique_seeding-conditional" "mp-hg-fb_no_order-without_clique_seeding-conditional" "mp-hg-fb_no_order-with_clique_seeding-conditional")
+
+for option in "${OPTIONS[@]}"
+do
+    python rvgomea/cmd/run.py -p reb2-chain-weak -d 10 -i test_run -o -s 32 -l ${option} || exit 1
+    echo ""
+done
+
+PROBLEMS=("-p sphere -d 10" "-p rosenbrock -d 10" "-p reb2-chain-weak -d 10" "-p reb2-chain-strong -d 10" "-p reb2-chain-alternating -d 10" "-p reb5-no-overlap -d 10" "-p reb5-small-overlap -d 9" "-p reb5-small-overlap-alternating -d 9" "-p osoreb -d 10" "-p osoreb-big-strong -d 10" "-p osoreb-small-strong -d 10" "-p reb5-large-overlap -d 10" "-p reb5-disjoint-pairs -d 9" "-p reb-grid -d 9")
+
+for problem in "${PROBLEMS[@]}"
+do
+    python rvgomea/cmd/run.py ${problem} -i test_run -o -s 200 -l mp-hg-gbo-with_clique_seeding-conditional || exit 1
+      echo ""
+done

@@ -1,0 +1,11 @@
+build/
+archive/
+data/
+test_run*/
+test_pop_sweep/
+test_bisection/
+gecco-data/
+
+random_seed.dat
+RV-GOMEA
+.DS_store

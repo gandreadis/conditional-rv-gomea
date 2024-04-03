@@ -1,0 +1,7 @@
+pandas
+seaborn
+matplotlib
+numpy
+scienceplots
+images2gif
+moviepy
