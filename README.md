@@ -1,6 +1,6 @@
 # Fitness-based Conditional RV-GOMEA
 
-Code associated with the pre-print titled: "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization with RV-GOMEA", by [Georgios Andreadis](https://github.com/gandreadis/), Tanja Alderliesten, and Peter A.N. Bosman. This codebase includes contributions by [Anton Bouter](https://github.com/abouter/) and [Chantal Olieman](https://github.com/chantal-olieman/).
+Code associated with the [pre-print](https://arxiv.org/pdf/2402.10757) titled: "Fitness-based Linkage Learning and Maximum-Clique Conditional Linkage Modelling for Gray-box Optimization with RV-GOMEA", by [Georgios Andreadis](https://github.com/gandreadis/), Tanja Alderliesten, and Peter A.N. Bosman. This codebase includes contributions by [Anton Bouter](https://github.com/abouter/) and [Chantal Olieman](https://github.com/chantal-olieman/).
 
 ## Building
 
